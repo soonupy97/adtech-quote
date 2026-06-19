@@ -1,0 +1,676 @@
+// ── lucide 아이콘 정렬 ──────────────────────────────────────
+// flex 컨테이너(.btn·.badge·nav)에선 align-items 가 수직정렬을 담당해
+// vertical-align 이 무시되므로, 아래 값은 인라인 컨텍스트(배너·카드제목·
+// 표 셀·본문)에서만 광학적으로 적용된다 → 전역 1줄로 두는 편이 견고하다.
+.lucide {
+  flex-shrink: 0; // 버튼/뱃지에서 아이콘이 찌그러지지 않도록
+  vertical-align: -0.18em; // 한글 본문 기준선과 맞춤(flex 안에선 무시됨)
+}
+
+// ── 카드 (헤어라인, 그림자 없음 — 색이 깊이를 대신) ──────────
+.card {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.card + .card {
+  margin-top: 16px;
+}
+// 그리드(다단) 안에서는 gap 이 간격을 담당 → 스택용 margin 제거(카드 어긋남 방지)
+.grid .card + .card {
+  margin-top: 0;
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 540;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.card-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-top: -10px;
+  margin-bottom: 14px;
+}
+
+// ── 입력 (흰 배경 + 헤어라인 + 포커스 링) ──────────────────
+label.field {
+  display: block;
+  margin-bottom: 12px;
+}
+label.field > span {
+  display: block;
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--hairline);
+  background: var(--canvas);
+  color: var(--ink);
+  border-radius: var(--r-md);
+  padding: 11px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  font-weight: 400;
+  outline: none;
+  transition: box-shadow 0.12s, border-color 0.12s;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink) inset;
+}
+textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+input.amt,
+input[type="number"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-3);
+}
+
+// ── 버튼 (pill = 유일한 버튼 형태) ─────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: var(--pill);
+  padding: 9px 20px;
+  font-size: 15px;
+  font-weight: 480;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  background: var(--surface-soft);
+  color: var(--ink);
+  transition: transform 0.06s, background 0.12s, opacity 0.12s;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--hairline);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn.primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+.btn.primary:hover {
+  background: var(--toss-blue-dark);
+}
+.btn.soft {
+  background: var(--block-lilac);
+  color: var(--ink);
+}
+.btn.soft:hover {
+  filter: brightness(0.97);
+}
+.btn.danger {
+  background: var(--st-rejected-bg);
+  color: var(--danger);
+}
+.btn.sm {
+  padding: 6px 13px;
+  font-size: 13px;
+}
+.btn.lg {
+  padding: 12px 26px;
+  font-size: 16px;
+}
+.btn.block {
+  width: 100%;
+}
+.btn.kakao {
+  background: #fee500;
+  color: #191600;
+}
+// 다크 컬러블록 위에서 쓰는 흰 pill (button-secondary)
+.btn.light {
+  background: var(--canvas);
+  color: var(--ink);
+}
+.btn.light:hover {
+  background: var(--surface-soft);
+}
+// 다크 컬러블록 위 보조 액션(반투명 화이트)
+.btn.ghost-inverse {
+  background: rgba(255, 255, 255, 0.16);
+  color: #f2f2f0;
+}
+.btn.ghost-inverse:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+// ── 상태 뱃지 (파스텔 그라운드 + 색 점) ─────────────────────
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 11px;
+  border-radius: var(--pill);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.badge.draft { background: var(--st-draft-bg); }
+.badge.draft .dot { background: var(--st-draft); }
+.badge.sent { background: var(--st-sent-bg); }
+.badge.sent .dot { background: var(--st-sent); }
+.badge.viewed { background: var(--st-viewed-bg); }
+.badge.viewed .dot { background: var(--st-viewed); }
+.badge.accepted { background: var(--st-accepted-bg); }
+.badge.accepted .dot { background: var(--st-accepted); }
+.badge.rejected { background: var(--st-rejected-bg); }
+.badge.rejected .dot { background: var(--st-rejected); }
+
+// ── 테이블 (헤어라인-소프트 디바이더) ──────────────────────
+.table {
+  width: 100%;
+  min-width: 560px; // 좁은 화면에서 칸이 뭉개지지 않고 .table-wrap 이 가로 스크롤되도록
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 500;
+  font-size: 11px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+.table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid var(--hairline-soft);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.table td.wrap {
+  white-space: normal;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.table tbody tr:hover {
+  background: var(--fill-2);
+}
+.table .amt {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.table a.link {
+  color: var(--ink);
+  font-weight: 540;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+
+// ── 토글 카드 ──────────────────────────────────────────────
+.toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-soft);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.toggle.on {
+  background: var(--block-lilac);
+  border-color: var(--ink);
+}
+.toggle .head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 500;
+  font-size: 14px;
+}
+.toggle .check {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-sm);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.12s;
+}
+.toggle.on .check {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.toggle .check svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.15s;
+}
+.toggle.on .check svg {
+  opacity: 1;
+  transform: scale(1);
+}
+.toggle input.cost {
+  background: var(--canvas);
+}
+
+// ── 합계 박스 ──────────────────────────────────────────────
+.totals {
+  background: var(--surface-soft);
+  border-radius: var(--r-md);
+  padding: 18px 20px;
+}
+.totals .line {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.totals .line.sep {
+  border-top: 1px solid var(--hairline);
+  margin-top: 6px;
+  padding-top: 12px;
+}
+.totals .line .v {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ink);
+}
+.totals .grand {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 2px solid var(--ink);
+}
+.totals .grand .label {
+  font-weight: 540;
+  font-size: 16px;
+}
+.totals .grand .v {
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+// ── 하단 액션바 ────────────────────────────────────────────
+.actionbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  margin: 24px -1px -1px;
+  padding: 14px 18px;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+// ── 토스트 (검정 pill) ─────────────────────────────────────
+.toast-wrap {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.toast {
+  background: var(--primary);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: var(--pill);
+  font-size: 14px;
+  font-weight: 480;
+  box-shadow: var(--shadow-2);
+  animation: toast-in 0.2s ease;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+// ── 모달 ───────────────────────────────────────────────────
+.modal-back {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fade 0.15s ease;
+}
+@keyframes fade {
+  from { opacity: 0; }
+}
+.modal {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow: auto;
+  box-shadow: var(--shadow-3);
+}
+.modal.wide {
+  max-width: 600px;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 540;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+// ── 빈 상태 ────────────────────────────────────────────────
+.empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--text-3);
+}
+.empty .big {
+  display: flex;
+  justify-content: center;
+  color: var(--text-3);
+  margin-bottom: 14px;
+}
+.empty .ttl {
+  font-size: 18px;
+  font-weight: 540;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+// ── 진행 타임라인 ──────────────────────────────────────────
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+.timeline .ev {
+  display: flex;
+  gap: 14px;
+  padding: 0 0 18px;
+  position: relative;
+}
+.timeline .ev:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 18px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--hairline);
+}
+.timeline .ev .pin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  flex-shrink: 0;
+  margin-top: 2px;
+  z-index: 1;
+}
+.timeline .ev .body .t {
+  font-weight: 540;
+  font-size: 14px;
+}
+.timeline .ev .body .d {
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+// 결과 배너 (파스텔)
+.banner {
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+  font-weight: 480;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+.banner.ok { background: var(--block-mint); }
+.banner.no { background: var(--block-pink); }
+.banner.info { background: var(--block-lilac); }
+
+// 파이프라인
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.pipeline .stage {
+  background: var(--surface-soft);
+  border-radius: var(--r-md);
+  padding: 16px;
+  text-align: center;
+}
+.pipeline .stage .n {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.pipeline .stage .l {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+@media (max-width: 720px) {
+  .pipeline { grid-template-columns: repeat(2, 1fr); }
+}
+
+// 상태 분포 막대
+.distbar {
+  display: flex;
+  height: 14px;
+  border-radius: var(--pill);
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+.distbar > span {
+  display: block;
+  height: 100%;
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.legend .it {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend .sw {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+// 수주율 링 (모노크롬)
+.ring {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--ink) calc(var(--p) * 1%), var(--surface-soft) 0);
+}
+.ring .inner {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--card);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+// 통계 카드
+.stat .k {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.stat .v {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.stat .sub {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+// 서명 패드
+.sigpad {
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--canvas);
+  touch-action: none;
+  width: 100%;
+  height: 180px;
+  display: block;
+  cursor: crosshair;
+}
+
+// 견적 전문(readonly)
+.qdoc {
+  font-size: 14px;
+}
+.qdoc h2 {
+  font-size: 28px;
+  font-weight: 360;
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.qdoc .qmeta {
+  font-family: var(--font-mono);
+  text-align: center;
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+}
+.qdoc .twocol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.qdoc .box {
+  background: var(--surface-soft);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+}
+.qdoc .box .bt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.qdoc .kv {
+  display: flex;
+  gap: 8px;
+  padding: 3px 0;
+}
+.qdoc .kv .k {
+  color: var(--text-3);
+  min-width: 64px;
+}
+@media (max-width: 720px) {
+  .qdoc .twocol { grid-template-columns: 1fr; }
+}
+
+.chip {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 480;
+  padding: 3px 10px;
+  border-radius: var(--pill);
+  background: var(--surface-soft);
+  color: var(--text-2);
+}
+.chip.blue {
+  background: var(--block-lilac);
+  color: var(--ink);
+}

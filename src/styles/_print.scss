@@ -1,0 +1,27 @@
+// 인쇄(PDF) — §6
+@media print {
+  body {
+    background: #fff;
+  }
+  .sidebar,
+  .actionbar,
+  .no-print,
+  .toast-wrap {
+    display: none !important;
+  }
+  .main {
+    padding: 0;
+    max-width: none;
+  }
+  .card {
+    box-shadow: none;
+    border: 1px solid var(--line);
+    break-inside: avoid;
+  }
+  .qdoc,
+  .qdoc .box,
+  .qdoc .twocol,
+  .table {
+    break-inside: avoid;
+  }
+}

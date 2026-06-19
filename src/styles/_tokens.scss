@@ -1,0 +1,98 @@
+// ─────────────────────────────────────────────────────────────
+// Figma 마케팅 디자인 시스템 토큰 (DESIGN.md)
+// 모노크롬 코어(black/white) + 오버사이즈 파스텔 컬러블록.
+// 앱 호환을 위해 기존 변수명(--toss-blue, --bg …)을 유지하고 값만 새 시스템으로 매핑.
+// ─────────────────────────────────────────────────────────────
+:root {
+  // 폰트
+  --font-sans: "Pretendard Variable", Pretendard, "SF Pro Display", system-ui,
+    -apple-system, helvetica, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Pretendard Variable", menlo, monospace;
+
+  // 코어: 잉크(검정) / 캔버스(흰색)
+  --ink: #181818;          // 모든 본문·헤드라인 텍스트
+  --primary: #111111;      // 모든 primary CTA / 선택 상태
+  --canvas: #ffffff;
+  --surface-soft: #f4f4f2; // 오프화이트 타일(아이콘버튼·템플릿카드·보조버튼)
+  --hairline: #e6e6e3;     // 1px 보더
+  --hairline-soft: #f0f0ee;// 더 옅은 디바이더
+
+  // 파스텔 컬러블록
+  --block-lime: #e6f5a8;
+  --block-lilac: #e6e0fa;
+  --block-cream: #f6efe1;
+  --block-mint: #d6f3e4;
+  --block-pink: #fadfeb;
+  --block-coral: #fbddce;
+  --block-navy: #232142;
+
+  --accent-magenta: #f5279a; // 단발 프로모션 CTA
+  --success: #14ae5c;
+  --danger: #e5484d;
+  --warn: #f5a623;
+
+  // ── 기존 변수명 매핑(값만 교체) ──
+  --toss-blue: #111111;        // accent → 잉크(링크/링/active 텍스트)
+  --toss-blue-dark: #000000;
+  --toss-blue-soft: #e6e0fa;   // soft 버튼/active 배경 → 라일락
+  --bg: #fbfbfa;               // 캔버스(거의 흰색)
+  --card: #ffffff;
+  --fill: #f4f4f2;             // surface-soft
+  --fill-2: #f8f8f6;
+  --line: #e6e6e3;             // hairline
+  --text: #181818;
+  --text-2: #4a4a47;           // 메타/라벨(앱 적응: 절제된 그레이)
+  --text-3: #8a8a86;           // 캡션/dim
+
+  // 라운드 스케일 (DESIGN.md)
+  --r-xs: 2px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --pill: 50px;
+  --r-full: 9999px;
+  --radius: 24px;     // 카드/컬러블록 = lg
+  --radius-sm: 8px;   // 입력 = md
+
+  // 상태(파스텔 그라운드 + 색 점)
+  --st-draft: #6b6b68;     --st-draft-bg: #f0f0ee;
+  --st-sent: #d98324;      --st-sent-bg: #f6efe1;   // cream
+  --st-viewed: #6a4df5;    --st-viewed-bg: #e6e0fa; // lilac
+  --st-accepted: #14ae5c;  --st-accepted-bg: #d6f3e4; // mint
+  --st-rejected: #e5484d;  --st-rejected-bg: #fadfeb; // pink
+
+  // 그림자: 시스템은 shadow-light → 기본은 사실상 없음(헤어라인으로 분리)
+  --shadow: 0 0 0 1px var(--hairline);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-3: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+// 다크: 마케팅엔 미문서. 네이비 컬러블록을 차용한 절제된 다크.
+[data-theme="dark"] {
+  --ink: #f2f2f0;
+  --primary: #f2f2f0;
+  --canvas: #1a1830;
+  --surface-soft: #262445;
+  --hairline: #322f55;
+  --hairline-soft: #2a2848;
+
+  --toss-blue: #cdc6ff;
+  --toss-blue-dark: #ffffff;
+  --toss-blue-soft: #2e2a55;
+  --bg: #15132a;
+  --card: #1d1b38;
+  --fill: #262445;
+  --fill-2: #211f3e;
+  --line: #322f55;
+  --text: #f2f2f0;
+  --text-2: #b4b0d4;
+  --text-3: #8480ad;
+
+  --st-draft-bg: #2a2848;
+  --st-sent-bg: #3a2f1e;
+  --st-viewed-bg: #2e2a55;
+  --st-accepted-bg: #143a2a;
+  --st-rejected-bg: #3a1f2a;
+  --shadow: 0 0 0 1px var(--hairline);
+}

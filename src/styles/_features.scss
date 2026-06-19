@@ -1,0 +1,353 @@
+// 상단바 + 알림 벨
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  min-height: 20px;
+}
+// 데스크톱에선 사이드바 foot 에 컨트롤이 있으므로 숨기고, 모바일에서만 노출
+.topbar-only {
+  display: none;
+}
+@media (max-width: 860px) {
+  .topbar-only {
+    display: inline-flex;
+  }
+}
+.bell-wrap {
+  position: relative;
+}
+.bell-badge {
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 1px 6px;
+  margin-left: 2px;
+}
+.bell-panel {
+  position: absolute;
+  right: 0;
+  top: 110%;
+  z-index: 50;
+  width: 320px;
+  max-height: 440px;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  padding: 14px;
+}
+.noti {
+  display: block;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  margin-bottom: 4px;
+}
+.noti:hover {
+  background: var(--fill-2);
+}
+.noti.unread {
+  background: var(--toss-blue-soft);
+}
+.noti .t {
+  font-weight: 700;
+  font-size: 13.5px;
+}
+.noti .b {
+  font-size: 12.5px;
+  color: var(--text-3);
+}
+
+// 칸반 (파이프라인)
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+}
+.kanban .col {
+  background: var(--fill-2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  min-height: 200px;
+}
+.kanban .col.drop {
+  box-shadow: 0 0 0 2px var(--toss-blue) inset;
+}
+.kanban .col h4 {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.kanban .lead {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 11px 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+}
+.kanban .lead .n {
+  font-weight: 700;
+  font-size: 14px;
+}
+.kanban .lead .m {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 3px;
+}
+@media (max-width: 720px) {
+  .kanban {
+    grid-template-columns: 1fr;
+  }
+}
+
+// 퍼널
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.funnel .step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.funnel .bar {
+  height: 34px;
+  border-radius: var(--r-sm);
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--canvas);
+  font-weight: 540;
+  font-size: 13px;
+  min-width: 44px;
+  font-variant-numeric: tabular-nums;
+  transition: width 0.3s;
+}
+.funnel .lab {
+  width: 96px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.funnel .rate {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+// 막대 차트(매출 추이)
+.barchart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 180px;
+  padding-top: 10px;
+}
+.barchart .b {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.barchart .b .fill {
+  width: 100%;
+  max-width: 46px;
+  background: var(--block-lime);
+  border: 1px solid var(--ink);
+  border-bottom: none;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  min-height: 3px;
+}
+.barchart .b .lab {
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+.barchart .b .val {
+  font-size: 11px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+// 워터마크 (DRAFT)
+.watermark {
+  position: relative;
+  overflow: hidden;
+}
+.watermark::after {
+  content: "DRAFT";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 120px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(24, 24, 24, 0.05);
+  transform: rotate(-24deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+// 첨부 갤러리
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.gallery .thumb {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--fill);
+  aspect-ratio: 4 / 3;
+}
+.gallery .thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gallery .thumb .del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+// 코멘트 스레드
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comment {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--fill-2);
+  max-width: 80%;
+}
+.comment.customer {
+  align-self: flex-start;
+  background: var(--fill);
+}
+.comment.staff {
+  align-self: flex-end;
+  background: var(--toss-blue-soft);
+}
+.comment .who {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+
+// 마진 표시
+.margin-box {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.margin-box .mi {
+  background: var(--surface-soft);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+}
+.margin-box .mi .k {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+.margin-box .mi .v {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+// pill 탭
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+// 일정 캘린더
+.cal-grid {
+  display: grid;
+  // minmax(0,1fr): 칸이 콘텐츠(긴 일정 텍스트) 최소폭에 막혀 넘치지 않고 줄어들도록
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.cal-h {
+  background: var(--fill-2);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+  padding: 8px 0;
+  &.sun { color: var(--danger); }
+  &.sat { color: var(--toss-blue); }
+}
+.cal-cell {
+  background: var(--card);
+  min-height: 96px;
+  padding: 6px 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  &.dim-cell { background: var(--fill-2); }
+  &.today { box-shadow: 0 0 0 2px var(--toss-blue) inset; }
+}
+.cal-num {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  &.sun { color: var(--danger); }
+  &.sat { color: var(--toss-blue); }
+}
+.dim-cell .cal-num { opacity: 0.45; }
+.cal-ev {
+  display: block;
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-more {
+  font-size: 10.5px;
+  color: var(--text-3);
+  padding-left: 4px;
+}
+.cal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.ev-install { background: var(--toss-blue); }
+.ev-pay { background: var(--success); }
+.ev-expiry { background: var(--danger); }
+@media (max-width: 720px) {
+  .cal-cell { min-height: 70px; }
+  .cal-ev { font-size: 10px; }
+}
