@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
-import { fmtDate, STATUS_LABEL, won } from "@/lib/quote";
+import { fmtDate, STATUS_LABEL, sampleQuote, won } from "@/lib/quote";
 import type { QuoteStatus, QuoteSummary } from "@/types";
 import { Button, EmptyState, Input, Modal, StatusBadge, Table, type Column } from "@/components/ui";
 import SendActions from "@/components/SendActions";
 import { useToast } from "@/components/Toast";
-import { Link2, Plus, Search } from "lucide-react";
+import { FileText, Link2, Plus, Search } from "lucide-react";
 
 const STATUSES: (QuoteStatus | "all")[] = ["all", "draft", "sent", "viewed", "accepted", "rejected"];
 
@@ -18,6 +18,7 @@ export default function Quotes() {
   const [filter, setFilter] = useState<QuoteStatus | "all">("all");
   const [link, setLink] = useState<string | null>(null);
   const [linkItem, setLinkItem] = useState<QuoteSummary | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   const load = () => store.listQuotes().then(setList);
   useEffect(() => { load(); }, []);
@@ -53,6 +54,18 @@ export default function Quotes() {
     await store.removeQuote(id);
     await load();
     toast("삭제되었습니다.");
+  };
+
+  // 빈 상태 온보딩: 현실적인 샘플 견적 1건 추가
+  const addSample = async () => {
+    setSeeding(true);
+    try {
+      await store.saveQuote(sampleQuote());
+      await load();
+      toast("샘플 견적서를 추가했습니다.");
+    } finally {
+      setSeeding(false);
+    }
   };
 
   const copyLink = () => {
@@ -120,7 +133,23 @@ export default function Quotes() {
           columns={columns}
           rows={filtered}
           rowKey={(it) => it.id}
-          empty={<EmptyState icon={<Search size={40} strokeWidth={1.5} />} title="견적이 없습니다" />}
+          empty={
+            list.length === 0 ? (
+              <EmptyState
+                icon={<FileText size={40} strokeWidth={1.5} />}
+                title="아직 견적이 없습니다"
+                desc={<span style={{ display: "block", marginBottom: 16 }}>첫 견적을 만들거나, 샘플로 먼저 둘러보세요.</span>}
+                action={
+                  <div className="row" style={{ gap: 8, justifyContent: "center" }}>
+                    <Link className="btn primary" to="/editor"><Plus size={16} />첫 견적 만들기</Link>
+                    <Button variant="secondary" loading={seeding} onClick={addSample}>샘플 견적서 추가</Button>
+                  </div>
+                }
+              />
+            ) : (
+              <EmptyState icon={<Search size={40} strokeWidth={1.5} />} title="검색 결과가 없습니다" />
+            )
+          }
         />
       </div>
 

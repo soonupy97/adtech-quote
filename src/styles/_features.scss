@@ -8,7 +8,7 @@
 .topbar-only {
   display: none;
 }
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .topbar-only {
     display: inline-flex;
   }
@@ -34,7 +34,7 @@
   right: 0;
   top: 110%;
   z-index: 50;
-  width: 320px;
+  width: min(320px, calc(100vw - 32px));
   max-height: 440px;
   overflow: auto;
   background: var(--card);
@@ -112,7 +112,7 @@
   color: var(--text-3);
   margin-top: 4px;
 }
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .kanban {
     grid-template-columns: 1fr;
   }
@@ -381,7 +381,7 @@
   cursor: pointer;
   text-align: left;
 }
-@media (max-width: 720px) {
-  .cal-cell { min-height: 70px; }
-  .cal-ev { font-size: 12px; }
+@media (max-width: 768px) {
+  .cal-cell { min-height: 70px; padding: 4px; }
+  .cal-ev { font-size: 12px; padding: 4px; }
 }

@@ -17,6 +17,14 @@ function normEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
+// 이메일 일부 마스킹: hong***@company.com
+function maskEmail(email: string): string {
+  const [user, domain] = email.split("@");
+  if (!domain) return email;
+  const head = user.length <= 2 ? user.slice(0, 1) : user.slice(0, 2);
+  return `${head}${"*".repeat(Math.max(3, user.length - head.length))}@${domain}`;
+}
+
 // ── 로컬 폴백(Supabase 미설정 시 개발용. 실보안 아님) ───────────────
 function djb2(str: string): string {
   let h = 5381;
@@ -53,6 +61,22 @@ function validate(email: string, pw: string): string | null {
 
 export const Auth = {
   enabled: isSupabaseEnabled,
+
+  // [로컬 목업 전용] gitignore 된 .env 의 VITE_ADMIN_* 로 관리자 계정을 1회 시드한다.
+  // 비밀번호는 소스/깃이 아니라 .env 에서만 읽는다(자격증명 유출 방지).
+  // 실서비스(Supabase) 모드에선 동작하지 않는다 → 그땐 Supabase 가입을 쓴다.
+  ensureLocalAdmin(): void {
+    if (isSupabaseEnabled) return;
+    const email = (import.meta.env.VITE_ADMIN_EMAIL as string | undefined)?.trim();
+    const pw = import.meta.env.VITE_ADMIN_PASSWORD as string | undefined;
+    const name = (import.meta.env.VITE_ADMIN_NAME as string | undefined)?.trim() || "관리자";
+    if (!email || !EMAIL_RE.test(email) || !pw || pw.length < 6) return;
+    const key = normEmail(email);
+    const map = readAccounts();
+    if (map[key]) return; // 이미 있으면 보존(비밀번호 덮어쓰지 않음)
+    map[key] = { email: key, name, pw: djb2(pw), created_at: new Date().toISOString() };
+    writeAccounts(map);
+  },
 
   // 계정 생성. 성공 시 active 세션이 바로 생기면 loggedIn=true.
   // (이메일 인증이 켜져 있으면 메일 확인 후 로그인하도록 loggedIn=false)
@@ -161,6 +185,27 @@ export const Auth = {
       return { ok: true };
     }
     return { ok: false, msg: "로컬 모드에서는 지원되지 않습니다." };
+  },
+
+  // [아이디 찾기] 이름으로 가입된 이메일(아이디)을 찾아 마스킹해 돌려준다.
+  // 서버 인증 모드에서는 보안상 클라이언트에서 사용자 조회가 불가하므로 안내만 한다.
+  async findEmails(name: string): Promise<Result & { emails?: string[] }> {
+    const qn = name.trim().toLowerCase();
+    if (!qn) return { ok: false, msg: "이름을 입력해 주세요." };
+
+    if (isSupabaseEnabled) {
+      return {
+        ok: false,
+        msg: "서버 인증 모드에서는 이메일이 곧 아이디입니다. 가입한 이메일로 로그인하거나, 비밀번호를 잊었다면 재설정을 이용해 주세요.",
+      };
+    }
+
+    const map = readAccounts();
+    const emails = Object.values(map)
+      .filter((a) => a.name.trim().toLowerCase() === qn)
+      .map((a) => maskEmail(a.email));
+    if (!emails.length) return { ok: false, msg: "해당 이름으로 가입된 계정을 찾지 못했습니다." };
+    return { ok: true, emails };
   },
 
   // [로컬 개발용 폴백] 메일을 못 보내는 로컬 모드에서 이메일+이름 본인확인 후 즉시 재설정.

@@ -200,7 +200,7 @@ textarea::placeholder {
   gap: 8px;
   border: none;
   border-radius: var(--pill);
-  padding: 8px 20px;
+  padding: 9px 20px;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -272,15 +272,29 @@ textarea::placeholder {
   color: var(--text-2);
 }
 .btn.sm {
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 6px 14px;
   font-size: 14px;
 }
 .btn.lg {
-  padding: 12px 24px;
-  font-size: 16px;
+  gap: 10px;
+  padding: 13px 26px;
+  font-size: 18px;
 }
 .btn.block {
   width: 100%;
+}
+// 아이콘 전용(라벨 없음): 정사각 패딩 → 원형 버튼. 사이즈별 패딩 비례.
+.btn.icon-only {
+  gap: 0;
+  padding: 9px;
+  aspect-ratio: 1;
+}
+.btn.sm.icon-only {
+  padding: 6px;
+}
+.btn.lg.icon-only {
+  padding: 13px;
 }
 // 어두운 컬러블록(ink) 위에서 쓰는 버튼
 .btn.inverse {
@@ -582,6 +596,43 @@ textarea::placeholder {
   letter-spacing: -0.02em;
 }
 
+// 좁은 화면: 액션바/모달 버튼 줄바꿈 + 모달 여백 축소 + 표 셀 여백 축소
+@media (max-width: 768px) {
+  // 하단 액션바 → 화면 폭 꽉 채운 고정 바 + 버튼 균등 분배(모바일 액션 시트 느낌)
+  .actionbar {
+    margin: 16px -16px -20px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .actionbar .spacer {
+    display: none;
+  }
+  .actionbar > .btn {
+    flex: 1 1 auto;
+  }
+  .modal-foot {
+    flex-wrap: wrap;
+  }
+  .modal-head {
+    padding: 16px 16px 12px;
+  }
+  .modal-body {
+    padding: 0 16px 16px;
+  }
+  .modal-foot {
+    padding: 12px 16px;
+  }
+  .table th,
+  .table td {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
 // ── 빈 상태 ────────────────────────────────────────────────
 .empty {
   text-align: center;
@@ -678,7 +729,7 @@ textarea::placeholder {
   color: var(--text-3);
   margin-top: 4px;
 }
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .pipeline { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -820,7 +871,7 @@ textarea::placeholder {
 // 타일 하단으로 콘텐츠 밀어내기 (라벨은 위, 수치는 아래)
 .bento .tile .push-bottom { margin-top: auto; }
 
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .bento,
   .bento.cols-2,
   .bento.cols-4 { grid-template-columns: 1fr 1fr; }
@@ -828,7 +879,7 @@ textarea::placeholder {
   .bento .tile.row-2 { grid-column: auto; grid-row: auto; }
   .bento .tile.full { grid-column: 1 / -1; }
 }
-@media (max-width: 560px) {
+@media (max-width: 768px) {
   .bento,
   .bento.cols-2,
   .bento.cols-4 { grid-template-columns: 1fr; }
@@ -897,7 +948,7 @@ textarea::placeholder {
   color: var(--text-3);
   min-width: 64px;
 }
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .qdoc .twocol { grid-template-columns: 1fr; }
 }
 

@@ -9,6 +9,7 @@ import {
   Inbox,
   LayoutDashboard,
   LayoutTemplate,
+  Menu,
   Moon,
   Receipt,
   Settings,
@@ -18,6 +19,7 @@ import {
   TrendingUp,
   Wallet,
   Wrench,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { Auth } from "@/lib/auth";
@@ -98,6 +100,7 @@ export default function AppShell() {
   const [theme, toggleTheme] = useTheme();
   const [notis, setNotis] = useState<AppNotification[]>([]);
   const [bellOpen, setBellOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false); // 모바일 햄버거 드로어
   const [hidden, setHidden] = useState<string[]>([]);
 
   const loadNotis = useCallback(() => {
@@ -130,8 +133,8 @@ export default function AppShell() {
     return () => { alive = false; };
   }, [navigate, loadNotis]);
 
-  // 라우트 이동 시 알림 갱신
-  useEffect(() => { if (checked) loadNotis(); }, [location.pathname, checked, loadNotis]);
+  // 라우트 이동 시 알림 갱신 + 모바일 드로어 닫기
+  useEffect(() => { if (checked) loadNotis(); setNavOpen(false); }, [location.pathname, checked, loadNotis]);
 
   if (!checked) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
 
@@ -191,17 +194,20 @@ export default function AppShell() {
 
   return (
     <div className="shell">
-      <aside className="sidebar">
+      <aside className={`sidebar${navOpen ? " open" : ""}`}>
         <div className="brand">
-          <span className="logo">간</span>
-          <span>옥외광고 견적</span>
+          <img className="brand-logo" src="/logo.png" alt="애드텍디자인 — 옥외광고 견적" />
+          <div className="spacer" />
+          <button className="btn icon-only ghost drawer-only" onClick={() => setNavOpen(false)} aria-label="메뉴 닫기">
+            <X size={18} />
+          </button>
         </div>
         <nav>
           {visibleNav.map((grp) => (
             <div key={grp.section} className="nav-group">
               <div className="nav-section">{grp.section}</div>
               {grp.items.map((n) => (
-                <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => (isActive ? "active" : "")}>
+                <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setNavOpen(false)} className={({ isActive }) => (isActive ? "active" : "")}>
                   <span className="ic"><n.icon size={18} /></span>
                   {n.label}
                 </NavLink>
@@ -223,11 +229,15 @@ export default function AppShell() {
         </div>
       </aside>
 
+      {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
+
       <main className="main">
         <div className="topbar no-print">
+          <button className="btn icon-only ghost topbar-only" onClick={() => setNavOpen(true)} aria-label="메뉴 열기">
+            <Menu size={18} />
+          </button>
+          <img className="topbar-logo topbar-only" src="/logo.png" alt="애드텍디자인" />
           <div className="spacer" />
-          <button className="btn sm topbar-only" onClick={toggleTheme} title="테마">{theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}</button>
-          <button className="btn sm topbar-only" onClick={onLogout}>로그아웃</button>
           {bell("topbar-only")}
         </div>
         <Outlet />

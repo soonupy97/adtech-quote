@@ -15,6 +15,7 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false); // 복구 세션 확인됨
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
+  const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -35,15 +36,20 @@ export default function ResetPassword() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy) return;
+    setErr("");
+    if (pw.length < 6) {
+      setErr("비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
     if (pw !== pw2) {
-      toast("비밀번호가 일치하지 않습니다.");
+      setErr("비밀번호가 일치하지 않습니다.");
       return;
     }
     setBusy(true);
     try {
       const res = await Auth.updatePassword(pw);
       if (!res.ok) {
-        toast(res.msg || "비밀번호 변경에 실패했습니다.");
+        setErr(res.msg || "비밀번호 변경에 실패했습니다.");
         return;
       }
       await Auth.logout();
@@ -58,8 +64,7 @@ export default function ResetPassword() {
     <div className="auth-wrap">
       <div className="auth-card">
         <div className="logo-row">
-          <span className="logo">간</span>
-          옥외광고 견적
+          <img className="auth-logo" src="/logo.png" alt="애드텍디자인" />
         </div>
         <div className="eyebrow" style={{ marginTop: 4 }}>
           비밀번호 재설정
@@ -75,7 +80,12 @@ export default function ResetPassword() {
             </Button>
           </div>
         ) : (
-          <form onSubmit={submit} style={{ marginTop: 20 }}>
+          <form onSubmit={submit} style={{ marginTop: 20 }} noValidate>
+            {err && (
+              <div className="banner no" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <AlertTriangle size={16} /> <span>{err}</span>
+              </div>
+            )}
             <Field label="새 비밀번호">
               <Input
                 type="password"

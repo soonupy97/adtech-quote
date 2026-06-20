@@ -47,10 +47,15 @@ export default function Button({
   type = "button",
   ...rest
 }: Props) {
+  // 아이콘만 있고 라벨이 없으면 정사각(원형) 아이콘 버튼으로 취급
+  const hasLabel = children != null && children !== false && children !== "";
+  const iconOnly = !hasLabel && (icon != null || !!loading);
+
   const cls = [
     "btn",
     variant !== "secondary" && variant,
     size !== "md" && size,
+    iconOnly && "icon-only",
     block && "block",
     loading && "is-loading",
     className,
@@ -58,7 +63,8 @@ export default function Button({
     .filter(Boolean)
     .join(" ");
 
-  const iconSize = size === "sm" ? 14 : 16;
+  // 사이즈별 아이콘 크기 (패딩·폰트와 함께 단계적으로 증가)
+  const iconSize = { sm: 14, md: 16, lg: 18 }[size];
 
   return (
     <button

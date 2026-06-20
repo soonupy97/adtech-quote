@@ -92,6 +92,12 @@ h1 {
 .spacer {
   flex: 1;
 }
+// 모바일: 버튼/요소 묶음이 한 줄을 넘으면 줄바꿈(가로 overflow 방지)
+@media (max-width: 768px) {
+  .row {
+    flex-wrap: wrap;
+  }
+}
 
 .grid {
   display: grid;
@@ -107,7 +113,7 @@ h1 {
   grid-template-columns: repeat(4, 1fr);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .grid.cols-2,
   .grid.cols-3,
   .grid.cols-4 {

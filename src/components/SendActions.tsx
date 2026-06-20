@@ -1,4 +1,5 @@
-import { Share2, MessageSquare, Mail, Copy } from "lucide-react";
+import { useState } from "react";
+import { Share2, MessageSquare, Mail, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import {
@@ -26,6 +27,7 @@ interface Props {
 // 견적 발송 링크를 "보조 발송"(공유 시트/문자앱/메일/복사)으로 전달하는 버튼 묶음.
 export default function SendActions({ url, tel, email, customer, company, quoteNo, size = "sm" }: Props) {
   const toast = useToast();
+  const [copied, setCopied] = useState(false);
   const msg = quoteMessage({ company, customer, quoteNo, url });
   const subject = quoteSubject({ company, quoteNo });
 
@@ -63,13 +65,19 @@ export default function SendActions({ url, tel, email, customer, company, quoteN
       </Button>
       <Button
         size={size}
-        icon={<Copy size={15} />}
+        variant="outline"
+        icon={copied ? <Check size={15} /> : <Copy size={15} />}
+        title="링크 복사"
+        aria-label="링크 복사"
         onClick={async () => {
-          toast((await copyText(url)) ? "링크를 복사했습니다." : "복사에 실패했습니다.");
+          const ok = await copyText(url);
+          toast(ok ? "링크를 복사했습니다." : "복사에 실패했습니다.");
+          if (ok) {
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 1500);
+          }
         }}
-      >
-        링크 복사
-      </Button>
+      />
     </div>
   );
 }

@@ -24,7 +24,7 @@
   font-weight: 700;
   font-size: 16px;
   letter-spacing: -0.02em;
-  padding: 8px 12px 20px;
+  padding: 8px;
 }
 .sidebar .brand .logo {
   width: 28px;
@@ -36,6 +36,12 @@
   place-items: center;
   font-size: 16px;
   font-weight: 700;
+}
+// 실제 로고 이미지 (AD TECH / 애드텍디자인)
+.brand-logo {
+  display: block;
+  height: 36px;
+  width: auto;
 }
 .sidebar nav {
   display: flex;
@@ -55,7 +61,7 @@
   font-weight: 500;
   text-transform: uppercase;
   color: var(--text-3);
-  padding: 8px 16px 4px;
+  padding: 8px;
   letter-spacing: 0.08em;
 }
 .sidebar nav a {
@@ -120,48 +126,62 @@
   margin-top: 4px;
 }
 
-@media (max-width: 860px) {
-  .shell {
-    flex-direction: column;
-  }
+// 모바일 전용 UI 토글: 드로어 닫기(X)·햄버거·상단 로고는 데스크톱에서 숨김
+.drawer-only {
+  display: none;
+}
+.topbar-logo {
+  height: 28px;
+  width: auto;
+}
+
+@media (max-width: 1024px) {
+  // 사이드바 → 좌측 오프캔버스 드로어(햄버거로 열고 닫음)
   .sidebar {
-    width: 100%;
-    height: auto;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 30;
-    padding: 12px;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: none;
-    border-bottom: 1px solid var(--hairline);
+    left: 0;
+    height: 100%;
+    width: 280px;
+    max-width: 84vw;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    box-shadow: var(--shadow-3);
   }
-  .sidebar .brand {
-    padding: 8px 12px;
-    white-space: nowrap;
+  .sidebar.open {
+    transform: translateX(0);
   }
-  .sidebar nav {
-    flex-direction: row;
-    flex: none;
+  // 드로어 뒤 어둑한 배경(탭하면 닫힘)
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.5);
+    animation: fade 0.15s ease;
   }
-  .sidebar .nav-group {
-    flex-direction: row;
-    margin-bottom: 0;
+  // 드로어 닫기 버튼 노출
+  .drawer-only {
+    display: inline-flex;
   }
-  .sidebar .nav-section {
-    display: none;
-  }
-  .sidebar nav a {
-    white-space: nowrap;
-  }
-  .sidebar .foot {
+  // 드로어 푸터의 벨은 상단바에 별도로 있으므로 숨김
+  .sidebar .foot .bell-wrap {
     display: none;
   }
   .main {
     padding: 20px 16px;
+  }
+}
+
+// 좁은 화면: 페이지 헤더의 제목+액션이 한 줄을 넘으면 줄바꿈
+@media (max-width: 768px) {
+  .page-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 12px;
+  }
+  .page-head h1 {
+    font-size: 24px;
   }
 }
 
@@ -197,6 +217,19 @@
   color: var(--canvas);
   display: grid;
   place-items: center;
+}
+.auth-logo {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+// 다크모드: 로고(네이비 글자)가 어두운 배경에 묻히지 않도록 흰 칩 처리
+[data-theme="dark"] .brand-logo,
+[data-theme="dark"] .auth-logo,
+[data-theme="dark"] .topbar-logo {
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: var(--r-md);
 }
 .auth-note {
   font-family: var(--font-sans);

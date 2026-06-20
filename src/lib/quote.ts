@@ -219,6 +219,20 @@ export function newQuote(): Quote {
   };
 }
 
+// 온보딩용 샘플 견적(빈 상태에서 1클릭 체험). 고객명 [샘플] 표식으로 식별·삭제가 쉽다.
+export function sampleQuote(): Quote {
+  const q = newQuote();
+  q.customer = { name: "[샘플] 한빛상사", tel: "010-1234-5678", addr: "서울특별시 강남구 테헤란로 123" };
+  q.site = { floor: "1층", height: "3.5", road: "대로변(왕복 4차선)" };
+  q.items = [
+    { type: "전면간판(채널)", w: "4", h: "0.9", grade: "고급", price: 790000, qty: 1, parts: {} },
+    { type: "현수막(일반)", w: "5", h: "0.9", grade: "일반", price: 45000, qty: 4, parts: {} },
+  ];
+  q.paymentTerms = { deposit: "계약금 50%", balance: "잔금 50% (설치 완료 후)", as: "1년 무상 A/S" };
+  q.notes = "※ 앱 둘러보기용 샘플 견적입니다. 자유롭게 수정하거나 삭제하세요.";
+  return q;
+}
+
 export function fmtDate(iso?: string): string {
   if (!iso) return "-";
   const d = new Date(iso);
