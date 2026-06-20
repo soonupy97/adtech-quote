@@ -7,7 +7,6 @@
   // 폰트
   --font-sans: "Pretendard Variable", Pretendard, "SF Pro Display", system-ui,
     -apple-system, helvetica, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Pretendard Variable", menlo, monospace;
 
   // 코어: 잉크(검정) / 캔버스(흰색)
   --ink: #181818;          // 모든 본문·헤드라인 텍스트
@@ -88,6 +87,15 @@
   --text: #f2f2f0;
   --text-2: #b4b0d4;
   --text-3: #8480ad;
+
+  // 파스텔 컬러블록 → 다크용 색조 유지 톤다운(연한 바탕에 밝은 ink 글씨가 묻히는 문제 해결)
+  --block-lime: #2b3317;
+  --block-lilac: #2e2a55;
+  --block-cream: #33301f;
+  --block-mint: #16382a;
+  --block-pink: #3a2030;
+  --block-coral: #3a281d;
+  --block-navy: #2a2750; // 캔버스(#1a1830)와 분리되도록 약간 밝게
 
   --st-draft-bg: #2a2848;
   --st-sent-bg: #3a2f1e;

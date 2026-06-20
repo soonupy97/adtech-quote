@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { ITEM_TYPES, fmtDate, won } from "@/lib/quote";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type { QuoteSummary, Signage as SignageT } from "@/types";
-import Modal from "@/components/Modal";
+import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { MapPin, Plus, SignpostBig } from "lucide-react";
 
@@ -37,6 +37,7 @@ export default function Signage() {
   const [list, setList] = useState<SignageT[]>([]);
   const [quotes, setQuotes] = useState<QuoteSummary[]>([]);
   const [edit, setEdit] = useState<SignageT | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const load = () => store.signage.list().then(setList);
   useEffect(() => {
@@ -47,10 +48,13 @@ export default function Signage() {
   const save = async () => {
     if (!edit) return;
     if (!edit.name.trim()) return toast("광고물명을 입력하세요.");
-    await store.signage.save(edit);
-    setEdit(null);
-    await load();
-    toast("저장되었습니다.");
+    setSaving(true);
+    try {
+      await store.signage.save(edit);
+      setEdit(null);
+      await load();
+      toast("저장되었습니다.");
+    } finally { setSaving(false); }
   };
   const del = async (s: SignageT) => {
     if (!confirm(`'${s.name}' 광고물을 삭제할까요?`)) return;
@@ -87,19 +91,50 @@ export default function Signage() {
     }))));
   };
 
+  const columns: Column<SignageT>[] = [
+    { key: "name", header: "광고물", render: (s) => <span style={{ fontWeight: 700 }}>{s.quote_id ? <Link className="link" to={`/quotes/${s.quote_id}`}>{s.name}</Link> : s.name}</span> },
+    { key: "customer", header: "고객", render: (s) => s.customer || "-" },
+    { key: "address", header: "위치", className: "dim", render: (s) => <><MapPin size={13} style={{ verticalAlign: -2 }} /> {s.address || "-"}</> },
+    { key: "type", header: "종류", render: (s) => <Chip>{s.type}</Chip> },
+    { key: "installDate", header: "설치일", className: "dim", render: (s) => fmtDate(s.installDate) || "-" },
+    { key: "permitExpiry", header: "만료일", className: "dim", render: (s) => fmtDate(s.permitExpiry) || "-" },
+    { key: "status", header: "상태", render: (s) => expiryBadge(s) },
+    {
+      key: "act",
+      render: (s) => (
+        <div className="row" style={{ gap: 4 }}>
+          <Button size="sm" onClick={() => setEdit(s)}>편집</Button>
+          <Button size="sm" variant="danger" onClick={() => del(s)}>삭제</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <div className="page-head">
         <div><h1>광고물 관리</h1><div className="sub">게시중 {active.length} · 만료임박 {expiringSoon} · 만료 {expired}</div></div>
         <div className="spacer" />
-        <button className="btn" onClick={exportCSV} disabled={list.length === 0}>CSV</button>
-        <button className="btn primary" onClick={() => setEdit({ ...empty })}><Plus size={15} />광고물 등록</button>
+        <Button onClick={exportCSV} disabled={list.length === 0}>CSV</Button>
+        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setEdit({ ...empty })}>광고물 등록</Button>
       </div>
 
-      <div className="grid cols-3">
-        <div className="card stat"><div className="k">게시중</div><div className="v">{active.length}</div></div>
-        <div className="card stat"><div className="k">만료 임박(30일)</div><div className="v" style={{ color: "var(--warn)" }}>{expiringSoon}</div></div>
-        <div className="card stat"><div className="k">만료 경과</div><div className="v" style={{ color: "var(--danger)" }}>{expired}</div></div>
+      <div className="bento">
+        <div className="tile feature col-2 row-2">
+          <div className="k">게시중</div>
+          <div className="push-bottom">
+            <div className="v-lg">{active.length}</div>
+            <div className="bento-foot">전체 광고물 {list.length}개</div>
+          </div>
+        </div>
+        <div className="tile">
+          <div className="k">만료 임박(30일)</div>
+          <div className="v push-bottom">{expiringSoon}</div>
+        </div>
+        <div className="tile">
+          <div className="k">만료 경과</div>
+          <div className="v push-bottom">{expired}</div>
+        </div>
       </div>
 
       {quotes.length > 0 && (
@@ -107,69 +142,44 @@ export default function Signage() {
           <div className="row" style={{ gap: 8 }}>
             <span className="card-sub" style={{ margin: 0 }}>수주 견적에서 등록</span>
             <div className="spacer" />
-            <select defaultValue="" onChange={(e) => { fromQuote(e.target.value); e.currentTarget.value = ""; }} style={{ maxWidth: 320 }}>
-              <option value="">수주 견적 선택…</option>
-              {quotes.map((q) => <option key={q.id} value={q.id}>{q.quote_no} · {q.customer} · {won(q.grand)}</option>)}
-            </select>
+            <Select value="" placeholder="수주 견적 선택…" style={{ maxWidth: 320 }}
+              onChange={(v) => v && fromQuote(v)}
+              options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />
           </div>
         </div>
       )}
 
       <div className="card">
-        {sorted.length === 0 ? (
-          <div className="empty"><div className="big"><SignpostBig size={40} strokeWidth={1.5} /></div><div className="ttl">등록된 광고물이 없습니다</div><div className="dim" style={{ marginTop: 6 }}>설치한 간판·현수막을 등록하면 표시기간·허가 만료를 추적합니다</div></div>
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead><tr><th>광고물</th><th>고객</th><th>위치</th><th>종류</th><th>설치일</th><th>만료일</th><th>상태</th><th></th></tr></thead>
-              <tbody>
-                {sorted.map((s) => (
-                  <tr key={s.id}>
-                    <td style={{ fontWeight: 600 }}>{s.quote_id ? <Link className="link" to={`/quotes/${s.quote_id}`}>{s.name}</Link> : s.name}</td>
-                    <td>{s.customer || "-"}</td>
-                    <td className="dim"><MapPin size={13} style={{ verticalAlign: -2 }} /> {s.address || "-"}</td>
-                    <td><span className="chip">{s.type}</span></td>
-                    <td className="dim">{fmtDate(s.installDate) || "-"}</td>
-                    <td className="dim">{fmtDate(s.permitExpiry) || "-"}</td>
-                    <td>{expiryBadge(s)}</td>
-                    <td>
-                      <div className="row" style={{ gap: 4 }}>
-                        <button className="btn sm" onClick={() => setEdit(s)}>편집</button>
-                        <button className="btn sm danger" onClick={() => del(s)}>삭제</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <Table
+          columns={columns}
+          rows={sorted}
+          rowKey={(s) => s.id}
+          empty={<EmptyState icon={<SignpostBig size={40} strokeWidth={1.5} />} title="등록된 광고물이 없습니다" desc={<span className="dim" style={{ marginTop: 8 }}>설치한 간판·현수막을 등록하면 표시기간·허가 만료를 추적합니다</span>} />}
+        />
       </div>
 
       {edit && (
         <Modal
           title={edit.id ? "광고물 편집" : "광고물 등록"}
           onClose={() => setEdit(null)}
-          footer={<><button className="btn primary" onClick={save}>저장</button><button className="btn" onClick={() => setEdit(null)}>취소</button></>}
+          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
         >
           <div className="grid cols-2">
-            <label className="field"><span>광고물명</span><input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="예: ○○약국 전면간판" /></label>
-            <label className="field"><span>고객/거래처</span><input value={edit.customer} onChange={(e) => setEdit({ ...edit, customer: e.target.value })} /></label>
-            <label className="field"><span>종류</span>
-              <select value={edit.type} onChange={(e) => setEdit({ ...edit, type: e.target.value })}>
-                {ITEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </label>
-            <label className="field"><span>상태</span>
-              <select value={edit.status} onChange={(e) => setEdit({ ...edit, status: e.target.value as SignageT["status"] })}>
-                {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-            </label>
-            <label className="field"><span>설치일</span><input type="date" value={edit.installDate} onChange={(e) => setEdit({ ...edit, installDate: e.target.value })} /></label>
-            <label className="field"><span>표시기간/허가 만료일</span><input type="date" value={edit.permitExpiry} onChange={(e) => setEdit({ ...edit, permitExpiry: e.target.value })} /></label>
+            <Field label="광고물명"><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="예: ○○약국 전면간판" /></Field>
+            <Field label="고객/거래처"><Input value={edit.customer} onChange={(e) => setEdit({ ...edit, customer: e.target.value })} /></Field>
+            <Field label="종류">
+              <Select value={edit.type} onChange={(v) => setEdit({ ...edit, type: v })}
+                options={ITEM_TYPES.map((t) => ({ value: t, label: t }))} />
+            </Field>
+            <Field label="상태">
+              <Select value={edit.status} onChange={(val) => setEdit({ ...edit, status: val as SignageT["status"] })}
+                options={Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v }))} />
+            </Field>
+            <Field label="설치일"><Input type="date" value={edit.installDate} onChange={(e) => setEdit({ ...edit, installDate: e.target.value })} /></Field>
+            <Field label="표시기간/허가 만료일"><Input type="date" value={edit.permitExpiry} onChange={(e) => setEdit({ ...edit, permitExpiry: e.target.value })} /></Field>
           </div>
-          <label className="field"><span>설치 위치</span><input value={edit.address} onChange={(e) => setEdit({ ...edit, address: e.target.value })} placeholder="주소·건물·층" /></label>
-          <label className="field"><span>메모</span><textarea value={edit.memo} onChange={(e) => setEdit({ ...edit, memo: e.target.value })} placeholder="허가번호, 갱신 이력 등" /></label>
+          <Field label="설치 위치"><Input value={edit.address} onChange={(e) => setEdit({ ...edit, address: e.target.value })} placeholder="주소·건물·층" /></Field>
+          <Field label="메모"><Textarea value={edit.memo} onChange={(e) => setEdit({ ...edit, memo: e.target.value })} placeholder="허가번호, 갱신 이력 등" /></Field>
         </Modal>
       )}
     </>

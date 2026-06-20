@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { fmtDate } from "@/lib/quote";
 import type { Lead, LeadStage } from "@/types";
-import Modal from "@/components/Modal";
+import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Inbox } from "lucide-react";
 
@@ -31,6 +31,7 @@ export default function Leads() {
   const navigate = useNavigate();
   const [list, setList] = useState<Lead[]>([]);
   const [edit, setEdit] = useState<Lead | null>(null);
+  const [saving, setSaving] = useState(false);
   const [view, setView] = useState<"list" | "board">("list");
   const [over, setOver] = useState<LeadStage | null>(null);
 
@@ -40,10 +41,13 @@ export default function Leads() {
   const save = async () => {
     if (!edit) return;
     if (!edit.customerName.trim()) return toast("고객명을 입력하세요.");
-    await store.leads.save(edit);
-    setEdit(null);
-    await load();
-    toast("저장되었습니다.");
+    setSaving(true);
+    try {
+      await store.leads.save(edit);
+      setEdit(null);
+      await load();
+      toast("저장되었습니다.");
+    } finally { setSaving(false); }
   };
   const del = async (l: Lead) => {
     if (!confirm(`'${l.customerName}' 문의를 삭제할까요?`)) return;
@@ -64,12 +68,31 @@ export default function Leads() {
     toast(`'${lead.customerName}' → ${STAGES.find((s) => s.key === stage)?.label}`);
   };
 
+  const columns: Column<Lead>[] = [
+    { key: "customerName", header: "고객", render: (l) => <span style={{ fontWeight: 700 }}>{l.customerName}</span> },
+    { key: "tel", header: "연락처", render: (l) => l.tel || "-" },
+    { key: "source", header: "경로", render: (l) => <Chip>{SOURCE_LABEL[l.source]}</Chip> },
+    { key: "stage", header: "단계", render: (l) => <Chip variant="blue">{STAGE_LABEL[l.stage]}</Chip> },
+    { key: "memo", header: "메모", className: "dim", render: (l) => l.memo || "-" },
+    { key: "created_at", header: "등록일", className: "dim", render: (l) => fmtDate(l.created_at) },
+    {
+      key: "act",
+      render: (l) => (
+        <div className="row" style={{ gap: 4 }}>
+          <Button size="sm" variant="secondary" onClick={() => convert(l)}>견적전환</Button>
+          <Button size="sm" onClick={() => setEdit(l)}>편집</Button>
+          <Button size="sm" variant="danger" onClick={() => del(l)}>삭제</Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <div className="page-head">
         <div><h1>리드 · 영업</h1><div className="sub">외부 문의 등록·견적 전환과 파이프라인 · {list.length}건</div></div>
         <div className="spacer" />
-        <button className="btn primary" onClick={() => setEdit({ ...empty })}><Plus size={15} />문의 등록</button>
+        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setEdit({ ...empty })}>문의 등록</Button>
       </div>
 
       <div className="tabs">
@@ -79,34 +102,12 @@ export default function Leads() {
 
       {view === "list" ? (
         <div className="card">
-          {list.length === 0 ? (
-            <div className="empty"><div className="big"><Inbox size={40} strokeWidth={1.5} /></div><div className="ttl">등록된 문의가 없습니다</div></div>
-          ) : (
-            <div className="table-wrap">
-              <table className="table">
-                <thead><tr><th>고객</th><th>연락처</th><th>경로</th><th>단계</th><th>메모</th><th>등록일</th><th></th></tr></thead>
-                <tbody>
-                  {list.map((l) => (
-                    <tr key={l.id}>
-                      <td style={{ fontWeight: 600 }}>{l.customerName}</td>
-                      <td>{l.tel || "-"}</td>
-                      <td><span className="chip">{SOURCE_LABEL[l.source]}</span></td>
-                      <td><span className="chip blue">{STAGE_LABEL[l.stage]}</span></td>
-                      <td className="dim">{l.memo || "-"}</td>
-                      <td className="dim">{fmtDate(l.created_at)}</td>
-                      <td>
-                        <div className="row" style={{ gap: 4 }}>
-                          <button className="btn sm soft" onClick={() => convert(l)}>견적전환</button>
-                          <button className="btn sm" onClick={() => setEdit(l)}>편집</button>
-                          <button className="btn sm danger" onClick={() => del(l)}>삭제</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <Table
+            columns={columns}
+            rows={list}
+            rowKey={(l) => l.id}
+            empty={<EmptyState icon={<Inbox size={40} strokeWidth={1.5} />} title="등록된 문의가 없습니다" />}
+          />
         </div>
       ) : (
         <div className="kanban">
@@ -145,21 +146,19 @@ export default function Leads() {
         <Modal
           title={edit.id ? "문의 편집" : "문의 등록"}
           onClose={() => setEdit(null)}
-          footer={<><button className="btn primary" onClick={save}>저장</button><button className="btn" onClick={() => setEdit(null)}>취소</button></>}
+          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
         >
-          <label className="field"><span>고객명</span><input value={edit.customerName} onChange={(e) => setEdit({ ...edit, customerName: e.target.value })} /></label>
-          <label className="field"><span>연락처</span><input value={edit.tel} onChange={(e) => setEdit({ ...edit, tel: e.target.value })} /></label>
-          <label className="field"><span>유입 경로</span>
-            <select value={edit.source} onChange={(e) => setEdit({ ...edit, source: e.target.value as Lead["source"] })}>
-              {Object.entries(SOURCE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </label>
-          <label className="field"><span>단계</span>
-            <select value={edit.stage} onChange={(e) => setEdit({ ...edit, stage: e.target.value as LeadStage })}>
-              {Object.entries(STAGE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </label>
-          <label className="field"><span>메모</span><textarea value={edit.memo} onChange={(e) => setEdit({ ...edit, memo: e.target.value })} /></label>
+          <Field label="고객명"><Input value={edit.customerName} onChange={(e) => setEdit({ ...edit, customerName: e.target.value })} /></Field>
+          <Field label="연락처"><Input value={edit.tel} onChange={(e) => setEdit({ ...edit, tel: e.target.value })} /></Field>
+          <Field label="유입 경로">
+            <Select value={edit.source} onChange={(val) => setEdit({ ...edit, source: val as Lead["source"] })}
+              options={Object.entries(SOURCE_LABEL).map(([k, v]) => ({ value: k, label: v }))} />
+          </Field>
+          <Field label="단계">
+            <Select value={edit.stage} onChange={(val) => setEdit({ ...edit, stage: val as LeadStage })}
+              options={Object.entries(STAGE_LABEL).map(([k, v]) => ({ value: k, label: v }))} />
+          </Field>
+          <Field label="메모"><Textarea value={edit.memo} onChange={(e) => setEdit({ ...edit, memo: e.target.value })} /></Field>
         </Modal>
       )}
     </>

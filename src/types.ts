@@ -18,6 +18,7 @@ export interface Customer {
   name: string;
   tel: string;
   addr: string;
+  email?: string;
 }
 
 export interface Site {
@@ -87,6 +88,7 @@ export interface Quote {
   paymentTerms: PaymentTerms;
   validity: string;
   notes: string;
+  dimUnit?: "m" | "cm" | "mm" | "㎡"; // 이 견적의 가로·세로 입력 단위(미설정=m). 생성 시점 설정값을 스냅샷
   events: QuoteEvent[];
   customer_response?: CustomerResponse;
   signature?: string;
@@ -197,6 +199,13 @@ export interface Settings {
   myRole?: Role;
   coverLetter?: string;
   menuHidden?: string[]; // 사이드바에서 숨길 메뉴 경로(to) 목록
+  units?: UnitSettings;
+}
+
+// 단위 설정
+export interface UnitSettings {
+  dimension?: "m" | "cm" | "mm" | "㎡"; // 치수(가로·세로) 입력 단위 — 면적은 항상 ㎡로 환산 표시(㎡는 표시 라벨용)
+  quantityUnits?: string[]; // 품목 수량 단위 프리셋(개·㎡·m·식 등). 비면 기본 목록 사용
 }
 
 // 부록 C 자동 할인 규칙
@@ -361,6 +370,18 @@ export interface Signage {
   quote_id?: string; // 연결 견적(선택)
   status: "active" | "removed"; // 게시중/철거됨 (만료 임박은 permitExpiry로 파생)
   memo: string;
+  created_at: string;
+}
+
+// 사용자 직접 등록 일정 (일정 캘린더에서 추가/편집)
+export type CalendarColor = "blue" | "green" | "pink" | "amber" | "gray";
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  time?: string; // HH:mm (선택)
+  color?: CalendarColor;
+  memo?: string;
   created_at: string;
 }
 

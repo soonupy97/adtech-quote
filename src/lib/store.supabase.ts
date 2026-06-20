@@ -8,6 +8,7 @@ import type {
   Settings,
 } from "@/types";
 import { CATALOG_SEED, calcTotals, quoteTitle, uuid } from "./quote";
+import { DEFAULT_QTY_UNITS } from "./units";
 import { shareUrlFor, type Store } from "./store.types";
 import { supabase } from "./supabaseClient";
 
@@ -79,6 +80,7 @@ function rowToQuote(r: any, events: QuoteEvent[] = []): Quote {
     paymentTerms: r.payment_terms || { deposit: "", balance: "", as: "" },
     validity: r.validity || "",
     notes: r.notes || "",
+    dimUnit: r.dim_unit || undefined,
     events,
     customer_response: r.customer_response || undefined,
     signature: r.signature || undefined,
@@ -106,6 +108,7 @@ function quoteToRow(q: Quote) {
     payment_terms: q.paymentTerms,
     validity: q.validity,
     notes: q.notes,
+    dim_unit: q.dimUnit ?? null,
   };
 }
 
@@ -167,6 +170,7 @@ const DEFAULT_SETTINGS: Settings = {
     balance: "설치 완료 후 50%",
     as: "시공 후 1년 무상 A/S",
   },
+  units: { dimension: "mm", quantityUnits: DEFAULT_QTY_UNITS },
 };
 
 export const supabaseStore: Store = {
@@ -414,6 +418,7 @@ export const supabaseStore: Store = {
       numbering: data.numbering || {},
       terms: data.terms || {},
       discountRules: data.discount_rules || [],
+      units: data.units || DEFAULT_SETTINGS.units,
     } as Settings;
   },
   async saveSettings(s) {
@@ -428,6 +433,7 @@ export const supabaseStore: Store = {
       numbering: s.numbering || {},
       terms: s.terms || {},
       discount_rules: s.discountRules || [],
+      units: s.units || {},
       updated_at: new Date().toISOString(),
     });
     if (error) throw error;
@@ -447,6 +453,7 @@ export const supabaseStore: Store = {
   versions: makeColl("versions"),
   team: makeColl("team"),
   signage: makeColl("signage"),
+  events: makeColl("events"),
 
   async seedIfEmpty() {
     const { count } = await sb()

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calendarEventUrl } from "@/lib/integrations";
 import type { Quote, QuoteSummary, WorkOrder } from "@/types";
-import Modal from "@/components/Modal";
+import { Button, Chip, EmptyState, Field, Input, Modal, Select } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Wrench, CalendarPlus } from "lucide-react";
 
@@ -16,6 +16,7 @@ export default function WorkOrders() {
   const [quotes, setQuotes] = useState<QuoteSummary[]>([]);
   const [creating, setCreating] = useState(false);
   const [pick, setPick] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const load = () => store.workorders.list().then(setList);
   useEffect(() => {
@@ -25,16 +26,19 @@ export default function WorkOrders() {
 
   const create = async () => {
     if (!pick) return toast("견적을 선택하세요.");
-    const q = (await store.getQuote(pick)) as Quote;
-    await store.workorders.save({
-      id: "", quote_id: q.id, quote_no: q.quote_no, site: q.site,
-      items: q.items.map((it) => ({ type: it.type, spec: `${it.w || "-"}×${it.h || "-"}m`, qty: it.qty })),
-      constructions: q.constructions.filter((c) => c.checked).map((c) => c.name),
-      schedule: { installDate: "" }, crew: "", status: "ready", created_at: "",
-    });
-    setCreating(false); setPick("");
-    await load();
-    toast("작업지시서를 생성했습니다.");
+    setBusy(true);
+    try {
+      const q = (await store.getQuote(pick)) as Quote;
+      await store.workorders.save({
+        id: "", quote_id: q.id, quote_no: q.quote_no, site: q.site,
+        items: q.items.map((it) => ({ type: it.type, spec: `${it.w || "-"}×${it.h || "-"}m`, qty: it.qty })),
+        constructions: q.constructions.filter((c) => c.checked).map((c) => c.name),
+        schedule: { installDate: "" }, crew: "", status: "ready", created_at: "",
+      });
+      setCreating(false); setPick("");
+      await load();
+      toast("작업지시서를 생성했습니다.");
+    } finally { setBusy(false); }
   };
 
   const update = async (w: WorkOrder, p: Partial<WorkOrder>) => {
@@ -52,11 +56,11 @@ export default function WorkOrders() {
       <div className="page-head">
         <div><h1>작업지시서</h1><div className="sub">수주 건의 시공팀 지시서 · {list.length}건</div></div>
         <div className="spacer" />
-        <button className="btn primary" onClick={() => setCreating(true)}><Plus size={15} />작업지시서 생성</button>
+        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>작업지시서 생성</Button>
       </div>
 
       {list.length === 0 ? (
-        <div className="card"><div className="empty"><div className="big"><Wrench size={40} strokeWidth={1.5} /></div><div className="ttl">작업지시서가 없습니다</div></div></div>
+        <div className="card"><EmptyState icon={<Wrench size={40} strokeWidth={1.5} />} title="작업지시서가 없습니다" /></div>
       ) : (
         list.map((w) => (
           <div className="card" key={w.id}>
@@ -64,41 +68,40 @@ export default function WorkOrders() {
               <div>
                 <div className="row" style={{ gap: 8 }}>
                   <Link className="link" to={`/quotes/${w.quote_id}`} style={{ fontWeight: 700 }}>{w.quote_no}</Link>
-                  <span className="chip blue">{STATUS_LABEL[w.status]}</span>
+                  <Chip variant="blue">{STATUS_LABEL[w.status]}</Chip>
                 </div>
                 <div className="dim" style={{ marginTop: 4 }}>현장: {w.site?.floor || "-"} / 높이 {w.site?.height || "-"} / {w.site?.road || "-"}</div>
               </div>
               <div className="spacer" />
-              <select value={w.status} onChange={(e) => update(w, { status: e.target.value as WorkOrder["status"] })} style={{ width: 120 }}>
-                {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-              <button className="btn sm danger" onClick={() => del(w)}>삭제</button>
+              <Select value={w.status} onChange={(val) => update(w, { status: val as WorkOrder["status"] })} style={{ width: 120 }}
+                options={Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v }))} />
+              <Button size="sm" variant="danger" onClick={() => del(w)}>삭제</Button>
             </div>
 
-            <div className="grid cols-2" style={{ marginTop: 14 }}>
+            <div className="grid cols-2" style={{ marginTop: 16 }}>
               <div>
                 <div className="card-sub" style={{ margin: 0 }}>품목</div>
-                <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                <ul style={{ margin: "6px 0 0", paddingLeft: 20 }}>
                   {w.items.map((it, i) => <li key={i}>{it.type} · {it.spec} · {it.qty}개</li>)}
                 </ul>
                 {w.constructions.length > 0 && (
                   <>
                     <div className="card-sub" style={{ margin: "12px 0 0" }}>시공항목</div>
-                    <div className="row wrap" style={{ gap: 6, marginTop: 6 }}>
-                      {w.constructions.map((c) => <span key={c} className="chip">{c}</span>)}
+                    <div className="row wrap" style={{ gap: 8, marginTop: 8 }}>
+                      {w.constructions.map((c) => <Chip key={c}>{c}</Chip>)}
                     </div>
                   </>
                 )}
               </div>
               <div>
-                <label className="field"><span>설치 예정일</span>
-                  <input type="date" value={w.schedule.installDate} onChange={(e) => update(w, { schedule: { installDate: e.target.value } })} />
-                </label>
-                <label className="field"><span>시공팀/담당</span>
-                  <input value={w.crew} onChange={(e) => update(w, { crew: e.target.value })} placeholder="예: 1팀 김반장" />
-                </label>
+                <Field label="설치 예정일">
+                  <Input type="date" value={w.schedule.installDate} onChange={(e) => update(w, { schedule: { installDate: e.target.value } })} />
+                </Field>
+                <Field label="시공팀/담당">
+                  <Input value={w.crew} onChange={(e) => update(w, { crew: e.target.value })} placeholder="예: 1팀 김반장" />
+                </Field>
                 {w.schedule.installDate && (
-                  <a className="btn sm soft" href={calendarEventUrl(`설치: ${w.quote_no}`, w.schedule.installDate, w.crew)} target="_blank" rel="noreferrer">
+                  <a className="btn sm secondary" href={calendarEventUrl(`설치: ${w.quote_no}`, w.schedule.installDate, w.crew)} target="_blank" rel="noreferrer">
                     <CalendarPlus size={15} />구글 캘린더 추가
                   </a>
                 )}
@@ -110,13 +113,11 @@ export default function WorkOrders() {
 
       {creating && (
         <Modal title="작업지시서 생성" onClose={() => setCreating(false)}
-          footer={<><button className="btn primary" onClick={create}>생성</button><button className="btn" onClick={() => setCreating(false)}>취소</button></>}>
-          <label className="field"><span>수주(수락) 견적 선택</span>
-            <select value={pick} onChange={(e) => setPick(e.target.value)}>
-              <option value="">선택…</option>
-              {quotes.map((q) => <option key={q.id} value={q.id}>{q.quote_no} · {q.customer}</option>)}
-            </select>
-          </label>
+          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          <Field label="수주(수락) 견적 선택">
+            <Select value={pick} onChange={setPick} placeholder="선택…"
+              options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer}` }))} />
+          </Field>
         </Modal>
       )}
     </>

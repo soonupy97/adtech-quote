@@ -3,6 +3,7 @@ import type {
   Activity,
   AppNotification,
   Attachment,
+  CalendarEvent,
   CatalogItem,
   Client,
   Contract,
@@ -83,6 +84,7 @@ export interface Store {
   versions: Coll<QuoteVersion>;
   team: Coll<TeamUser>;
   signage: Coll<Signage>;
+  events: Coll<CalendarEvent>;
 }
 
 export function shareUrlFor(token: string): string {

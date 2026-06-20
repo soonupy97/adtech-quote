@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { fmtDate, won } from "@/lib/quote";
 import { isExpired, reminderFor } from "@/lib/automation";
 import type { QuoteStatus, QuoteSummary, Stats } from "@/types";
-import StatusBadge from "@/components/StatusBadge";
+import { EmptyState, StatusBadge, Table, type Column } from "@/components/ui";
 import { Clock, FileText, Plus } from "lucide-react";
 
 const DIST: { key: QuoteStatus; label: string; color: string }[] = [
@@ -37,17 +37,25 @@ export default function Dashboard() {
     });
   }, []);
 
-  if (!stats) return <div className="empty" style={{ paddingTop: 80 }}>불러오는 중…</div>;
+  if (!stats) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
 
   const total = Object.values(stats.byStatus).reduce((a, b) => a + b, 0);
   const empty = total === 0;
 
+  const recentColumns: Column<QuoteSummary>[] = [
+    { key: "quote_no", header: "견적번호", render: (q) => <Link className="link" to={`/quotes/${q.id}`}>{q.quote_no}</Link> },
+    { key: "customer", header: "고객", render: (q) => q.customer || "-" },
+    { key: "grand", header: "총액", align: "right", render: (q) => won(q.grand) },
+    { key: "status", header: "상태", render: (q) => <StatusBadge status={q.status} /> },
+    { key: "created_at", header: "작성일", render: (q) => fmtDate(q.created_at) },
+  ];
+
   return (
     <>
-      <div className="color-block lime" style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+      <div className="color-block plain" style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 240 }}>
           <div className="eyebrow">대시보드 · DASHBOARD</div>
-          <div className="display" style={{ marginTop: 10 }}>
+          <div className="display" style={{ marginTop: 12 }}>
             견적은 더 빠르게,<br />관리는 더 단순하게.
           </div>
         </div>
@@ -56,32 +64,32 @@ export default function Dashboard() {
 
       {empty ? (
         <div className="card">
-          <div className="empty">
-            <div className="big"><FileText size={40} strokeWidth={1.5} /></div>
-            <div className="ttl">아직 견적이 없습니다</div>
-            <div style={{ marginBottom: 18 }}>첫 견적을 만들어 고객에게 보내보세요.</div>
-            <Link className="btn primary" to="/editor">첫 견적 만들기</Link>
-          </div>
+          <EmptyState
+            icon={<FileText size={40} strokeWidth={1.5} />}
+            title="아직 견적이 없습니다"
+            desc={<span style={{ marginBottom: 20 }}>첫 견적을 만들어 고객에게 보내보세요.</span>}
+            action={<Link className="btn primary" to="/editor">첫 견적 만들기</Link>}
+          />
         </div>
       ) : (
         <>
-          <div className="grid cols-4">
-            <div className="card stat">
+          <div className="bento cols-4">
+            <div className="tile feature">
               <div className="k">이번달 견적</div>
               <div className="v">{stats.monthCount}건</div>
               <div className="sub">{won(stats.monthAmt)}</div>
             </div>
-            <div className="card stat">
+            <div className="tile">
               <div className="k">진행중 (발송·열람)</div>
               <div className="v">{stats.byStatus.sent + stats.byStatus.viewed}건</div>
               <div className="sub">대기금액 {won(stats.pipelineAmt)}</div>
             </div>
-            <div className="card stat">
+            <div className="tile">
               <div className="k">수주</div>
               <div className="v">{stats.accepted}건</div>
               <div className="sub">발송 {stats.sent}건 중</div>
             </div>
-            <div className="card stat" style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <div className="tile" style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
               <div className="ring" style={{ ["--p" as string]: stats.winRate }}>
                 <div className="inner">{stats.winRate}%</div>
               </div>
@@ -143,30 +151,12 @@ export default function Dashboard() {
               <div className="spacer" />
               <Link className="chip blue" to="/quotes">전체 보기 →</Link>
             </div>
-            <div className="table-wrap" style={{ marginTop: 14 }}>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>견적번호</th>
-                    <th>고객</th>
-                    <th className="amt">총액</th>
-                    <th>상태</th>
-                    <th>작성일</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recent.map((q) => (
-                    <tr key={q.id}>
-                      <td><Link className="link" to={`/quotes/${q.id}`}>{q.quote_no}</Link></td>
-                      <td>{q.customer || "-"}</td>
-                      <td className="amt">{won(q.grand)}</td>
-                      <td><StatusBadge status={q.status} /></td>
-                      <td>{fmtDate(q.created_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              columns={recentColumns}
+              rows={recent}
+              rowKey={(q) => q.id}
+              style={{ marginTop: 16 }}
+            />
           </div>
         </>
       )}

@@ -21,20 +21,29 @@
 .grid .card + .card {
   margin-top: 0;
 }
+// 그리드/벤토/카드가 섞여 쌓일 때도 동일한 세로 리듬 유지 (간격 0 방지)
+.grid + .card,
+.card + .grid,
+.grid + .grid,
+.bento + .card,
+.card + .bento,
+.bento + .bento {
+  margin-top: 16px;
+}
 .card-title {
-  font-size: 18px;
-  font-weight: 540;
+  font-size: 20px;
+  font-weight: 500;
   letter-spacing: -0.02em;
   margin-bottom: 16px;
 }
 .card-sub {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-3);
   margin-top: -10px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 // ── 입력 (흰 배경 + 헤어라인 + 포커스 링) ──────────────────
@@ -44,9 +53,9 @@ label.field {
 }
 label.field > span {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-weight: 500;
 }
 
@@ -58,8 +67,8 @@ textarea {
   background: var(--canvas);
   color: var(--ink);
   border-radius: var(--r-md);
-  padding: 11px 14px;
-  font-size: 15px;
+  padding: 12px 16px;
+  font-size: 16px;
   font-family: inherit;
   font-weight: 400;
   outline: none;
@@ -74,6 +83,104 @@ textarea:focus {
 textarea {
   resize: vertical;
   min-height: 84px;
+}
+
+// ── 커스텀 셀렉트 (네이티브 select 대체: 버튼 트리거 + 포털 드롭다운) ──
+.select-trigger {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--canvas);
+  color: var(--ink);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: box-shadow 0.12s, border-color 0.12s;
+}
+.select-trigger:hover:not(:disabled) {
+  border-color: var(--text-3);
+}
+.select-trigger:focus-visible,
+.select-trigger.open {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink) inset;
+}
+.select-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.select-value.placeholder {
+  color: var(--text-3);
+}
+.select-caret {
+  flex-shrink: 0;
+  color: var(--text-3);
+  transition: transform 0.15s;
+}
+.select-trigger.open .select-caret {
+  transform: rotate(180deg);
+}
+
+.select-panel {
+  z-index: 1000;
+  overflow-y: auto;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  padding: 4px;
+  animation: selectIn 0.1s ease-out;
+}
+@keyframes selectIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  font-size: 16px;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+.select-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.select-option.active {
+  background: var(--fill);
+}
+.select-option.selected {
+  font-weight: 700;
+}
+.select-option-check {
+  flex-shrink: 0;
+  color: var(--ink);
+}
+.select-option.disabled {
+  color: var(--text-3);
+  cursor: not-allowed;
 }
 input.amt,
 input[type="number"] {
@@ -90,12 +197,12 @@ textarea::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   border: none;
   border-radius: var(--pill);
-  padding: 9px 20px;
-  font-size: 15px;
-  font-weight: 480;
+  padding: 8px 20px;
+  font-size: 16px;
+  font-weight: 500;
   letter-spacing: -0.01em;
   cursor: pointer;
   background: var(--surface-soft);
@@ -113,64 +220,97 @@ textarea::placeholder {
   opacity: 0.45;
   cursor: not-allowed;
 }
+// 진행 중: 비활성이지만 죽어보이지 않게 살짝만 흐리고 대기 커서
+.btn.is-loading {
+  opacity: 0.75;
+  cursor: wait;
+}
+.btn .spin {
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+// ── 버튼 변형 (범용 컨벤션 · 모노크롬 코어 + danger 시맨틱) ──
+// 기본 .btn 자체가 secondary(회색 솔리드). 아래는 그 외 변형.
 .btn.primary {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--canvas); // primary 는 ink 색이므로 글씨는 캔버스색(테마 반전 대응)
 }
 .btn.primary:hover {
   background: var(--toss-blue-dark);
 }
-.btn.soft {
-  background: var(--block-lilac);
-  color: var(--ink);
+.btn.outline {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
-.btn.soft:hover {
-  filter: brightness(0.97);
+.btn.outline:hover {
+  background: var(--surface-soft);
+}
+.btn.ghost {
+  background: transparent;
+}
+.btn.ghost:hover {
+  background: var(--surface-soft);
 }
 .btn.danger {
   background: var(--st-rejected-bg);
   color: var(--danger);
 }
+.btn.danger:hover {
+  filter: brightness(0.97);
+}
+.btn.link {
+  background: transparent;
+  padding-left: 6px;
+  padding-right: 6px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.btn.link:hover {
+  background: transparent;
+  color: var(--text-2);
+}
 .btn.sm {
-  padding: 6px 13px;
-  font-size: 13px;
+  padding: 8px 12px;
+  font-size: 14px;
 }
 .btn.lg {
-  padding: 12px 26px;
+  padding: 12px 24px;
   font-size: 16px;
 }
 .btn.block {
   width: 100%;
 }
-.btn.kakao {
-  background: #fee500;
-  color: #191600;
-}
-// 다크 컬러블록 위에서 쓰는 흰 pill (button-secondary)
-.btn.light {
+// 어두운 컬러블록(ink) 위에서 쓰는 버튼
+.btn.inverse {
   background: var(--canvas);
   color: var(--ink);
 }
-.btn.light:hover {
+.btn.inverse:hover {
   background: var(--surface-soft);
 }
-// 다크 컬러블록 위 보조 액션(반투명 화이트)
-.btn.ghost-inverse {
+.btn.inverse-ghost {
   background: rgba(255, 255, 255, 0.16);
   color: #f2f2f0;
 }
-.btn.ghost-inverse:hover {
+.btn.inverse-ghost:hover {
   background: rgba(255, 255, 255, 0.26);
+}
+// 카카오 브랜드 (로그인/발송)
+.btn.kakao {
+  background: #fee500;
+  color: #191600;
 }
 
 // ── 상태 뱃지 (파스텔 그라운드 + 색 점) ─────────────────────
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 12px;
   font-weight: 500;
-  padding: 5px 11px;
+  padding: 4px 12px;
   border-radius: var(--pill);
   color: var(--ink);
   white-space: nowrap;
@@ -200,18 +340,18 @@ textarea::placeholder {
 }
 .table th {
   text-align: left;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
   font-weight: 500;
-  font-size: 11px;
-  padding: 10px 12px;
+  font-size: 12px;
+  padding: 12px 12px;
   border-bottom: 1px solid var(--hairline);
   white-space: nowrap;
 }
 .table td {
-  padding: 13px 12px;
+  padding: 12px 12px;
   border-bottom: 1px solid var(--hairline-soft);
   vertical-align: middle;
   white-space: nowrap;
@@ -231,7 +371,7 @@ textarea::placeholder {
 }
 .table a.link {
   color: var(--ink);
-  font-weight: 540;
+  font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
@@ -244,13 +384,13 @@ textarea::placeholder {
 .toggle-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 .toggle {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-radius: var(--r-md);
   background: var(--surface-soft);
   border: 1px solid transparent;
@@ -264,7 +404,7 @@ textarea::placeholder {
 .toggle .head {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   font-weight: 500;
   font-size: 14px;
 }
@@ -283,7 +423,7 @@ textarea::placeholder {
 .toggle.on .check {
   background: var(--ink);
   border-color: var(--ink);
-  color: #fff;
+  color: var(--canvas);
 }
 .toggle .check svg {
   width: 12px;
@@ -304,18 +444,18 @@ textarea::placeholder {
 .totals {
   background: var(--surface-soft);
   border-radius: var(--r-md);
-  padding: 18px 20px;
+  padding: 20px 20px;
 }
 .totals .line {
   display: flex;
   justify-content: space-between;
-  padding: 7px 0;
+  padding: 8px 0;
   font-size: 14px;
   color: var(--text-2);
 }
 .totals .line.sep {
   border-top: 1px solid var(--hairline);
-  margin-top: 6px;
+  margin-top: 8px;
   padding-top: 12px;
 }
 .totals .line .v {
@@ -328,16 +468,16 @@ textarea::placeholder {
   justify-content: space-between;
   align-items: baseline;
   margin-top: 12px;
-  padding-top: 14px;
+  padding-top: 16px;
   border-top: 2px solid var(--ink);
 }
 .totals .grand .label {
-  font-weight: 540;
+  font-weight: 500;
   font-size: 16px;
 }
 .totals .grand .v {
   font-weight: 700;
-  font-size: 26px;
+  font-size: 24px;
   color: var(--ink);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -349,13 +489,13 @@ textarea::placeholder {
   bottom: 0;
   z-index: 20;
   margin: 24px -1px -1px;
-  padding: 14px 18px;
+  padding: 16px 20px;
   background: var(--canvas);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
@@ -373,11 +513,11 @@ textarea::placeholder {
 }
 .toast {
   background: var(--primary);
-  color: #fff;
-  padding: 12px 22px;
+  color: var(--canvas);
+  padding: 12px 24px;
   border-radius: var(--pill);
   font-size: 14px;
-  font-weight: 480;
+  font-weight: 500;
   box-shadow: var(--shadow-2);
   animation: toast-in 0.2s ease;
 }
@@ -404,41 +544,62 @@ textarea::placeholder {
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
-  padding: 24px;
   width: 100%;
   max-width: 460px;
   max-height: 88vh;
-  overflow: auto;
+  // head(고정) · body(스크롤) · foot(고정) 3단 → 긴 모달에서도 저장/취소 항상 노출
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: var(--shadow-3);
 }
 .modal.wide {
   max-width: 600px;
 }
+.modal-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 24px 24px 16px;
+}
+.modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+}
+.modal-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--hairline-soft);
+  background: var(--card);
+}
 .modal-title {
-  font-size: 18px;
-  font-weight: 540;
+  font-size: 20px;
+  font-weight: 500;
   letter-spacing: -0.02em;
-  margin-bottom: 16px;
 }
 
 // ── 빈 상태 ────────────────────────────────────────────────
 .empty {
   text-align: center;
-  padding: 56px 20px;
+  padding: 64px 20px;
   color: var(--text-3);
 }
 .empty .big {
   display: flex;
   justify-content: center;
   color: var(--text-3);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .empty .ttl {
-  font-size: 18px;
-  font-weight: 540;
+  font-size: 20px;
+  font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--ink);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 // ── 진행 타임라인 ──────────────────────────────────────────
@@ -448,8 +609,8 @@ textarea::placeholder {
 }
 .timeline .ev {
   display: flex;
-  gap: 14px;
-  padding: 0 0 18px;
+  gap: 16px;
+  padding: 0 0 20px;
   position: relative;
 }
 .timeline .ev:not(:last-child)::before {
@@ -467,23 +628,23 @@ textarea::placeholder {
   border-radius: 50%;
   background: var(--ink);
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 4px;
   z-index: 1;
 }
 .timeline .ev .body .t {
-  font-weight: 540;
+  font-weight: 500;
   font-size: 14px;
 }
 .timeline .ev .body .d {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-3);
 }
 
 // 결과 배너 (파스텔)
 .banner {
   border-radius: var(--r-md);
-  padding: 16px 18px;
-  font-weight: 480;
+  padding: 16px 20px;
+  font-weight: 500;
   margin-bottom: 16px;
   color: var(--ink);
 }
@@ -495,7 +656,7 @@ textarea::placeholder {
 .pipeline {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 .pipeline .stage {
   background: var(--surface-soft);
@@ -504,14 +665,14 @@ textarea::placeholder {
   text-align: center;
 }
 .pipeline .stage .n {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .pipeline .stage .l {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
@@ -536,15 +697,15 @@ textarea::placeholder {
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 14px;
-  font-size: 13px;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 14px;
   color: var(--text-2);
 }
 .legend .it {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .legend .sw {
   width: 10px;
@@ -576,24 +737,103 @@ textarea::placeholder {
 
 // 통계 카드
 .stat .k {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
   font-weight: 500;
 }
 .stat .v {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-top: 8px;
   font-variant-numeric: tabular-nums;
 }
 .stat .sub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
-  margin-top: 2px;
+  margin-top: 4px;
+}
+
+// ── 벤토 그리드 ──────────────────────────────────────────────
+// 단일 그리드가 가로·세로 간격을 모두 담당 → 리듬 일관. 타일은 span 으로 크기 변주.
+.bento {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(132px, auto);
+  gap: 16px;
+}
+.bento.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.bento.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.bento .tile {
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.bento .tile.col-2 { grid-column: span 2; }
+.bento .tile.col-3,
+.bento .tile.full { grid-column: 1 / -1; }
+.bento .tile.row-2 { grid-row: span 2; }
+
+// 강조 타일: 채도 없는 오프화이트(모노크롬). 색 대신 크기·타이포로 위계 표현.
+.bento .tile.feature { background: var(--surface-soft); border-color: transparent; }
+
+// 타일 내부 타이포
+.bento .tile .k {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  font-weight: 500;
+}
+.bento .tile .v {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.bento .tile .v-lg {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  font-variant-numeric: tabular-nums;
+}
+.bento .tile .bento-foot {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-2);
+}
+.bento .tile .sub {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+// 타일 하단으로 콘텐츠 밀어내기 (라벨은 위, 수치는 아래)
+.bento .tile .push-bottom { margin-top: auto; }
+
+@media (max-width: 860px) {
+  .bento,
+  .bento.cols-2,
+  .bento.cols-4 { grid-template-columns: 1fr 1fr; }
+  .bento .tile.col-2,
+  .bento .tile.row-2 { grid-column: auto; grid-row: auto; }
+  .bento .tile.full { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .bento,
+  .bento.cols-2,
+  .bento.cols-4 { grid-template-columns: 1fr; }
+  .bento .tile.col-2,
+  .bento .tile.full { grid-column: auto; }
 }
 
 // 서명 패드
@@ -613,17 +853,17 @@ textarea::placeholder {
   font-size: 14px;
 }
 .qdoc h2 {
-  font-size: 28px;
-  font-weight: 360;
+  font-size: 32px;
+  font-weight: 400;
   letter-spacing: -0.03em;
   text-align: center;
   margin-bottom: 4px;
 }
 .qdoc .qmeta {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   text-align: center;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 20px;
@@ -637,11 +877,11 @@ textarea::placeholder {
 .qdoc .box {
   background: var(--surface-soft);
   border-radius: var(--r-md);
-  padding: 14px 16px;
+  padding: 16px 16px;
 }
 .qdoc .box .bt {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
@@ -651,7 +891,7 @@ textarea::placeholder {
 .qdoc .kv {
   display: flex;
   gap: 8px;
-  padding: 3px 0;
+  padding: 4px 0;
 }
 .qdoc .kv .k {
   color: var(--text-3);
@@ -664,8 +904,8 @@ textarea::placeholder {
 .chip {
   display: inline-block;
   font-size: 12px;
-  font-weight: 480;
-  padding: 3px 10px;
+  font-weight: 500;
+  padding: 4px 12px;
   border-radius: var(--pill);
   background: var(--surface-soft);
   color: var(--text-2);

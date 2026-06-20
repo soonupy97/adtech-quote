@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { store } from "@/lib/store";
 import { uuid } from "@/lib/quote";
+import { DIM_UNITS, DEFAULT_QTY_UNITS } from "@/lib/units";
 import type { AdjMode, DiscountRule, PromoCode, Settings as SettingsT } from "@/types";
 import { useToast } from "@/components/Toast";
+import { Button, Field, Input, Select, Textarea } from "@/components/ui";
 import { Check, Plus, X } from "lucide-react";
 import Team from "./Team";
 import IntegrationsPage from "./IntegrationsPage";
 import Activities from "./Activities";
 import { MENU_TOGGLES, MENU_EVENT } from "@/components/AppShell";
 
-type Tab = "company" | "branding" | "tax" | "numbering" | "terms" | "rules" | "menus" | "team" | "integrations" | "activities";
+type Tab = "company" | "units" | "branding" | "tax" | "numbering" | "terms" | "rules" | "menus" | "team" | "integrations" | "activities";
 const TABS: { key: Tab; label: string }[] = [
   { key: "company", label: "회사·기본값" },
+  { key: "units", label: "단위" },
   { key: "branding", label: "브랜딩" },
   { key: "tax", label: "세금" },
   { key: "numbering", label: "견적번호" },
@@ -33,14 +36,19 @@ export default function Settings() {
   const toast = useToast();
   const [s, setS] = useState<SettingsT | null>(null);
   const [tab, setTab] = useState<Tab>("company");
+  const [saving, setSaving] = useState(false);
+  const [newUnit, setNewUnit] = useState("");
 
   useEffect(() => { store.getSettings().then(setS); }, []);
-  if (!s) return <div className="empty" style={{ paddingTop: 80 }}>불러오는 중…</div>;
+  if (!s) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
 
   const save = async () => {
-    await store.saveSettings(s);
-    window.dispatchEvent(new Event(MENU_EVENT)); // 사이드바 메뉴 표시 갱신
-    toast("설정을 저장했습니다.");
+    setSaving(true);
+    try {
+      await store.saveSettings(s);
+      window.dispatchEvent(new Event(MENU_EVENT)); // 사이드바 메뉴 표시 갱신
+      toast("설정을 저장했습니다.");
+    } finally { setSaving(false); }
   };
   const sup = s.supplier, def = s.defaults;
   const hiddenMenus = s.menuHidden || [];
@@ -48,6 +56,14 @@ export default function Settings() {
     setS({ ...s, menuHidden: hiddenMenus.includes(to) ? hiddenMenus.filter((x) => x !== to) : [...hiddenMenus, to] });
   const branding = s.branding || {}, tax = s.tax || {}, numbering = s.numbering || {}, terms = s.terms || {};
   const rules = s.discountRules || [], promos = s.promoCodes || [];
+  const units = s.units || {}, qtyUnits = units.quantityUnits ?? DEFAULT_QTY_UNITS;
+  const addUnit = () => {
+    const u = newUnit.trim();
+    if (!u || qtyUnits.includes(u)) { setNewUnit(""); return; }
+    setS({ ...s, units: { ...units, quantityUnits: [...qtyUnits, u] } });
+    setNewUnit("");
+  };
+  const delUnit = (i: number) => setS({ ...s, units: { ...units, quantityUnits: qtyUnits.filter((_, x) => x !== i) } });
 
   const upload = async (key: "logoUrl" | "sealUrl", file?: File) => {
     if (!file) return;
@@ -69,7 +85,7 @@ export default function Settings() {
 
       <div className="tabs">
         {TABS.map((t) => (
-          <button key={t.key} className={`btn sm ${tab === t.key ? "primary" : ""}`} onClick={() => setTab(t.key)}>{t.label}</button>
+          <Button key={t.key} size="sm" variant={tab === t.key ? "primary" : "secondary"} onClick={() => setTab(t.key)}>{t.label}</Button>
         ))}
       </div>
 
@@ -78,22 +94,55 @@ export default function Settings() {
           <div className="card">
             <div className="card-title">공급자 (우리 회사)</div>
             <div className="grid cols-2">
-              <label className="field"><span>상호</span><input value={sup.name} onChange={(e) => setS({ ...s, supplier: { ...sup, name: e.target.value } })} /></label>
-              <label className="field"><span>사업자번호</span><input value={sup.bizno} onChange={(e) => setS({ ...s, supplier: { ...sup, bizno: e.target.value } })} /></label>
-              <label className="field"><span>대표</span><input value={sup.ceo} onChange={(e) => setS({ ...s, supplier: { ...sup, ceo: e.target.value } })} /></label>
-              <label className="field"><span>담당자</span><input value={sup.manager} onChange={(e) => setS({ ...s, supplier: { ...sup, manager: e.target.value } })} /></label>
-              <label className="field"><span>연락처</span><input value={sup.tel} onChange={(e) => setS({ ...s, supplier: { ...sup, tel: e.target.value } })} /></label>
-              <label className="field"><span>주소</span><input value={sup.addr} onChange={(e) => setS({ ...s, supplier: { ...sup, addr: e.target.value } })} /></label>
+              <Field label="상호"><Input value={sup.name} onChange={(e) => setS({ ...s, supplier: { ...sup, name: e.target.value } })} /></Field>
+              <Field label="사업자번호"><Input value={sup.bizno} onChange={(e) => setS({ ...s, supplier: { ...sup, bizno: e.target.value } })} /></Field>
+              <Field label="대표"><Input value={sup.ceo} onChange={(e) => setS({ ...s, supplier: { ...sup, ceo: e.target.value } })} /></Field>
+              <Field label="담당자"><Input value={sup.manager} onChange={(e) => setS({ ...s, supplier: { ...sup, manager: e.target.value } })} /></Field>
+              <Field label="연락처"><Input value={sup.tel} onChange={(e) => setS({ ...s, supplier: { ...sup, tel: e.target.value } })} /></Field>
+              <Field label="주소"><Input value={sup.addr} onChange={(e) => setS({ ...s, supplier: { ...sup, addr: e.target.value } })} /></Field>
             </div>
           </div>
           <div className="card">
             <div className="card-title">견적 기본값</div>
             <div className="grid cols-2">
-              <label className="field"><span>유효기간</span><input value={def.validity} onChange={(e) => setS({ ...s, defaults: { ...def, validity: e.target.value } })} /></label>
-              <label className="field"><span>계약금</span><input value={def.deposit} onChange={(e) => setS({ ...s, defaults: { ...def, deposit: e.target.value } })} /></label>
-              <label className="field"><span>잔금</span><input value={def.balance} onChange={(e) => setS({ ...s, defaults: { ...def, balance: e.target.value } })} /></label>
-              <label className="field"><span>A/S</span><input value={def.as} onChange={(e) => setS({ ...s, defaults: { ...def, as: e.target.value } })} /></label>
+              <Field label="유효기간"><Input value={def.validity} onChange={(e) => setS({ ...s, defaults: { ...def, validity: e.target.value } })} /></Field>
+              <Field label="계약금"><Input value={def.deposit} onChange={(e) => setS({ ...s, defaults: { ...def, deposit: e.target.value } })} /></Field>
+              <Field label="잔금"><Input value={def.balance} onChange={(e) => setS({ ...s, defaults: { ...def, balance: e.target.value } })} /></Field>
+              <Field label="A/S"><Input value={def.as} onChange={(e) => setS({ ...s, defaults: { ...def, as: e.target.value } })} /></Field>
             </div>
+          </div>
+        </>
+      )}
+
+      {tab === "units" && (
+        <>
+          <div className="card">
+            <div className="card-title">치수 단위</div>
+            <div className="card-sub" style={{ marginTop: 4 }}>견적 작성의 가로·세로 입력 단위입니다. 단가는 ㎡ 기준이라 면적은 항상 ㎡로 환산해 표시됩니다.</div>
+            <Field label="가로·세로 입력 단위" style={{ maxWidth: 260, marginTop: 12 }}>
+              <Select value={units.dimension || "mm"} onChange={(v) => setS({ ...s, units: { ...units, dimension: v as "m" | "cm" | "mm" | "㎡" } })}
+                options={DIM_UNITS.map((u) => ({ value: u.value, label: u.label }))} />
+            </Field>
+            <div className="dim">예: 가로 3000{units.dimension || "mm"} × 세로 1000{units.dimension || "mm"} → 면적 자동 ㎡ 환산 (㎡ 선택 시 표시 라벨용)</div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">수량 단위 목록</div>
+            <div className="card-sub" style={{ marginTop: 4 }}>품목·단가 화면에서 단위를 고를 때 제시되는 선택지입니다. (직접 입력도 가능)</div>
+            <div className="row wrap" style={{ gap: 8, marginTop: 12 }}>
+              {qtyUnits.map((u, i) => (
+                <span key={u + i} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "var(--fill-2)", borderRadius: "var(--r-md)", fontWeight: 700, fontSize: 14 }}>
+                  {u}
+                  <X size={13} style={{ cursor: "pointer", opacity: 0.6 }} onClick={() => delUnit(i)} />
+                </span>
+              ))}
+            </div>
+            <div className="row" style={{ gap: 8, marginTop: 12, maxWidth: 320 }}>
+              <Input placeholder="단위 추가 (예: 롤)" value={newUnit} onChange={(e) => setNewUnit(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addUnit(); } }} />
+              <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addUnit}>추가</Button>
+            </div>
+            <div className="dim" style={{ marginTop: 8 }}>변경 후 하단 <strong>저장</strong>을 눌러야 반영됩니다.</div>
           </div>
         </>
       )}
@@ -102,16 +151,16 @@ export default function Settings() {
         <div className="card">
           <div className="card-title">회사 브랜딩 (부록 A20)</div>
           <div className="grid cols-2">
-            <label className="field"><span>로고 업로드</span><input type="file" accept="image/*" onChange={(e) => upload("logoUrl", e.target.files?.[0])} />
+            <Field label="로고 업로드"><Input type="file" accept="image/*" onChange={(e) => upload("logoUrl", e.target.files?.[0])} />
               {branding.logoUrl && <img src={branding.logoUrl} alt="logo" style={{ height: 48, marginTop: 8 }} />}
-            </label>
-            <label className="field"><span>직인 업로드</span><input type="file" accept="image/*" onChange={(e) => upload("sealUrl", e.target.files?.[0])} />
+            </Field>
+            <Field label="직인 업로드"><Input type="file" accept="image/*" onChange={(e) => upload("sealUrl", e.target.files?.[0])} />
               {branding.sealUrl && <img src={branding.sealUrl} alt="seal" style={{ height: 48, marginTop: 8 }} />}
-            </label>
+            </Field>
           </div>
-          <label className="field" style={{ maxWidth: 200 }}><span>강조색(테마)</span>
-            <input type="color" value={branding.themeColor || "#3182f6"} onChange={(e) => setS({ ...s, branding: { ...branding, themeColor: e.target.value } })} style={{ height: 44 }} />
-          </label>
+          <Field label="강조색(테마)" style={{ maxWidth: 200 }}>
+            <Input type="color" value={branding.themeColor || "#3182f6"} onChange={(e) => setS({ ...s, branding: { ...branding, themeColor: e.target.value } })} style={{ height: 44 }} />
+          </Field>
           <div className="dim">로고·직인·강조색은 견적서(PDF)/고객 화면에 반영됩니다.</div>
         </div>
       )}
@@ -120,19 +169,21 @@ export default function Settings() {
         <div className="card">
           <div className="card-title">세금 모드 (부록 A19)</div>
           <div className="grid cols-2">
-            <label className="field"><span>과세 구분</span>
-              <select value={tax.mode || "taxable"} onChange={(e) => setS({ ...s, tax: { ...tax, mode: e.target.value as "taxable" | "free" | "zero" } })}>
-                <option value="taxable">과세 (VAT 10%)</option>
-                <option value="free">면세</option>
-                <option value="zero">영세율</option>
-              </select>
-            </label>
-            <label className="field"><span>부가세 처리</span>
-              <select value={tax.vatIncluded ? "incl" : "excl"} onChange={(e) => setS({ ...s, tax: { ...tax, vatIncluded: e.target.value === "incl" } })}>
-                <option value="excl">부가세 별도</option>
-                <option value="incl">부가세 포함</option>
-              </select>
-            </label>
+            <Field label="과세 구분">
+              <Select value={tax.mode || "taxable"} onChange={(v) => setS({ ...s, tax: { ...tax, mode: v as "taxable" | "free" | "zero" } })}
+                options={[
+                  { value: "taxable", label: "과세 (VAT 10%)" },
+                  { value: "free", label: "면세" },
+                  { value: "zero", label: "영세율" },
+                ]} />
+            </Field>
+            <Field label="부가세 처리">
+              <Select value={tax.vatIncluded ? "incl" : "excl"} onChange={(v) => setS({ ...s, tax: { ...tax, vatIncluded: v === "incl" } })}
+                options={[
+                  { value: "excl", label: "부가세 별도" },
+                  { value: "incl", label: "부가세 포함" },
+                ]} />
+            </Field>
           </div>
           <div className="dim">기본값(과세·별도)은 블루프린트 §9 계산과 동일합니다.</div>
         </div>
@@ -142,15 +193,16 @@ export default function Settings() {
         <div className="card">
           <div className="card-title">견적번호 채번 규칙 (부록 A19)</div>
           <div className="grid cols-3">
-            <label className="field"><span>접두어</span><input value={numbering.prefix ?? "Q"} onChange={(e) => setS({ ...s, numbering: { ...numbering, prefix: e.target.value } })} /></label>
-            <label className="field"><span>날짜 형식</span>
-              <select value={numbering.dateFormat ?? "YYYYMMDD"} onChange={(e) => setS({ ...s, numbering: { ...numbering, dateFormat: e.target.value } })}>
-                <option value="YYYYMMDD">YYYYMMDD</option>
-                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                <option value="YYMMDD">YYMMDD</option>
-              </select>
-            </label>
-            <label className="field"><span>시퀀스 자릿수</span><input className="amt" value={numbering.seqDigits ?? 3} onChange={(e) => setS({ ...s, numbering: { ...numbering, seqDigits: Number(e.target.value.replace(/[^0-9]/g, "")) || 3 } })} /></label>
+            <Field label="접두어"><Input value={numbering.prefix ?? "Q"} onChange={(e) => setS({ ...s, numbering: { ...numbering, prefix: e.target.value } })} /></Field>
+            <Field label="날짜 형식">
+              <Select value={numbering.dateFormat ?? "YYYYMMDD"} onChange={(v) => setS({ ...s, numbering: { ...numbering, dateFormat: v } })}
+                options={[
+                  { value: "YYYYMMDD", label: "YYYYMMDD" },
+                  { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
+                  { value: "YYMMDD", label: "YYMMDD" },
+                ]} />
+            </Field>
+            <Field label="시퀀스 자릿수"><Input amount value={numbering.seqDigits ?? 3} onChange={(e) => setS({ ...s, numbering: { ...numbering, seqDigits: Number(e.target.value.replace(/[^0-9]/g, "")) || 3 } })} /></Field>
           </div>
           <div className="dim">예시: {`${numbering.prefix ?? "Q"}-${(numbering.dateFormat ?? "YYYYMMDD").replace("YYYY", "2026").replace("YY", "26").replace("MM", "06").replace("DD", "20")}-${"1".padStart(numbering.seqDigits ?? 3, "0")}`}</div>
         </div>
@@ -159,63 +211,60 @@ export default function Settings() {
       {tab === "terms" && (
         <div className="card">
           <div className="card-title">표준 약관·인사말 (부록 A20)</div>
-          <label className="field"><span>커버레터 / 인사말 (견적 상단)</span><textarea value={s.coverLetter || ""} onChange={(e) => setS({ ...s, coverLetter: e.target.value })} placeholder="안녕하세요, 견적을 보내드립니다…" /></label>
-          <label className="field"><span>표준 계약조건</span><textarea value={terms.standard || ""} onChange={(e) => setS({ ...s, terms: { ...terms, standard: e.target.value } })} /></label>
-          <label className="field"><span>A/S 조건</span><textarea value={terms.as || ""} onChange={(e) => setS({ ...s, terms: { ...terms, as: e.target.value } })} /></label>
-          <label className="field"><span>면책 문구</span><textarea value={terms.disclaimer || ""} onChange={(e) => setS({ ...s, terms: { ...terms, disclaimer: e.target.value } })} /></label>
+          <Field label="커버레터 / 인사말 (견적 상단)"><Textarea value={s.coverLetter || ""} onChange={(e) => setS({ ...s, coverLetter: e.target.value })} placeholder="안녕하세요, 견적을 보내드립니다…" /></Field>
+          <Field label="표준 계약조건"><Textarea value={terms.standard || ""} onChange={(e) => setS({ ...s, terms: { ...terms, standard: e.target.value } })} /></Field>
+          <Field label="A/S 조건"><Textarea value={terms.as || ""} onChange={(e) => setS({ ...s, terms: { ...terms, as: e.target.value } })} /></Field>
+          <Field label="면책 문구"><Textarea value={terms.disclaimer || ""} onChange={(e) => setS({ ...s, terms: { ...terms, disclaimer: e.target.value } })} /></Field>
         </div>
       )}
 
       {tab === "rules" && (
         <>
           <div className="card">
-            <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>자동 할인 규칙 (부록 C)</div><div className="spacer" /><button className="btn sm soft" onClick={addRule}>+ 규칙</button></div>
+            <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>자동 할인 규칙 (부록 C)</div><div className="spacer" /><Button size="sm" variant="secondary" onClick={addRule}>+ 규칙</Button></div>
             <div className="card-sub" style={{ marginTop: 8 }}>조건 충족 시 견적 작성에서 “자동할인 적용”으로 주입됩니다.</div>
             {rules.length === 0 && <div className="dim">규칙 없음</div>}
             {rules.map((r, i) => (
-              <div className="card" key={r.id} style={{ background: "var(--fill-2)", boxShadow: "none", marginTop: 10 }}>
+              <div className="card" key={r.id} style={{ background: "var(--fill-2)", boxShadow: "none", marginTop: 12 }}>
                 <div className="grid cols-2">
-                  <label className="field"><span>이름</span><input value={r.label} onChange={(e) => setRule(i, { ...r, label: e.target.value })} placeholder="예: 대형계약 할인" /></label>
-                  <label className="field"><span>거래처 등급 조건</span>
-                    <select value={r.when.clientGrade || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, clientGrade: (e.target.value || undefined) as "vip" | undefined } })}>
-                      <option value="">무관</option><option value="vip">VIP</option>
-                    </select>
-                  </label>
-                  <label className="field"><span>소계 ≥ (원)</span><input className="amt" value={r.when.subtotalGte || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, subtotalGte: Number(e.target.value.replace(/[^0-9]/g, "")) || undefined } })} /></label>
-                  <label className="field"><span>총수량 ≥</span><input className="amt" value={r.when.totalQtyGte || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, totalQtyGte: Number(e.target.value.replace(/[^0-9.]/g, "")) || undefined } })} /></label>
-                  <label className="field"><span>기간 시작</span><input type="date" value={r.when.dateFrom || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, dateFrom: e.target.value || undefined } })} /></label>
-                  <label className="field"><span>기간 종료</span><input type="date" value={r.when.dateTo || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, dateTo: e.target.value || undefined } })} /></label>
-                  <label className="field"><span>할인 방식</span>
-                    <select value={r.then.mode} onChange={(e) => setRule(i, { ...r, then: { ...r.then, mode: e.target.value as AdjMode } })}>
-                      <option value="pct">정률 %</option><option value="amt">정액 원</option>
-                    </select>
-                  </label>
-                  <label className="field"><span>할인 값</span><input className="amt" value={r.then.value} onChange={(e) => setRule(i, { ...r, then: { ...r.then, value: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 } })} /></label>
+                  <Field label="이름"><Input value={r.label} onChange={(e) => setRule(i, { ...r, label: e.target.value })} placeholder="예: 대형계약 할인" /></Field>
+                  <Field label="거래처 등급 조건">
+                    <Select value={r.when.clientGrade || ""} onChange={(v) => setRule(i, { ...r, when: { ...r.when, clientGrade: (v || undefined) as "vip" | undefined } })}
+                      options={[{ value: "", label: "무관" }, { value: "vip", label: "VIP" }]} />
+                  </Field>
+                  <Field label="소계 ≥ (원)"><Input amount value={r.when.subtotalGte || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, subtotalGte: Number(e.target.value.replace(/[^0-9]/g, "")) || undefined } })} /></Field>
+                  <Field label="총수량 ≥"><Input amount value={r.when.totalQtyGte || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, totalQtyGte: Number(e.target.value.replace(/[^0-9.]/g, "")) || undefined } })} /></Field>
+                  <Field label="기간 시작"><Input type="date" value={r.when.dateFrom || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, dateFrom: e.target.value || undefined } })} /></Field>
+                  <Field label="기간 종료"><Input type="date" value={r.when.dateTo || ""} onChange={(e) => setRule(i, { ...r, when: { ...r.when, dateTo: e.target.value || undefined } })} /></Field>
+                  <Field label="할인 방식">
+                    <Select value={r.then.mode} onChange={(v) => setRule(i, { ...r, then: { ...r.then, mode: v as AdjMode } })}
+                      options={[{ value: "pct", label: "정률 %" }, { value: "amt", label: "정액 원" }]} />
+                  </Field>
+                  <Field label="할인 값"><Input amount value={r.then.value} onChange={(e) => setRule(i, { ...r, then: { ...r.then, value: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 } })} /></Field>
                 </div>
                 <div className="row">
-                  <label className="row" style={{ gap: 6, cursor: "pointer" }} onClick={() => setRule(i, { ...r, stackable: !r.stackable })}>
+                  <label className="row" style={{ gap: 8, cursor: "pointer" }} onClick={() => setRule(i, { ...r, stackable: !r.stackable })}>
                     <span className={`check ${r.stackable ? "on" : ""}`} style={{ width: 18, height: 18, borderRadius: 5, background: r.stackable ? "var(--toss-blue)" : "var(--fill)", color: "#fff", display: "grid", placeItems: "center" }}>{r.stackable ? <Check size={12} strokeWidth={3} /> : ""}</span>
                     다른 규칙과 중복 적용
                   </label>
                   <div className="spacer" />
-                  <button className="btn sm danger" onClick={() => delRule(i)}>삭제</button>
+                  <Button size="sm" variant="danger" onClick={() => delRule(i)}>삭제</Button>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="card">
-            <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>프로모션 코드 (부록 A19)</div><div className="spacer" /><button className="btn sm soft" onClick={addPromo}><Plus size={14} />코드</button></div>
+            <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>프로모션 코드 (부록 A19)</div><div className="spacer" /><Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addPromo}>코드</Button></div>
             {promos.length === 0 && <div className="dim" style={{ marginTop: 8 }}>코드 없음</div>}
             {promos.map((p, i) => (
-              <div className="row wrap" key={i} style={{ gap: 6, marginTop: 10 }}>
-                <input placeholder="코드" value={p.code} onChange={(e) => setPromo(i, { ...p, code: e.target.value.toUpperCase() })} style={{ width: 130 }} />
-                <input placeholder="설명" value={p.label} onChange={(e) => setPromo(i, { ...p, label: e.target.value })} style={{ maxWidth: 200 }} />
-                <select value={p.mode} onChange={(e) => setPromo(i, { ...p, mode: e.target.value as AdjMode })} style={{ width: 100 }}>
-                  <option value="pct">정률 %</option><option value="amt">정액 원</option>
-                </select>
-                <input className="amt" value={p.value} onChange={(e) => setPromo(i, { ...p, value: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 })} style={{ width: 90 }} />
-                <button className="btn sm danger" onClick={() => delPromo(i)}><X size={14} /></button>
+              <div className="row wrap" key={i} style={{ gap: 8, marginTop: 12 }}>
+                <Input placeholder="코드" value={p.code} onChange={(e) => setPromo(i, { ...p, code: e.target.value.toUpperCase() })} style={{ width: 130 }} />
+                <Input placeholder="설명" value={p.label} onChange={(e) => setPromo(i, { ...p, label: e.target.value })} style={{ maxWidth: 200 }} />
+                <Select value={p.mode} onChange={(v) => setPromo(i, { ...p, mode: v as AdjMode })} style={{ width: 100 }}
+                  options={[{ value: "pct", label: "정률 %" }, { value: "amt", label: "정액 원" }]} />
+                <Input amount value={p.value} onChange={(e) => setPromo(i, { ...p, value: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 })} style={{ width: 90 }} />
+                <Button size="sm" variant="danger" icon={<X size={14} />} onClick={() => delPromo(i)} />
               </div>
             ))}
           </div>
@@ -235,9 +284,9 @@ export default function Settings() {
                 {MENU_TOGGLES.filter((m) => m.section === section).map((m) => {
                   const on = !hiddenMenus.includes(m.to);
                   return (
-                    <div key={m.to} className="row" style={{ gap: 10, cursor: "pointer", padding: "10px 12px", background: "var(--fill-2)", borderRadius: "var(--r-md)" }} onClick={() => toggleMenu(m.to)}>
+                    <div key={m.to} className="row" style={{ gap: 12, cursor: "pointer", padding: "10px 12px", background: "var(--fill-2)", borderRadius: "var(--r-md)" }} onClick={() => toggleMenu(m.to)}>
                       <span className="check" style={{ width: 20, height: 20, borderRadius: 6, background: on ? "var(--toss-blue)" : "var(--fill)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>{on && <Check size={13} strokeWidth={3} />}</span>
-                      <span style={{ fontWeight: 600 }}>{m.label}</span>
+                      <span style={{ fontWeight: 700 }}>{m.label}</span>
                       <div className="spacer" />
                       <span className="dim" style={{ fontSize: 12 }}>{on ? "표시" : "숨김"}</span>
                     </div>
@@ -255,7 +304,7 @@ export default function Settings() {
       {tab === "activities" && <Activities embedded />}
 
       {!SELF_MANAGED.includes(tab) && (
-        <div className="actionbar"><button className="btn primary" onClick={save}>저장</button></div>
+        <div className="actionbar"><Button variant="primary" loading={saving} onClick={save}>저장</Button></div>
       )}
     </>
   );

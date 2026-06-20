@@ -3,6 +3,7 @@ import { store } from "@/lib/store";
 import { fmtDateTime } from "@/lib/quote";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type { Activity } from "@/types";
+import { Button, EmptyState } from "@/components/ui";
 import { ScrollText } from "lucide-react";
 
 // 부록 A26 활동 로그(감사)
@@ -22,18 +23,18 @@ export default function Activities({ embedded = false }: { embedded?: boolean })
         <div className="page-head">
           <div><h1>활동 로그</h1><div className="sub">작성·발송·수정·삭제 감사 기록 · {list.length}건</div></div>
           <div className="spacer" />
-          <button className="btn" onClick={exportCSV} disabled={list.length === 0}>CSV 내보내기</button>
+          <Button onClick={exportCSV} disabled={list.length === 0}>CSV 내보내기</Button>
         </div>
       ) : (
         <div className="row" style={{ marginBottom: 12 }}>
           <div className="card-sub" style={{ margin: 0 }}>작성·발송·수정·삭제 감사 기록 · {list.length}건</div>
           <div className="spacer" />
-          <button className="btn sm" onClick={exportCSV} disabled={list.length === 0}>CSV 내보내기</button>
+          <Button size="sm" onClick={exportCSV} disabled={list.length === 0}>CSV 내보내기</Button>
         </div>
       )}
       <div className="card">
         {list.length === 0 ? (
-          <div className="empty"><div className="big"><ScrollText size={40} strokeWidth={1.5} /></div><div className="ttl">기록이 없습니다</div></div>
+          <EmptyState icon={<ScrollText size={40} strokeWidth={1.5} />} title="기록이 없습니다" />
         ) : (
           <div className="timeline">
             {list.map((a) => (

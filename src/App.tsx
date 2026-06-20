@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import { ToastProvider } from "@/components/Toast";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
 import Quotes from "@/pages/Quotes";
 import Editor from "@/pages/Editor";
@@ -28,6 +29,7 @@ export default function App() {
         <Routes>
           {/* 공개 */}
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/view" element={<View />} />
 
           {/* 인증 필요 (AppShell 보호) */}

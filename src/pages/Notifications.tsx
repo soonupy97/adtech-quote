@@ -4,6 +4,7 @@ import { store } from "@/lib/store";
 import { fmtDateTime } from "@/lib/quote";
 import { reminderFor } from "@/lib/automation";
 import type { AppNotification, QuoteSummary } from "@/types";
+import { Button, EmptyState } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Clock, Bell } from "lucide-react";
 
@@ -49,8 +50,8 @@ export default function Notifications() {
       <div className="page-head">
         <div><h1>알림센터</h1><div className="sub">열람·수락·코멘트·만료·리마인더</div></div>
         <div className="spacer" />
-        <button className="btn" onClick={markAll} disabled={list.every((n) => n.read)}>모두 읽음</button>
-        <button className="btn danger" onClick={clear} disabled={list.length === 0}>전체 삭제</button>
+        <Button onClick={markAll} disabled={list.every((n) => n.read)}>모두 읽음</Button>
+        <Button variant="danger" onClick={clear} disabled={list.length === 0}>전체 삭제</Button>
       </div>
 
       {reminders.length > 0 && (
@@ -67,7 +68,7 @@ export default function Notifications() {
       <div className="card">
         <div className="card-title">알림</div>
         {list.length === 0 ? (
-          <div className="empty"><div className="big"><Bell size={40} strokeWidth={1.5} /></div><div className="ttl">알림이 없습니다</div></div>
+          <EmptyState icon={<Bell size={40} strokeWidth={1.5} />} title="알림이 없습니다" />
         ) : (
           list.map((n) => (
             <Link

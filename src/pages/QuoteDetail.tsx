@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, fmtDate, fmtDateTime, STATUS_LABEL, won } from "@/lib/quote";
 import { isExpired } from "@/lib/automation";
-import { simulateSend } from "@/lib/integrations";
+import SendActions from "@/components/SendActions";
 import type {
   Activity,
   Attachment,
@@ -15,11 +15,10 @@ import type {
   QuoteComment,
   QuoteVersion,
 } from "@/types";
-import StatusBadge from "@/components/StatusBadge";
 import QuoteReadonly from "@/components/QuoteReadonly";
-import Modal from "@/components/Modal";
+import { Button, EmptyState, Input, Modal, StatusBadge, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Check, FileSignature, Link2, Receipt, Wallet, Wrench, X } from "lucide-react";
+import { Check, Copy, FileSignature, Link2, Receipt, Wallet, Wrench, X } from "lucide-react";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -27,6 +26,7 @@ export default function QuoteDetail() {
   const toast = useToast();
   const [q, setQ] = useState<Quote | null>(null);
   const [link, setLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [versions, setVersions] = useState<QuoteVersion[]>([]);
   const [comments, setComments] = useState<QuoteComment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -44,13 +44,20 @@ export default function QuoteDetail() {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
 
-  if (!q) return <div className="empty" style={{ paddingTop: 80 }}>불러오는 중…</div>;
+  if (!q) return <EmptyState title="불러오는 중…" />;
   const totals = calcTotals(q);
   const expired = isExpired(q);
 
   const send = async () => { const { url } = await store.markSent(q.id); setLink(url); await load(); toast("발송 처리되었습니다."); };
   const dup = async () => { const copy = await store.duplicateQuote(q.id); toast("복제했습니다."); navigate(`/editor/${copy.id}`); };
   const customerView = () => window.open(store.shareUrl(q.public_token), "_blank");
+  const copyLink = async () => {
+    if (!link) return;
+    try { await navigator.clipboard?.writeText(link); } catch { /* clipboard 미지원 시 무시 */ }
+    setCopied(true);
+    toast("링크를 복사했습니다.");
+    window.setTimeout(() => setCopied(false), 1500);
+  };
 
   // 전환 (부록 A23/A24)
   const toContract = async () => {
@@ -94,11 +101,18 @@ export default function QuoteDetail() {
 
   const events = [...(q.events || [])].reverse();
 
+  const versionColumns: Column<QuoteVersion>[] = [
+    { key: "version", header: "버전", render: (v) => `v${v.version}` },
+    { key: "created_at", header: "저장 시각", className: "dim", render: (v) => fmtDateTime(v.created_at) },
+    { key: "grand", header: "총액", align: "right", render: (v) => won(calcTotals(v.snapshot).grand) },
+    { key: "act", render: (v) => <Button size="sm" onClick={() => restore(v)}>복원</Button> },
+  ];
+
   return (
     <>
       <div className="page-head no-print">
         <div>
-          <div className="row" style={{ gap: 10 }}>
+          <div className="row" style={{ gap: 12 }}>
             <h1>{q.quote_no}</h1>
             <StatusBadge status={q.status} />
             {expired && <span className="badge rejected"><span className="dot" />만료</span>}
@@ -106,12 +120,12 @@ export default function QuoteDetail() {
           <div className="sub">{q.customer?.name || "고객 미지정"} · 총 {won(totals.grand)}</div>
         </div>
         <div className="spacer" />
-        <div className="row" style={{ gap: 6 }}>
-          <button className="btn soft" onClick={send}><Link2 size={16} />발송 링크</button>
-          <button className="btn" onClick={() => navigate(`/editor/${q.id}`)}>편집</button>
-          <button className="btn" onClick={dup}>복제</button>
-          <button className="btn" onClick={customerView}>고객화면</button>
-          <button className="btn" onClick={() => window.print()}>PDF</button>
+        <div className="row" style={{ gap: 8 }}>
+          <Button variant="secondary" icon={<Link2 size={16} />} onClick={send}>발송 링크</Button>
+          <Button onClick={() => navigate(`/editor/${q.id}`)}>편집</Button>
+          <Button onClick={dup}>복제</Button>
+          <Button onClick={customerView}>고객화면</Button>
+          <Button onClick={() => window.print()}>PDF</Button>
         </div>
       </div>
 
@@ -120,16 +134,16 @@ export default function QuoteDetail() {
 
       {/* 전환 액션 (수락 시) — 네이비 스토리 블록 */}
       {q.status === "accepted" && (
-        <div className="color-block navy no-print">
+        <div className="color-block ink no-print">
           <div className="eyebrow" style={{ color: "rgba(242,242,240,0.6)" }}>수주 전환 · SHIP IT</div>
-          <div className="display" style={{ marginTop: 8, marginBottom: 18 }}>
+          <div className="display" style={{ marginTop: 8, marginBottom: 20 }}>
             수주를 다음 단계로.
           </div>
           <div className="row wrap" style={{ gap: 8 }}>
-            <button className="btn light" onClick={toContract}><FileSignature size={16} />전자계약 생성</button>
-            <button className="btn ghost-inverse" onClick={toWorkOrder}><Wrench size={16} />작업지시서</button>
-            <button className="btn ghost-inverse" onClick={toPayments}><Wallet size={16} />입금 스케줄</button>
-            <button className="btn ghost-inverse" onClick={toInvoice}><Receipt size={16} />세금계산서</button>
+            <Button variant="inverse" icon={<FileSignature size={16} />} onClick={toContract}>전자계약 생성</Button>
+            <Button variant="inverse-ghost" icon={<Wrench size={16} />} onClick={toWorkOrder}>작업지시서</Button>
+            <Button variant="inverse-ghost" icon={<Wallet size={16} />} onClick={toPayments}>입금 스케줄</Button>
+            <Button variant="inverse-ghost" icon={<Receipt size={16} />} onClick={toInvoice}>세금계산서</Button>
           </div>
         </div>
       )}
@@ -168,10 +182,14 @@ export default function QuoteDetail() {
               <img src={q.signature} alt="서명" style={{ maxWidth: 240, border: "1px solid var(--line)", borderRadius: 12, marginTop: 8, background: "#fff" }} />
             </div>
           )}
-          <div className="row wrap no-print" style={{ marginTop: 14, gap: 6 }}>
+          <div className="row wrap no-print" style={{ marginTop: 16, gap: 8 }}>
             <span className="dim">재발송:</span>
-            <button className="btn sm" onClick={() => toast(simulateSend("kakao", q.customer.tel || "고객", store.shareUrl(q.public_token)))}>카카오</button>
-            <button className="btn sm" onClick={() => toast(simulateSend("sms", q.customer.tel || "고객", store.shareUrl(q.public_token)))}>문자</button>
+            <SendActions
+              url={store.shareUrl(q.public_token)}
+              tel={q.customer.tel}
+              customer={q.customer.name}
+              quoteNo={q.quote_no}
+            />
           </div>
         </div>
       </div>
@@ -188,7 +206,7 @@ export default function QuoteDetail() {
       <div className="card no-print">
         <div className="card-title">고객 코멘트 / 재협상</div>
         {comments.length === 0 ? <div className="dim">코멘트 없음</div> : (
-          <div className="thread" style={{ marginBottom: 14 }}>
+          <div className="thread" style={{ marginBottom: 16 }}>
             {comments.map((c) => (
               <div className={`comment ${c.author}`} key={c.id}>
                 <div className="who">{c.author === "customer" ? `고객 · ${c.name}` : "담당자"} · {fmtDateTime(c.created_at)}</div>
@@ -197,9 +215,9 @@ export default function QuoteDetail() {
             ))}
           </div>
         )}
-        <div className="row" style={{ gap: 6 }}>
-          <input placeholder="고객에게 회신…" value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addReply()} />
-          <button className="btn soft" onClick={addReply}>회신</button>
+        <div className="row" style={{ gap: 8 }}>
+          <Input placeholder="고객에게 회신…" value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addReply()} />
+          <Button variant="secondary" onClick={addReply}>회신</Button>
         </div>
       </div>
 
@@ -207,21 +225,11 @@ export default function QuoteDetail() {
       {versions.length > 0 && (
         <div className="card no-print">
           <div className="card-title">버전 히스토리</div>
-          <div className="table-wrap">
-            <table className="table">
-              <thead><tr><th>버전</th><th>저장 시각</th><th className="amt">총액</th><th></th></tr></thead>
-              <tbody>
-                {versions.slice().reverse().map((v) => (
-                  <tr key={v.id}>
-                    <td>v{v.version}</td>
-                    <td className="dim">{fmtDateTime(v.created_at)}</td>
-                    <td className="amt">{won(calcTotals(v.snapshot).grand)}</td>
-                    <td><button className="btn sm" onClick={() => restore(v)}>복원</button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table
+            columns={versionColumns}
+            rows={versions.slice().reverse()}
+            rowKey={(v) => v.id}
+          />
         </div>
       )}
 
@@ -241,8 +249,19 @@ export default function QuoteDetail() {
 
       {link && (
         <Modal title="고객 발송 링크" onClose={() => setLink(null)}
-          footer={<><button className="btn primary" onClick={() => { navigator.clipboard?.writeText(link); toast("복사했습니다."); }}>링크 복사</button><a className="btn soft" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><button className="btn" onClick={() => setLink(null)}>닫기</button></>}>
-          <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
+          footer={<><a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button onClick={() => setLink(null)}>닫기</Button></>}>
+          <div className="row" style={{ gap: 8 }}>
+            <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} style={{ flex: 1 }} />
+            <Button
+              variant="outline"
+              icon={copied ? <Check size={16} /> : <Copy size={16} />}
+              onClick={copyLink}
+              title="링크 복사"
+              aria-label="링크 복사"
+            />
+          </div>
+          <div className="dim" style={{ margin: "12px 0 8px" }}>고객에게 전달:</div>
+          <SendActions url={link} tel={q.customer.tel} customer={q.customer.name} quoteNo={q.quote_no} />
         </Modal>
       )}
     </>

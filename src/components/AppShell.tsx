@@ -133,7 +133,7 @@ export default function AppShell() {
   // 라우트 이동 시 알림 갱신
   useEffect(() => { if (checked) loadNotis(); }, [location.pathname, checked, loadNotis]);
 
-  if (!checked) return <div className="empty" style={{ paddingTop: 120 }}>불러오는 중…</div>;
+  if (!checked) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
 
   const unread = notis.filter((n) => !n.read).length;
 
@@ -154,6 +154,40 @@ export default function AppShell() {
     }
     loadNotis();
   };
+
+  // 알림 벨 (사이드바 foot=desktop / topbar=mobile 공용 렌더)
+  const bell = (extra = "") => (
+    <div className={`bell-wrap ${extra}`}>
+      <button className="btn sm" onClick={() => setBellOpen((v) => !v)} title="알림">
+        <Bell size={15} />{unread > 0 && <span className="bell-badge">{unread}</span>}
+      </button>
+      {bellOpen && (
+        <div className="bell-panel" onMouseLeave={() => setBellOpen(false)}>
+          <div className="row" style={{ marginBottom: 8 }}>
+            <strong>알림센터</strong>
+            <div className="spacer" />
+            <button className="chip" onClick={markAllRead}>모두 읽음</button>
+            <Link className="chip blue" to="/notifications" onClick={() => setBellOpen(false)}>전체</Link>
+          </div>
+          {notis.length === 0 ? (
+            <div className="dim" style={{ padding: "12px 0" }}>알림이 없습니다</div>
+          ) : (
+            notis.slice(0, 8).map((n) => (
+              <Link
+                key={n.id}
+                to={n.quote_id ? `/quotes/${n.quote_id}` : "/notifications"}
+                className={`noti ${n.read ? "" : "unread"}`}
+                onClick={() => setBellOpen(false)}
+              >
+                <div className="t">{n.title}</div>
+                <div className="b">{n.body}</div>
+              </Link>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="shell">
@@ -181,10 +215,11 @@ export default function AppShell() {
             {session?.provider === "kakao" ? " · 카카오" : ""}
           </div>
           <div className="row" style={{ gap: 8 }}>
+            {bell("bell-up")}
             <button className="btn sm" onClick={toggleTheme}>{theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}</button>
             <button className="btn sm" onClick={onLogout}>로그아웃</button>
           </div>
-          {!isSupabaseEnabled && <div className="dim" style={{ marginTop: 10, fontSize: 11.5 }}>로컬 목업 모드</div>}
+          {!isSupabaseEnabled && <div className="dim" style={{ marginTop: 12, fontSize: 12 }}>로컬 목업 모드</div>}
         </div>
       </aside>
 
@@ -193,36 +228,7 @@ export default function AppShell() {
           <div className="spacer" />
           <button className="btn sm topbar-only" onClick={toggleTheme} title="테마">{theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}</button>
           <button className="btn sm topbar-only" onClick={onLogout}>로그아웃</button>
-          <div className="bell-wrap">
-            <button className="btn sm" onClick={() => setBellOpen((v) => !v)}>
-              <Bell size={15} />{unread > 0 && <span className="bell-badge">{unread}</span>}
-            </button>
-            {bellOpen && (
-              <div className="bell-panel" onMouseLeave={() => setBellOpen(false)}>
-                <div className="row" style={{ marginBottom: 8 }}>
-                  <strong>알림센터</strong>
-                  <div className="spacer" />
-                  <button className="chip" onClick={markAllRead}>모두 읽음</button>
-                  <Link className="chip blue" to="/notifications" onClick={() => setBellOpen(false)}>전체</Link>
-                </div>
-                {notis.length === 0 ? (
-                  <div className="dim" style={{ padding: "12px 0" }}>알림이 없습니다</div>
-                ) : (
-                  notis.slice(0, 8).map((n) => (
-                    <Link
-                      key={n.id}
-                      to={n.quote_id ? `/quotes/${n.quote_id}` : "/notifications"}
-                      className={`noti ${n.read ? "" : "unread"}`}
-                      onClick={() => setBellOpen(false)}
-                    >
-                      <div className="t">{n.title}</div>
-                      <div className="b">{n.body}</div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+          {bell("topbar-only")}
         </div>
         <Outlet />
       </main>

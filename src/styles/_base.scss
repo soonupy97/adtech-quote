@@ -11,13 +11,13 @@ body,
 body {
   margin: 0;
   font-family: var(--font-sans);
-  font-weight: 330; // 본문 기본 = 파인 웨이트
+  font-weight: 400; // 본문 기본 = 파인 웨이트
   background: var(--bg);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "kern" 1;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.45;
   letter-spacing: -0.01em;
 }
@@ -37,14 +37,14 @@ h2,
 h3,
 h4 {
   margin: 0;
-  font-weight: 540;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--ink);
 }
 h1 {
-  font-size: 30px;
-  font-weight: 360;
+  font-size: 32px;
+  font-weight: 400;
   letter-spacing: -0.03em;
 }
 
@@ -65,7 +65,7 @@ h1 {
 
 // ── 모노 eyebrow / caption (taxonomy 라벨) ──
 .eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
@@ -73,8 +73,8 @@ h1 {
   color: var(--text-3);
 }
 .caption {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -128,9 +128,11 @@ h1 {
 .color-block.pink { background: var(--block-pink); color: var(--ink); }
 .color-block.coral { background: var(--block-coral); color: var(--ink); }
 .color-block.navy { background: var(--block-navy); color: #f2f2f0; }
+.color-block.ink { background: var(--ink); color: #f2f2f0; }
+.color-block.plain { background: var(--surface-soft); color: var(--ink); }
 .color-block .display {
-  font-size: 40px;
-  font-weight: 340;
+  font-size: 48px;
+  font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.05;
 }
@@ -142,6 +144,6 @@ h1 {
     padding: 32px 16px;
   }
   .color-block .display {
-    font-size: 30px;
+    font-size: 32px;
   }
 }

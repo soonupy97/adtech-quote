@@ -22,6 +22,7 @@ create table if not exists public.quotes (
   payment_terms jsonb default '{}'::jsonb,
   validity text,
   notes text,
+  dim_unit text,
   customer_response jsonb,
   signature text,
   owner_id uuid references auth.users(id) default auth.uid(),
@@ -31,6 +32,8 @@ create table if not exists public.quotes (
   first_viewed_at timestamptz,
   responded_at timestamptz
 );
+-- 기존 설치본 업그레이드(재실행 안전): dim_unit 컬럼 보강
+alter table public.quotes add column if not exists dim_unit text;
 
 -- 2) 이벤트 -----------------------------------------------------------------
 create table if not exists public.quote_events (
@@ -77,8 +80,11 @@ create table if not exists public.settings (
   numbering jsonb default '{}'::jsonb,
   terms jsonb default '{}'::jsonb,
   discount_rules jsonb default '[]'::jsonb,
+  units jsonb default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+-- 기존 설치본 업그레이드(재실행 안전): units 컬럼 보강
+alter table public.settings add column if not exists units jsonb default '{}'::jsonb;
 
 -- 6) 부록 B 확장 엔티티(P1~P3 기반) -----------------------------------------
 create table if not exists public.templates (

@@ -7,11 +7,11 @@ import {
   PARTS,
   fmtDate,
   itemAmount,
-  itemArea,
   makeItem,
   newQuote,
   won,
 } from "@/lib/quote";
+import { areaInSqm, dimLabel } from "@/lib/units";
 import {
   calcMargin,
   calcTotalsWithTax,
@@ -20,7 +20,7 @@ import {
   expiryDate,
   needsApproval,
 } from "@/lib/automation";
-import { simulateSend } from "@/lib/integrations";
+import SendActions from "@/components/SendActions";
 import type {
   AdjMode,
   Attachment,
@@ -32,7 +32,7 @@ import type {
   Settings,
 } from "@/types";
 import { useToast } from "@/components/Toast";
-import Modal from "@/components/Modal";
+import { Button, Field, Input, Modal, Select, Textarea } from "@/components/ui";
 import { AlertTriangle, Check, Plus, Settings2, X, Zap } from "lucide-react";
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -74,6 +74,7 @@ export default function Editor() {
       // 신규: 설정 기본값 적용
       const s = await store.getSettings();
       const fresh = newQuote();
+      fresh.dimUnit = s.units?.dimension || "mm"; // 생성 시점 치수 단위 고정(기본 mm)
       fresh.supplier = { ...s.supplier };
       fresh.validity = s.defaults.validity || fresh.validity;
       fresh.paymentTerms = { deposit: s.defaults.deposit || "", balance: s.defaults.balance || "", as: s.defaults.as || "" };
@@ -115,10 +116,11 @@ export default function Editor() {
   const totals = useMemo(() => (q ? calcTotalsWithTax(q, settings || undefined) : null), [q, settings]);
   const margin = useMemo(() => (q ? calcMargin(q, catalog) : null), [q, catalog]);
 
-  if (!q || !totals) return <div className="empty" style={{ paddingTop: 80 }}>불러오는 중…</div>;
+  if (!q || !totals) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
 
   const isDraft = !q.id || q.status === "draft";
   const approval = needsApproval(q, settings || undefined);
+  const dimUnit = dimLabel(q.dimUnit ?? settings?.units?.dimension); // 견적 단위 우선, 없으면 설정 기본값
 
   // ── 헬퍼 ──
   const patch = (p: Partial<Quote>) => { dirtyRef.current = true; setQ({ ...q, ...p }); };
@@ -267,12 +269,12 @@ export default function Editor() {
         <div className="card-title">공급자 (우리 회사)</div>
         <div className="card-sub">설정에서 자동 입력됩니다. 필요 시 수정하세요.</div>
         <div className="grid cols-3">
-          <label className="field"><span>상호</span><input value={q.supplier.name} onChange={(e) => patch({ supplier: { ...q.supplier, name: e.target.value } })} /></label>
-          <label className="field"><span>사업자번호</span><input value={q.supplier.bizno} onChange={(e) => patch({ supplier: { ...q.supplier, bizno: e.target.value } })} /></label>
-          <label className="field"><span>대표</span><input value={q.supplier.ceo} onChange={(e) => patch({ supplier: { ...q.supplier, ceo: e.target.value } })} /></label>
-          <label className="field"><span>주소</span><input value={q.supplier.addr} onChange={(e) => patch({ supplier: { ...q.supplier, addr: e.target.value } })} /></label>
-          <label className="field"><span>연락처</span><input value={q.supplier.tel} onChange={(e) => patch({ supplier: { ...q.supplier, tel: e.target.value } })} /></label>
-          <label className="field"><span>담당자</span><input value={q.supplier.manager} onChange={(e) => patch({ supplier: { ...q.supplier, manager: e.target.value } })} /></label>
+          <Field label="상호"><Input value={q.supplier.name} onChange={(e) => patch({ supplier: { ...q.supplier, name: e.target.value } })} /></Field>
+          <Field label="사업자번호"><Input value={q.supplier.bizno} onChange={(e) => patch({ supplier: { ...q.supplier, bizno: e.target.value } })} /></Field>
+          <Field label="대표"><Input value={q.supplier.ceo} onChange={(e) => patch({ supplier: { ...q.supplier, ceo: e.target.value } })} /></Field>
+          <Field label="주소"><Input value={q.supplier.addr} onChange={(e) => patch({ supplier: { ...q.supplier, addr: e.target.value } })} /></Field>
+          <Field label="연락처"><Input value={q.supplier.tel} onChange={(e) => patch({ supplier: { ...q.supplier, tel: e.target.value } })} /></Field>
+          <Field label="담당자"><Input value={q.supplier.manager} onChange={(e) => patch({ supplier: { ...q.supplier, manager: e.target.value } })} /></Field>
         </div>
       </div>
 
@@ -281,19 +283,22 @@ export default function Editor() {
         <div className="row wrap">
           <div className="card-title" style={{ marginBottom: 0 }}>고객 / 현장</div>
           <div className="spacer" />
-          <select style={{ maxWidth: 200 }} value="" onChange={(e) => e.target.value && loadClient(e.target.value)}>
-            <option value="">거래처 불러오기</option>
-            {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <button className="btn sm soft" onClick={saveAsClient}>거래처 저장</button>
+          <Select
+            style={{ maxWidth: 200 }}
+            value=""
+            placeholder="거래처 불러오기"
+            onChange={(v) => v && loadClient(v)}
+            options={clients.map((c) => ({ value: c.id, label: c.name }))}
+          />
+          <Button size="sm" variant="secondary" onClick={saveAsClient}>거래처 저장</Button>
         </div>
-        <div className="grid cols-3" style={{ marginTop: 14 }}>
-          <label className="field"><span>고객 상호/성함</span><input value={q.customer.name} onChange={(e) => patch({ customer: { ...q.customer, name: e.target.value } })} /></label>
-          <label className="field"><span>연락처</span><input value={q.customer.tel} onChange={(e) => patch({ customer: { ...q.customer, tel: e.target.value } })} /></label>
-          <label className="field"><span>주소</span><input value={q.customer.addr} onChange={(e) => patch({ customer: { ...q.customer, addr: e.target.value } })} /></label>
-          <label className="field"><span>층/위치</span><input value={q.site.floor} onChange={(e) => patch({ site: { ...q.site, floor: e.target.value } })} placeholder="예: 2층 정면" /></label>
-          <label className="field"><span>설치높이</span><input value={q.site.height} onChange={(e) => patch({ site: { ...q.site, height: e.target.value } })} placeholder="예: 4m" /></label>
-          <label className="field"><span>도로/접면</span><input value={q.site.road} onChange={(e) => patch({ site: { ...q.site, road: e.target.value } })} placeholder="예: 8m 도로" /></label>
+        <div className="grid cols-3" style={{ marginTop: 16 }}>
+          <Field label="고객 상호/성함"><Input value={q.customer.name} onChange={(e) => patch({ customer: { ...q.customer, name: e.target.value } })} /></Field>
+          <Field label="연락처"><Input value={q.customer.tel} onChange={(e) => patch({ customer: { ...q.customer, tel: e.target.value } })} /></Field>
+          <Field label="주소"><Input value={q.customer.addr} onChange={(e) => patch({ customer: { ...q.customer, addr: e.target.value } })} /></Field>
+          <Field label="층/위치"><Input value={q.site.floor} onChange={(e) => patch({ site: { ...q.site, floor: e.target.value } })} placeholder="예: 2층 정면" /></Field>
+          <Field label="설치높이"><Input value={q.site.height} onChange={(e) => patch({ site: { ...q.site, height: e.target.value } })} placeholder="예: 4m" /></Field>
+          <Field label="도로/접면"><Input value={q.site.road} onChange={(e) => patch({ site: { ...q.site, road: e.target.value } })} placeholder="예: 8m 도로" /></Field>
         </div>
       </div>
 
@@ -302,12 +307,12 @@ export default function Editor() {
         <div className="row">
           <div className="card-title" style={{ marginBottom: 0 }}>광고물 품목</div>
           <div className="spacer" />
-          <button className="btn sm soft" onClick={addItem}><Plus size={14} />행 추가</button>
+          <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addItem}>행 추가</Button>
         </div>
-        <div className="table-wrap" style={{ marginTop: 14 }}>
+        <div className="table-wrap" style={{ marginTop: 16 }}>
           <table className="table">
             <thead>
-              <tr><th style={{ minWidth: 150 }}>종류</th><th>가로(m)</th><th>세로(m)</th><th>면적</th><th>등급</th><th className="amt">단가</th><th>수량</th><th className="amt">금액</th><th></th></tr>
+              <tr><th style={{ minWidth: 150 }}>종류</th><th>{`가로(${dimUnit})`}</th><th>{`세로(${dimUnit})`}</th><th>면적</th><th>등급</th><th className="amt">단가</th><th>수량</th><th className="amt">금액</th><th></th></tr>
             </thead>
             <tbody>
               {q.items.map((it, i) => {
@@ -317,26 +322,24 @@ export default function Editor() {
                 <Fragment key={i}>
                   <tr>
                     <td>
-                      <select value={it.type} onChange={(e) => onTypeOrGrade(i, { type: e.target.value })}>
-                        {ITEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                      <Select value={it.type} onChange={(v) => onTypeOrGrade(i, { type: v })}
+                        options={ITEM_TYPES.map((t) => ({ value: t, label: t }))} />
                     </td>
-                    <td><input value={it.w} onChange={(e) => setItem(i, { w: e.target.value })} placeholder="0" style={{ width: 70 }} /></td>
-                    <td><input value={it.h} onChange={(e) => setItem(i, { h: e.target.value })} placeholder="0" style={{ width: 70 }} /></td>
-                    <td className="dim">{itemArea(it) ? `${itemArea(it)}㎡` : "-"}</td>
+                    <td><Input value={it.w} onChange={(e) => setItem(i, { w: e.target.value })} placeholder="0" style={{ width: 70 }} /></td>
+                    <td><Input value={it.h} onChange={(e) => setItem(i, { h: e.target.value })} placeholder="0" style={{ width: 70 }} /></td>
+                    <td className="dim">{areaInSqm(it, dimUnit) ? `${areaInSqm(it, dimUnit)}㎡` : "-"}</td>
                     <td>
-                      <select value={it.grade} onChange={(e) => onTypeOrGrade(i, { grade: e.target.value as Grade })}>
-                        {GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
-                      </select>
+                      <Select value={it.grade} onChange={(v) => onTypeOrGrade(i, { grade: v as Grade })}
+                        options={GRADES.map((g) => ({ value: g, label: g }))} />
                     </td>
-                    <td><input className="amt" value={it.price} onChange={(e) => setItem(i, { price: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 })} style={{ width: 110 }} /></td>
-                    <td><input className="amt" value={it.qty} onChange={(e) => onQty(i, Number(e.target.value.replace(/[^0-9.]/g, "")) || 0)} style={{ width: 60 }} /></td>
+                    <td><Input amount value={it.price} onChange={(e) => setItem(i, { price: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 })} style={{ width: 110 }} /></td>
+                    <td><Input amount value={it.qty} onChange={(e) => onQty(i, Number(e.target.value.replace(/[^0-9.]/g, "")) || 0)} style={{ width: 60 }} /></td>
                     <td className="amt">{won(itemAmount(it))}</td>
                     <td>
                       <div className="row" style={{ gap: 4 }}>
-                        {hasOpts && <button className="btn sm" title="옵션" onClick={() => setOptsOpen(optsOpen === i ? null : i)}><Plus size={14} />옵션</button>}
-                        <button className="btn sm" title="부품" onClick={() => setPartsOpen(partsOpen === i ? null : i)}><Settings2 size={14} /></button>
-                        <button className="btn sm danger" onClick={() => delItem(i)}><X size={14} /></button>
+                        {hasOpts && <Button size="sm" title="옵션" icon={<Plus size={14} />} onClick={() => setOptsOpen(optsOpen === i ? null : i)}>옵션</Button>}
+                        <Button size="sm" title="부품" icon={<Settings2 size={14} />} onClick={() => setPartsOpen(partsOpen === i ? null : i)} />
+                        <Button size="sm" variant="danger" icon={<X size={14} />} onClick={() => delItem(i)} />
                       </div>
                     </td>
                   </tr>
@@ -347,12 +350,12 @@ export default function Editor() {
                         {c!.options!.map((o) => {
                           const sel = ((it as { _opts?: string[] })._opts || []).includes(o.name);
                           return (
-                            <button key={o.name} className={`btn sm ${sel ? "primary" : ""}`} onClick={() => {
+                            <Button key={o.name} size="sm" variant={sel ? "primary" : "secondary"} onClick={() => {
                               const cur = (it as { _opts?: string[] })._opts || [];
                               const next = sel ? cur.filter((x) => x !== o.name) : [...cur, o.name];
                               const merged = recalcPrice({ ...it, ...({ _opts: next } as object) } as QuoteItem);
                               const items = q.items.slice(); items[i] = merged; patch({ items });
-                            }}>{o.name} (+{won(o.add)})</button>
+                            }}>{o.name} (+{won(o.add)})</Button>
                           );
                         })}
                       </div>
@@ -363,10 +366,9 @@ export default function Editor() {
                       <div className="dim" style={{ marginBottom: 8 }}>부품 수량 메모 (금액 미반영)</div>
                       <div className="toggle-grid" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))" }}>
                         {PARTS.map((part) => (
-                          <label className="field" key={part} style={{ marginBottom: 0 }}>
-                            <span>{part}</span>
-                            <input className="amt" value={it.parts[part] || ""} onChange={(e) => { const parts = { ...it.parts, [part]: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setItem(i, { parts }); }} placeholder="0" />
-                          </label>
+                          <Field label={part} key={part} style={{ marginBottom: 0 }}>
+                            <Input amount value={it.parts[part] || ""} onChange={(e) => { const parts = { ...it.parts, [part]: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setItem(i, { parts }); }} placeholder="0" />
+                          </Field>
                         ))}
                       </div>
                     </td></tr>
@@ -386,7 +388,7 @@ export default function Editor() {
             {q[field].map((row, i) => (
               <div className={`toggle ${row.checked ? "on" : ""}`} key={row.name}>
                 <div className="head" onClick={() => toggleCost(field, i)}><span className="check"><Check /></span>{row.name}</div>
-                {row.checked && <input className="cost amt" value={row.cost || ""} onChange={(e) => setCost(field, i, Number(e.target.value.replace(/[^0-9]/g, "")) || 0)} placeholder="금액(원)" />}
+                {row.checked && <Input className="cost" amount value={row.cost || ""} onChange={(e) => setCost(field, i, Number(e.target.value.replace(/[^0-9]/g, "")) || 0)} placeholder="금액(원)" />}
               </div>
             ))}
           </div>
@@ -396,10 +398,10 @@ export default function Editor() {
       {/* 할증/할인 */}
       <div className="card">
         <div className="row no-print" style={{ marginBottom: 12 }}>
-          <button className="btn sm soft" onClick={applyAutoDiscounts}><Zap size={14} />자동할인 적용</button>
-          <div className="row" style={{ gap: 6 }}>
-            <input placeholder="프로모션 코드" value={promo} onChange={(e) => setPromo(e.target.value)} style={{ width: 150 }} />
-            <button className="btn sm" onClick={applyPromo}>적용</button>
+          <Button size="sm" variant="secondary" icon={<Zap size={14} />} onClick={applyAutoDiscounts}>자동할인 적용</Button>
+          <div className="row" style={{ gap: 8 }}>
+            <Input placeholder="프로모션 코드" value={promo} onChange={(e) => setPromo(e.target.value)} style={{ width: 150 }} />
+            <Button size="sm" onClick={applyPromo}>적용</Button>
           </div>
         </div>
         <div className="grid cols-2">
@@ -408,18 +410,17 @@ export default function Editor() {
               <div className="row">
                 <div className="card-title" style={{ marginBottom: 0 }}>{kind === "surcharge" ? "할증" : "할인"}</div>
                 <div className="spacer" />
-                <button className="btn sm soft" onClick={() => addAdj(kind)}><Plus size={14} />추가</button>
+                <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={() => addAdj(kind)}>추가</Button>
               </div>
               <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                 {q.adjustments[kind].length === 0 && <div className="dim">항목 없음</div>}
                 {q.adjustments[kind].map((r, i) => (
-                  <div className="row" key={i} style={{ gap: 6 }}>
-                    <input placeholder="사유" value={r.label} onChange={(e) => setAdj(kind, i, { label: e.target.value })} />
-                    <select style={{ width: 90 }} value={r.mode} onChange={(e) => setAdj(kind, i, { mode: e.target.value as AdjMode })}>
-                      <option value="pct">정률%</option><option value="amt">정액원</option>
-                    </select>
-                    <input className="amt" style={{ width: 90 }} value={r.value} onChange={(e) => setAdj(kind, i, { value: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 })} />
-                    <button className="btn sm danger" onClick={() => delAdj(kind, i)}><X size={14} /></button>
+                  <div className="row" key={i} style={{ gap: 8 }}>
+                    <Input placeholder="사유" value={r.label} onChange={(e) => setAdj(kind, i, { label: e.target.value })} />
+                    <Select style={{ width: 90 }} value={r.mode} onChange={(v) => setAdj(kind, i, { mode: v as AdjMode })}
+                      options={[{ value: "pct", label: "정률%" }, { value: "amt", label: "정액원" }]} />
+                    <Input amount style={{ width: 90 }} value={r.value} onChange={(e) => setAdj(kind, i, { value: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 })} />
+                    <Button size="sm" variant="danger" icon={<X size={14} />} onClick={() => delAdj(kind, i)} />
                   </div>
                 ))}
               </div>
@@ -462,14 +463,14 @@ export default function Editor() {
       {/* 첨부 (부록 A20) */}
       <div className="card no-print">
         <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>첨부 (현장사진·도면·시안)</div><div className="spacer" />
-          <label className="btn sm soft" style={{ cursor: "pointer" }}><Plus size={14} />파일<input type="file" accept="image/*" hidden onChange={(e) => addAttachment(e.target.files?.[0])} /></label>
+          <label className="btn sm secondary" style={{ cursor: "pointer" }}><Plus size={14} />파일<input type="file" accept="image/*" hidden onChange={(e) => addAttachment(e.target.files?.[0])} /></label>
         </div>
         {attachments.length > 0 ? (
           <div className="gallery" style={{ marginTop: 12 }}>
             {attachments.map((a) => (
               <div className="thumb" key={a.id}>
                 <img src={a.url} alt={a.name} />
-                <button className="btn sm danger del" onClick={() => delAttachment(a.id)}><X size={14} /></button>
+                <Button className="del" size="sm" variant="danger" icon={<X size={14} />} onClick={() => delAttachment(a.id)} />
               </div>
             ))}
           </div>
@@ -480,14 +481,14 @@ export default function Editor() {
       <div className="card">
         <div className="card-title">결제 조건 / 비고</div>
         <div className="grid cols-3">
-          <label className="field"><span>계약금</span><input value={q.paymentTerms.deposit} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, deposit: e.target.value } })} /></label>
-          <label className="field"><span>잔금</span><input value={q.paymentTerms.balance} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, balance: e.target.value } })} /></label>
-          <label className="field"><span>A/S</span><input value={q.paymentTerms.as} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, as: e.target.value } })} /></label>
+          <Field label="계약금"><Input value={q.paymentTerms.deposit} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, deposit: e.target.value } })} /></Field>
+          <Field label="잔금"><Input value={q.paymentTerms.balance} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, balance: e.target.value } })} /></Field>
+          <Field label="A/S"><Input value={q.paymentTerms.as} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, as: e.target.value } })} /></Field>
         </div>
         <div className="grid cols-2">
-          <label className="field"><span>유효기간</span><input value={q.validity} onChange={(e) => patch({ validity: e.target.value })} /></label>
+          <Field label="유효기간"><Input value={q.validity} onChange={(e) => patch({ validity: e.target.value })} /></Field>
         </div>
-        <label className="field"><span>비고</span><textarea value={q.notes} onChange={(e) => patch({ notes: e.target.value })} placeholder="추가 안내사항" /></label>
+        <Field label="비고"><Textarea value={q.notes} onChange={(e) => patch({ notes: e.target.value })} placeholder="추가 안내사항" /></Field>
       </div>
       </div>{/* /watermark */}
 
@@ -495,12 +496,12 @@ export default function Editor() {
 
       {/* 액션바 */}
       <div className="actionbar no-print">
-        <button className="btn primary" disabled={busy} onClick={doSave}>{busy ? "저장 중…" : "저장"}</button>
-        <button className="btn soft" disabled={busy} onClick={sendLink}>발송 링크 생성</button>
-        <button className="btn" onClick={saveAsTemplate}>템플릿으로 저장</button>
-        <button className="btn" onClick={() => window.print()}>PDF</button>
+        <Button variant="primary" loading={busy} onClick={doSave}>저장</Button>
+        <Button variant="secondary" disabled={busy} onClick={sendLink}>발송 링크 생성</Button>
+        <Button onClick={saveAsTemplate}>템플릿으로 저장</Button>
+        <Button onClick={() => window.print()}>PDF</Button>
         <div className="spacer" />
-        <button className="btn" onClick={() => navigate("/quotes")}>목록</button>
+        <Button onClick={() => navigate("/quotes")}>목록</Button>
       </div>
 
       {link && (
@@ -508,19 +509,16 @@ export default function Editor() {
           title="고객 발송"
           onClose={() => setLink(null)}
           footer={<>
-            <button className="btn primary" onClick={() => { navigator.clipboard?.writeText(link); toast("복사했습니다."); }}>링크 복사</button>
-            <a className="btn soft" href={link} target="_blank" rel="noreferrer">미리보기</a>
+            <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("복사했습니다."); }}>링크 복사</Button>
+            <a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a>
             <div className="spacer" />
-            <button className="btn" onClick={() => navigate(`/quotes/${savedIdRef.current}`)}>상세로 →</button>
+            <Button onClick={() => navigate(`/quotes/${savedIdRef.current}`)}>상세로 →</Button>
           </>}
         >
-          <div className="dim" style={{ marginBottom: 10 }}>고객에게 링크를 전달하세요.</div>
-          <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
-          <div className="row wrap no-print" style={{ marginTop: 14, gap: 6 }}>
-            <span className="dim">멀티채널 발송(시뮬):</span>
-            <button className="btn sm" onClick={() => toast(simulateSend("kakao", q.customer.tel || "고객", link))}>카카오 알림톡</button>
-            <button className="btn sm" onClick={() => toast(simulateSend("sms", q.customer.tel || "고객", link))}>문자</button>
-            <button className="btn sm" onClick={() => toast(simulateSend("email", q.customer.name || "고객", link))}>이메일</button>
+          <div className="dim" style={{ marginBottom: 12 }}>고객에게 링크를 전달하세요.</div>
+          <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
+          <div className="row wrap no-print" style={{ marginTop: 16, gap: 8 }}>
+            <SendActions url={link} tel={q.customer.tel} customer={q.customer.name} quoteNo={q.quote_no} />
           </div>
         </Modal>
       )}

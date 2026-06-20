@@ -1,6 +1,7 @@
 import { Minus, Plus } from "lucide-react";
 import type { Quote } from "@/types";
-import { calcTotals, fmtDate, itemAmount, itemArea, won } from "@/lib/quote";
+import { calcTotals, fmtDate, itemAmount, won } from "@/lib/quote";
+import { areaInSqm, dimLabel } from "@/lib/units";
 
 // 견적 전문 읽기전용 렌더 (§14.2 renderReadonly → 컴포넌트)
 export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
@@ -41,7 +42,7 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
         </div>
       </div>
 
-      <div className="table-wrap" style={{ marginBottom: 18 }}>
+      <div className="table-wrap" style={{ marginBottom: 20 }}>
         <table className="table">
           <thead>
             <tr>
@@ -56,11 +57,11 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
           </thead>
           <tbody>
             {(q.items || []).map((it, i) => {
-              const area = itemArea(it);
+              const area = areaInSqm(it, q.dimUnit);
               return (
                 <tr key={i}>
                   <td>{it.type}</td>
-                  <td>{it.w || it.h ? `${it.w || "-"} × ${it.h || "-"} m` : "-"}</td>
+                  <td>{it.w || it.h ? `${it.w || "-"} × ${it.h || "-"} ${dimLabel(q.dimUnit)}` : "-"}</td>
                   <td>{area ? `${area} ㎡` : "-"}</td>
                   <td>{it.grade}</td>
                   <td className="amt">{won(it.price)}</td>
@@ -74,7 +75,7 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
       </div>
 
       {(constructions.length > 0 || permits.length > 0 || etc.length > 0) && (
-        <div className="table-wrap" style={{ marginBottom: 18 }}>
+        <div className="table-wrap" style={{ marginBottom: 20 }}>
           <table className="table">
             <thead>
               <tr>
@@ -137,7 +138,7 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
       </div>
 
       {(q.paymentTerms?.deposit || q.paymentTerms?.balance || q.paymentTerms?.as) && (
-        <div className="box" style={{ marginTop: 18 }}>
+        <div className="box" style={{ marginTop: 20 }}>
           <div className="bt">결제 조건</div>
           {q.paymentTerms?.deposit && <div className="kv"><span className="k">계약금</span><span>{q.paymentTerms.deposit}</span></div>}
           {q.paymentTerms?.balance && <div className="kv"><span className="k">잔금</span><span>{q.paymentTerms.balance}</span></div>}
@@ -146,7 +147,7 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
       )}
 
       {q.notes && (
-        <div className="box" style={{ marginTop: 14 }}>
+        <div className="box" style={{ marginTop: 16 }}>
           <div className="bt">비고</div>
           <div style={{ whiteSpace: "pre-wrap", color: "var(--text-2)" }}>{q.notes}</div>
         </div>

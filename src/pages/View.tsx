@@ -5,6 +5,7 @@ import { fmtDateTime } from "@/lib/quote";
 import type { Attachment, Quote, QuoteComment } from "@/types";
 import QuoteReadonly from "@/components/QuoteReadonly";
 import SignaturePad, { type SignaturePadHandle } from "@/components/SignaturePad";
+import { Button, Chip, EmptyState, Field, Input } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Check, Lock, X } from "lucide-react";
 
@@ -58,14 +59,14 @@ export default function View() {
     } catch { toast("등록에 실패했습니다."); }
   };
 
-  if (state === "loading") return <div className="empty" style={{ paddingTop: 120 }}>불러오는 중…</div>;
+  if (state === "loading") return <EmptyState title="불러오는 중…" />;
 
   if (state === "notfound") {
     return (
       <div className="auth-wrap">
         <div className="auth-card" style={{ textAlign: "center" }}>
-          <div style={{ marginBottom: 10 }}><Lock size={40} strokeWidth={1.5} /></div>
-          <div className="ttl" style={{ fontSize: 18, fontWeight: 700 }}>견적을 찾을 수 없습니다</div>
+          <div style={{ marginBottom: 12 }}><Lock size={40} strokeWidth={1.5} /></div>
+          <div className="ttl" style={{ fontSize: 20, fontWeight: 700 }}>견적을 찾을 수 없습니다</div>
           <div className="dim" style={{ marginTop: 8 }}>
             링크가 올바르지 않거나, 아직 발송되지 않은 견적입니다.<br />발송자에게 문의해 주세요.
           </div>
@@ -98,11 +99,11 @@ export default function View() {
   };
 
   return (
-    <div className="main" style={{ paddingTop: 28 }}>
+    <div className="main" style={{ paddingTop: 32 }}>
       <div className="row no-print" style={{ marginBottom: 16 }}>
-        <div className="chip blue">고객 열람용</div>
+        <Chip variant="blue">고객 열람용</Chip>
         <div className="spacer" />
-        <button className="btn soft" onClick={() => window.print()}>PDF 저장</button>
+        <Button variant="secondary" onClick={() => window.print()}>PDF 저장</Button>
       </div>
 
       {q!.status === "accepted" && (
@@ -127,7 +128,7 @@ export default function View() {
       <div className="card no-print">
         <div className="card-title">문의 남기기</div>
         {comments.length > 0 && (
-          <div className="thread" style={{ marginBottom: 14 }}>
+          <div className="thread" style={{ marginBottom: 16 }}>
             {comments.map((c) => (
               <div className={`comment ${c.author}`} key={c.id}>
                 <div className="who">{c.author === "customer" ? `${c.name}(고객)` : "담당자"} · {fmtDateTime(c.created_at)}</div>
@@ -136,10 +137,10 @@ export default function View() {
             ))}
           </div>
         )}
-        <div className="row" style={{ gap: 6 }}>
-          <input placeholder="성함" value={cName} onChange={(e) => setCName(e.target.value)} style={{ maxWidth: 120 }} />
-          <input placeholder="질문이나 수정 요청을 남겨주세요" value={cBody} onChange={(e) => setCBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && postComment()} />
-          <button className="btn soft" onClick={postComment}>전송</button>
+        <div className="row" style={{ gap: 8 }}>
+          <Input placeholder="성함" value={cName} onChange={(e) => setCName(e.target.value)} style={{ maxWidth: 120 }} />
+          <Input placeholder="질문이나 수정 요청을 남겨주세요" value={cBody} onChange={(e) => setCBody(e.target.value)} onKeyDown={(e) => e.key === "Enter" && postComment()} />
+          <Button variant="secondary" onClick={postComment}>전송</Button>
         </div>
       </div>
 
@@ -147,21 +148,20 @@ export default function View() {
         <div className="card no-print">
           <div className="card-title">견적 확인</div>
           <div className="card-sub">내용을 확인하신 후 수락 또는 거절해 주세요. 수락 시 성함과 서명이 필요합니다.</div>
-          <label className="field" style={{ maxWidth: 320 }}>
-            <span>성함</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" />
-          </label>
+          <Field label="성함" style={{ maxWidth: 320 }}>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" />
+          </Field>
           <div className="field">
-            <span style={{ display: "block", fontSize: 13, color: "var(--text-2)", marginBottom: 6, fontWeight: 600 }}>서명</span>
+            <span style={{ display: "block", fontSize: 14, color: "var(--text-2)", marginBottom: 8, fontWeight: 700 }}>서명</span>
             <SignaturePad ref={sigRef} />
             <div className="row" style={{ marginTop: 8 }}>
-              <button className="btn sm" onClick={() => sigRef.current?.clear()}>서명 지우기</button>
+              <Button size="sm" onClick={() => sigRef.current?.clear()}>서명 지우기</Button>
             </div>
           </div>
           <div className="row" style={{ marginTop: 8 }}>
-            <button className="btn danger" disabled={busy} onClick={() => respond(false)}>거절</button>
+            <Button variant="danger" disabled={busy} onClick={() => respond(false)}>거절</Button>
             <div className="spacer" />
-            <button className="btn primary lg" disabled={busy} onClick={() => respond(true)}><Check size={18} />수락하기</button>
+            <Button variant="primary" size="lg" icon={<Check size={18} />} disabled={busy} onClick={() => respond(true)}>수락하기</Button>
           </div>
         </div>
       )}

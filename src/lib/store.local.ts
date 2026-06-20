@@ -7,6 +7,7 @@ import type {
   Settings,
 } from "@/types";
 import { CATALOG_SEED, calcTotals, quoteTitle, uuid } from "./quote";
+import { DEFAULT_QTY_UNITS } from "./units";
 import { shareUrlFor, type Store } from "./store.types";
 
 const K = {
@@ -136,6 +137,7 @@ const DEFAULT_SETTINGS: Settings = {
     balance: "설치 완료 후 50%",
     as: "시공 후 1년 무상 A/S",
   },
+  units: { dimension: "mm", quantityUnits: DEFAULT_QTY_UNITS },
 };
 
 function summarize(q: Quote): QuoteSummary {
@@ -456,6 +458,7 @@ export const localStore: Store = {
   versions: makeColl("oad_versions_v1"),
   team: makeColl("oad_team_v1"),
   signage: makeColl("oad_signage_v1"),
+  events: makeColl("oad_events_v1"),
 };
 
 // catalog.html "샘플 단가 다시 채우기": seeded 플래그 제거 후 재시드

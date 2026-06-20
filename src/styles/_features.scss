@@ -3,8 +3,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
-  min-height: 20px;
 }
 // 데스크톱에선 사이드바 foot 에 컨트롤이 있으므로 숨기고, 모바일에서만 노출
 .topbar-only {
@@ -14,6 +12,10 @@
   .topbar-only {
     display: inline-flex;
   }
+  .topbar {
+    margin-bottom: 8px;
+    min-height: 20px;
+  }
 }
 .bell-wrap {
   position: relative;
@@ -21,11 +23,11 @@
 .bell-badge {
   background: var(--danger);
   color: #fff;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   border-radius: 999px;
-  padding: 1px 6px;
-  margin-left: 2px;
+  padding: 1px 8px;
+  margin-left: 4px;
 }
 .bell-panel {
   position: absolute;
@@ -39,11 +41,19 @@
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
-  padding: 14px;
+  padding: 16px;
+}
+// 사이드바 foot 의 벨: 사이드바 overflow 클리핑을 피해 fixed 로 위쪽에 띄움
+.bell-wrap.bell-up .bell-panel {
+  position: fixed;
+  left: 12px;
+  bottom: 72px;
+  top: auto;
+  right: auto;
 }
 .noti {
   display: block;
-  padding: 10px 12px;
+  padding: 12px 12px;
   border-radius: var(--r-md);
   margin-bottom: 4px;
 }
@@ -55,10 +65,10 @@
 }
 .noti .t {
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 14px;
 }
 .noti .b {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-3);
 }
 
@@ -79,9 +89,9 @@
   box-shadow: 0 0 0 2px var(--toss-blue) inset;
 }
 .kanban .col h4 {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
 }
@@ -89,7 +99,7 @@
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
-  padding: 11px 12px;
+  padding: 12px 12px;
   margin-bottom: 8px;
   cursor: grab;
 }
@@ -100,7 +110,7 @@
 .kanban .lead .m {
   font-size: 12px;
   color: var(--text-3);
-  margin-top: 3px;
+  margin-top: 4px;
 }
 @media (max-width: 720px) {
   .kanban {
@@ -127,15 +137,15 @@
   align-items: center;
   padding: 0 12px;
   color: var(--canvas);
-  font-weight: 540;
-  font-size: 13px;
+  font-weight: 500;
+  font-size: 14px;
   min-width: 44px;
   font-variant-numeric: tabular-nums;
   transition: width 0.3s;
 }
 .funnel .lab {
   width: 96px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-2);
 }
 .funnel .rate {
@@ -147,34 +157,34 @@
 .barchart {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 12px;
   height: 180px;
-  padding-top: 10px;
+  padding-top: 12px;
 }
 .barchart .b {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   height: 100%;
   justify-content: flex-end;
 }
 .barchart .b .fill {
   width: 100%;
   max-width: 46px;
-  background: var(--block-lime);
+  background: var(--ink);
   border: 1px solid var(--ink);
   border-bottom: none;
   border-radius: var(--r-sm) var(--r-sm) 0 0;
   min-height: 3px;
 }
 .barchart .b .lab {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-3);
 }
 .barchart .b .val {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
@@ -190,8 +200,8 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: var(--font-mono);
-  font-size: 120px;
+  font-family: var(--font-sans);
+  font-size: 64px;
   font-weight: 700;
   letter-spacing: 0.1em;
   color: rgba(24, 24, 24, 0.05);
@@ -204,7 +214,7 @@
 .gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 .gallery .thumb {
   position: relative;
@@ -228,10 +238,10 @@
 .thread {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .comment {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 12px;
   background: var(--fill-2);
   max-width: 80%;
@@ -245,31 +255,31 @@
   background: var(--toss-blue-soft);
 }
 .comment .who {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-3);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 // 마진 표시
 .margin-box {
   display: flex;
-  gap: 18px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 .margin-box .mi {
   background: var(--surface-soft);
   border-radius: var(--r-md);
-  padding: 10px 14px;
+  padding: 12px 16px;
 }
 .margin-box .mi .k {
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-3);
 }
 .margin-box .mi .v {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -278,7 +288,7 @@
 // pill 탭
 .tabs {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
@@ -307,16 +317,18 @@
 .cal-cell {
   background: var(--card);
   min-height: 96px;
-  padding: 6px 6px 8px;
+  padding: 8px 8px 8px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   &.dim-cell { background: var(--fill-2); }
   &.today { box-shadow: 0 0 0 2px var(--toss-blue) inset; }
+  &.clickable { cursor: pointer; transition: background 0.1s; }
+  &.clickable:hover { background: var(--fill); }
 }
 .cal-num {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   color: var(--text-2);
   &.sun { color: var(--danger); }
   &.sat { color: var(--toss-blue); }
@@ -324,17 +336,23 @@
 .dim-cell .cal-num { opacity: 0.45; }
 .cal-ev {
   display: block;
-  font-size: 11px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: 12px;
   line-height: 1.3;
-  padding: 2px 6px;
+  padding: 4px 8px;
   border-radius: 6px;
-  color: #fff;
+  color: var(--canvas); // ev-install 배경(--toss-blue)이 다크에서 밝아져 흰 글씨가 묻히는 문제 대응
+  cursor: pointer;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .cal-more {
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--text-3);
   padding-left: 4px;
 }
@@ -347,7 +365,23 @@
 .ev-install { background: var(--toss-blue); }
 .ev-pay { background: var(--success); }
 .ev-expiry { background: var(--danger); }
+// 사용자 일정(색상 선택)
+.ev-custom,
+.ev-c-blue { background: #3182f6; }
+.ev-c-green { background: #14ae5c; }
+.ev-c-amber { background: #f5a623; color: #1a1a1a; }
+.ev-c-pink { background: #e5489d; }
+.ev-c-gray { background: #8a8a86; }
+// 링크처럼 보이는 버튼(표 안 사용자 일정)
+.as-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
 @media (max-width: 720px) {
   .cal-cell { min-height: 70px; }
-  .cal-ev { font-size: 10px; }
+  .cal-ev { font-size: 12px; }
 }

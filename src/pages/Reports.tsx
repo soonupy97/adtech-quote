@@ -3,6 +3,7 @@ import { store } from "@/lib/store";
 import { calcTotals, itemAmount, won } from "@/lib/quote";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type { Quote, QuoteSummary } from "@/types";
+import { Button } from "@/components/ui";
 
 // 부록 A25 매출 리포트 · 전환 퍼널 · 랭킹
 export default function Reports() {
@@ -79,18 +80,30 @@ export default function Reports() {
 
   return (
     <>
-      <div className="color-block cream" style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+      <div className="color-block plain" style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 240 }}>
           <div className="eyebrow">분석 · REPORTS</div>
-          <div className="display" style={{ marginTop: 10 }}>전환 퍼널 · 매출 추이 · 랭킹</div>
+          <div className="display" style={{ marginTop: 12 }}>전환 퍼널 · 매출 추이 · 랭킹</div>
         </div>
-        <button className="btn light" onClick={exportCSV}>CSV 내보내기</button>
+        <Button variant="inverse" onClick={exportCSV}>CSV 내보내기</Button>
       </div>
 
-      <div className="grid cols-3">
-        <div className="card stat"><div className="k">누적 수주 매출</div><div className="v">{won(totalSales)}</div></div>
-        <div className="card stat"><div className="k">평균 견적가</div><div className="v">{won(avgQuote)}</div></div>
-        <div className="card stat"><div className="k">평균 수주가</div><div className="v">{won(avgWon)}</div></div>
+      <div className="bento">
+        <div className="tile feature col-2 row-2">
+          <div className="k">누적 수주 매출</div>
+          <div className="push-bottom">
+            <div className="v-lg">{won(totalSales)}</div>
+            <div className="bento-foot">평균 수주가 {won(avgWon)}</div>
+          </div>
+        </div>
+        <div className="tile">
+          <div className="k">평균 견적가</div>
+          <div className="v push-bottom">{won(avgQuote)}</div>
+        </div>
+        <div className="tile">
+          <div className="k">평균 수주가</div>
+          <div className="v push-bottom">{won(avgWon)}</div>
+        </div>
       </div>
 
       <div className="card">
