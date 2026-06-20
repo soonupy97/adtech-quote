@@ -10,9 +10,5 @@ const DEFAULT_ANON = "sb_publishable_YALwTe4gtG4h4PRirxbYhQ_wl1f0alY";
 const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || DEFAULT_URL;
 const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || DEFAULT_ANON;
 
-// Supabase 자격증명이 있으면 클라우드 모드, 없으면 localStorage 목업 모드
-export const isSupabaseEnabled = Boolean(url && anon);
-
-export const supabase: SupabaseClient | null = isSupabaseEnabled
-  ? createClient(url!, anon!)
-  : null;
+// 실서비스 전용: 항상 Supabase 클라이언트로 동작한다(로컬 목업 모드 제거).
+export const supabase: SupabaseClient = createClient(url, anon);

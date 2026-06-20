@@ -1,9 +1,6 @@
-// Store 선택: Supabase 설정 시 클라우드, 아니면 localStorage 목업
-import { localStore, reseedCatalog } from "./store.local";
+// Store: 실서비스 전용(Supabase 클라우드). 로컬 목업 store 는 제거됨.
 import { supabaseStore } from "./store.supabase";
-import { isSupabaseEnabled } from "./supabaseClient";
 import type { Store } from "./store.types";
 
-export const store: Store = isSupabaseEnabled ? supabaseStore : localStore;
-export { isSupabaseEnabled, reseedCatalog };
+export const store: Store = supabaseStore;
 export type { Store } from "./store.types";

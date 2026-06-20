@@ -145,6 +145,8 @@
 }
 .funnel .lab {
   width: 96px;
+  min-width: 96px; // flex 자식이라 좁은 화면에서 줄어들지 않도록 최소폭 고정
+  flex-shrink: 0;
   font-size: 14px;
   color: var(--text-2);
 }

@@ -39,6 +39,16 @@ function fileToDataUrl(file: File): Promise<string> {
   return new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(file); });
 }
 
+// 새 견적 자동저장 트리거: 의미있는 입력(고객명·비고·품목 내용)이 생겼는지
+function hasContent(x: Quote): boolean {
+  return (
+    !!x.customer?.name?.trim() ||
+    !!x.notes?.trim() ||
+    x.items.length > 1 ||
+    x.items.some((it) => it.price > 0 || !!it.w?.trim() || !!it.h?.trim() || it.qty > 1)
+  );
+}
+
 export default function Editor() {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -64,6 +74,8 @@ export default function Editor() {
     store.getSettings().then(setSettings);
     (async () => {
       if (id) {
+        // 자동저장으로 막 id가 붙었거나 이미 보유한 견적이면 재로딩 생략(편집 중 내용 보존)
+        if (savedIdRef.current === id) return;
         const loaded = await store.getQuote(id);
         if (!loaded) { toast("견적을 찾을 수 없습니다."); navigate("/quotes"); return; }
         savedIdRef.current = loaded.id;
@@ -103,15 +115,48 @@ export default function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // 자동저장 (부록 A28): 저장된 견적이 변경되면 2초 후 임시저장
+  // 자동저장 (부록 A28): 변경 2초 후 임시저장. 새 견적도 의미있는 입력이 생기면 자동으로 draft 첫 저장.
   useEffect(() => {
-    if (!q || !q.id || !dirtyRef.current) return;
+    if (!q || !dirtyRef.current) return;
+    if (!q.id && !hasContent(q)) return; // 빈 새 견적은 저장 안 함(빈 draft 양산 방지)
     const t = setTimeout(async () => {
-      await store.saveQuote(q);
+      const wasNew = !q.id;
+      const saved = await store.saveQuote(q);
       dirtyRef.current = false;
+      if (wasNew) {
+        savedIdRef.current = saved.id;
+        // 편집 중 내용은 보존하고 id 계열 필드만 주입
+        setQ((cur) =>
+          cur && !cur.id
+            ? { ...cur, id: saved.id, public_token: saved.public_token, quote_no: saved.quote_no, created_at: saved.created_at, status: saved.status }
+            : cur,
+        );
+        navigate(`/editor/${saved.id}`, { replace: true });
+      }
     }, 2000);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q, navigate]);
+
+  // 최신 q 참조(언마운트 플러시용)
+  const qRef = useRef<Quote | null>(q);
+  qRef.current = q;
+
+  // 새로고침/탭 닫기 경고 — 저장 안 된 변경이 있을 때
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirtyRef.current) { e.preventDefault(); e.returnValue = ""; }
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, []);
+
+  // 화면 이탈(언마운트) 시 디바운스 대기 중인 미저장분 즉시 플러시
+  useEffect(() => {
+    return () => {
+      const cur = qRef.current;
+      if (dirtyRef.current && cur && (cur.id || hasContent(cur))) void store.saveQuote(cur);
+    };
+  }, []);
 
   const totals = useMemo(() => (q ? calcTotalsWithTax(q, settings || undefined) : null), [q, settings]);
   const margin = useMemo(() => (q ? calcMargin(q, catalog) : null), [q, catalog]);

@@ -2,6 +2,28 @@
   box-sizing: border-box;
 }
 
+// ── 얇은 스크롤바 (전역) ──────────────────────────────────
+// Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+// WebKit (Chrome/Edge/Safari)
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+
 html,
 body,
 #root {

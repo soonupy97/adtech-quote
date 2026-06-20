@@ -228,6 +228,23 @@ export function sampleQuote(): Quote {
     { type: "전면간판(채널)", w: "4", h: "0.9", grade: "고급", price: 790000, qty: 1, parts: {} },
     { type: "현수막(일반)", w: "5", h: "0.9", grade: "일반", price: 45000, qty: 4, parts: {} },
   ];
+  // 시공·인허가·부대비용 — 매장 전면간판 설치 기준의 현실적 예시 금액
+  const pick = (rows: CostRow[], costs: Record<string, number>): CostRow[] =>
+    rows.map((r) => (r.name in costs ? { ...r, checked: true, cost: costs[r.name] } : r));
+  q.constructions = pick(q.constructions, {
+    "기존간판 철거": 150000,
+    "고소작업(스카이차)": 250000,
+    "전기 인입·증설": 120000,
+    "운반·상하차": 80000,
+  });
+  q.permits = pick(q.permits, {
+    "옥외광고물 허가/신고 대행": 200000,
+    "면허세/허가수수료": 90000,
+  });
+  q.etcCosts = pick(q.etcCosts, {
+    "디자인비": 150000,
+    "출장비": 50000,
+  });
   q.paymentTerms = { deposit: "계약금 50%", balance: "잔금 50% (설치 완료 후)", as: "1년 무상 A/S" };
   q.notes = "※ 앱 둘러보기용 샘플 견적입니다. 자유롭게 수정하거나 삭제하세요.";
   return q;

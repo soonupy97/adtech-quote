@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@/lib/auth";
-import { isSupabaseEnabled, supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/components/Toast";
 import { Button, Field, Input } from "@/components/ui";
 import { AlertTriangle } from "lucide-react";
@@ -19,10 +19,6 @@ export default function ResetPassword() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseEnabled || !supabase) {
-      navigate("/login", { replace: true });
-      return;
-    }
     // 링크 진입 시 복구 세션이 잡히는지 확인
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);

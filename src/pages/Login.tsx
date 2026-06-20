@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@/lib/auth";
-import { isSupabaseEnabled } from "@/lib/store";
 import { useToast } from "@/components/Toast";
 import { Button, Field, Input } from "@/components/ui";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
@@ -46,16 +45,14 @@ export default function Login() {
     findId: "아이디(이메일) 찾기",
   };
 
-  // 로컬 모드의 재설정은 이름 본인확인 + 새 비밀번호 입력이 필요
-  const localReset = mode === "resetPw" && !isSupabaseEnabled;
-  const supaReset = mode === "resetPw" && isSupabaseEnabled;
-  const localFindId = mode === "findId" && !isSupabaseEnabled;
-  const supaFindId = mode === "findId" && isSupabaseEnabled;
+  // 서버 인증(Supabase) 전용 — 비밀번호 재설정은 메일 발송, 아이디 찾기는 안내
+  const supaReset = mode === "resetPw";
+  const supaFindId = mode === "findId";
 
-  const needName = mode === "register" || localReset || localFindId;
+  const needName = mode === "register";
   const needEmail = mode === "login" || mode === "register" || mode === "resetPw";
-  const needPw = mode === "login" || mode === "register" || localReset;
-  const needPw2 = mode === "register" || localReset;
+  const needPw = mode === "login" || mode === "register";
+  const needPw2 = mode === "register";
 
   // 제출 전 클라이언트 검증 — 에러 케이스를 인라인으로 안내
   const validate = (): string | null => {
@@ -63,7 +60,7 @@ export default function Login() {
     if (needEmail && !email.trim()) return "이메일을 입력해 주세요.";
     if (needEmail && !EMAIL_RE.test(email.trim())) return "올바른 이메일 형식을 입력해 주세요.";
     if (needPw && !pw) return "비밀번호를 입력해 주세요.";
-    if ((mode === "register" || localReset) && pw.length < 6) return "비밀번호는 6자 이상이어야 합니다.";
+    if (mode === "register" && pw.length < 6) return "비밀번호는 6자 이상이어야 합니다.";
     if (needPw2 && pw !== pw2) return "비밀번호가 일치하지 않습니다.";
     return null;
   };
@@ -109,23 +106,13 @@ export default function Login() {
       }
 
       if (mode === "resetPw") {
-        // Supabase 모드: 재설정 메일 발송 / 로컬 모드: 이름 본인확인 후 즉시 재설정
-        if (isSupabaseEnabled) {
-          const res = await Auth.sendResetEmail(email.trim());
-          if (!res.ok) {
-            setErr(res.msg || "메일 발송에 실패했습니다.");
-            return;
-          }
-          setSent(true);
-        } else {
-          const res = await Auth.resetPasswordLocal(email.trim(), name.trim(), pw);
-          if (!res.ok) {
-            setErr(res.msg || "비밀번호 재설정에 실패했습니다.");
-            return;
-          }
-          toast("비밀번호가 변경되었습니다. 로그인해 주세요.");
-          goMode("login");
+        // 가입한 이메일로 재설정 링크 발송
+        const res = await Auth.sendResetEmail(email.trim());
+        if (!res.ok) {
+          setErr(res.msg || "메일 발송에 실패했습니다.");
+          return;
         }
+        setSent(true);
         return;
       }
 
@@ -158,12 +145,6 @@ export default function Login() {
         <div className="eyebrow" style={{ marginTop: 4 }}>
           간판·현수막 · 전자견적서 SaaS
         </div>
-
-        {!isSupabaseEnabled && (
-          <div className="auth-note">
-            <AlertTriangle size={16} /> 로컬 목업 모드 (Supabase 미설정 · 실보안 아님)
-          </div>
-        )}
 
         {/* 재설정 메일 발송 완료 */}
         {mode === "resetPw" && sent ? (
@@ -239,7 +220,7 @@ export default function Login() {
                     </Field>
                   )}
                   {needPw && (
-                    <Field label={localReset ? "새 비밀번호" : "비밀번호"}>
+                    <Field label="비밀번호">
                       <Input
                         type="password"
                         value={pw}
@@ -247,7 +228,7 @@ export default function Login() {
                         placeholder="••••••••"
                         autoComplete={mode === "login" ? "current-password" : "new-password"}
                       />
-                      {(mode === "register" || localReset) && (
+                      {mode === "register" && (
                         <div className="eyebrow" style={{ marginTop: 6 }}>6자 이상 입력해 주세요.</div>
                       )}
                     </Field>
@@ -267,11 +248,6 @@ export default function Login() {
                   {supaReset && (
                     <div className="eyebrow" style={{ margin: "2px 0 8px" }}>
                       가입한 이메일로 재설정 링크를 보내드립니다.
-                    </div>
-                  )}
-                  {localFindId && (
-                    <div className="eyebrow" style={{ margin: "2px 0 8px" }}>
-                      가입 시 입력한 이름으로 등록된 이메일(아이디)을 찾아드립니다.
                     </div>
                   )}
 
@@ -297,7 +273,7 @@ export default function Login() {
                   </div>
                 )}
 
-                {(mode === "resetPw" || mode === "findId") && (
+                {mode === "resetPw" && (
                   <div className="auth-toggle">
                     <button onClick={() => goMode("login")}>← 로그인으로 돌아가기</button>
                   </div>

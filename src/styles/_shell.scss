@@ -15,7 +15,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow: hidden; // 스크롤은 nav 가 담당(브랜드/푸터 고정)
 }
 .sidebar .brand {
   display: flex;
@@ -38,6 +38,9 @@
   font-weight: 700;
 }
 // 실제 로고 이미지 (AD TECH / 애드텍디자인)
+.brand > a {
+  display: inline-flex; // 로고 링크가 flex 정렬에서 여백 없이 붙도록
+}
 .brand-logo {
   display: block;
   height: 36px;
@@ -48,6 +51,11 @@
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-height: 0; // flex 자식이 줄어들 수 있게 → nav 내부 스크롤
+  overflow-y: auto;
+  // 스크롤바가 메뉴 텍스트에 너무 붙지 않도록 약간의 여백
+  margin-right: -4px;
+  padding-right: 4px;
 }
 .sidebar .nav-group {
   display: flex;

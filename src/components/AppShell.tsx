@@ -23,7 +23,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Auth } from "@/lib/auth";
-import { isSupabaseEnabled, store } from "@/lib/store";
+import { store } from "@/lib/store";
 import type { AppNotification, Session } from "@/types";
 
 interface NavItem {
@@ -196,7 +196,9 @@ export default function AppShell() {
     <div className="shell">
       <aside className={`sidebar${navOpen ? " open" : ""}`}>
         <div className="brand">
-          <img className="brand-logo" src="/logo.png" alt="애드텍디자인 — 옥외광고 견적" />
+          <Link to="/" onClick={() => setNavOpen(false)} aria-label="홈으로">
+            <img className="brand-logo" src="/logo.png" alt="애드텍디자인 — 옥외광고 견적" />
+          </Link>
           <div className="spacer" />
           <button className="btn icon-only ghost drawer-only" onClick={() => setNavOpen(false)} aria-label="메뉴 닫기">
             <X size={18} />
@@ -225,7 +227,6 @@ export default function AppShell() {
             <button className="btn sm" onClick={toggleTheme}>{theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}</button>
             <button className="btn sm" onClick={onLogout}>로그아웃</button>
           </div>
-          {!isSupabaseEnabled && <div className="dim" style={{ marginTop: 12, fontSize: 12 }}>로컬 목업 모드</div>}
         </div>
       </aside>
 
@@ -233,12 +234,14 @@ export default function AppShell() {
 
       <main className="main">
         <div className="topbar no-print">
+          <Link to="/" className="topbar-only" aria-label="홈으로">
+            <img className="topbar-logo" src="/logo.png" alt="애드텍디자인" />
+          </Link>
+          <div className="spacer" />
+          {bell("topbar-only")}
           <button className="btn icon-only ghost topbar-only" onClick={() => setNavOpen(true)} aria-label="메뉴 열기">
             <Menu size={18} />
           </button>
-          <img className="topbar-logo topbar-only" src="/logo.png" alt="애드텍디자인" />
-          <div className="spacer" />
-          {bell("topbar-only")}
         </div>
         <Outlet />
       </main>
