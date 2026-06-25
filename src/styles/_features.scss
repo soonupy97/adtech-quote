@@ -112,10 +112,213 @@
   color: var(--text-3);
   margin-top: 4px;
 }
+// 견적 보드(작성중/발송/수락/거절) — 4컬럼
+.kanban.cols-4 {
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
+}
 @media (max-width: 768px) {
-  .kanban {
+  .kanban,
+  .kanban.cols-4 {
     grid-template-columns: 1fr;
   }
+}
+
+// 견적 칸반 보드 — 지라/트렐로식 컬럼 + 카드 드래그
+.kanban.quote-board {
+  --col: var(--st-draft);
+  align-items: start;
+  gap: 16px;
+
+  .col {
+    background: var(--fill-2);
+    border: 1px solid var(--hairline-soft);
+    border-top: 3px solid var(--col); // 컬럼별 상태색 머리띠
+    border-radius: 0 0 var(--r-md) var(--r-md);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .12s ease, background .12s ease;
+  }
+  // 드래그 중 놓을 수 있는 컬럼만 살짝 부각
+  .col.droppable {
+    background: var(--card);
+    box-shadow: 0 0 0 1px var(--hairline);
+  }
+  .col.drop {
+    background: var(--card);
+    box-shadow: 0 0 0 2px var(--col) inset;
+  }
+
+  .col h4 {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 12px 12px 8px;
+    background: var(--fill-2);
+    border-radius: 0 0 0 0;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-2);
+  }
+  .col-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .col-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--col);
+  }
+  .col h4 .count {
+    min-width: 22px;
+    height: 20px;
+    padding: 0 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-2);
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-full);
+  }
+
+  .col-body {
+    flex: 1;
+    min-height: 120px;
+    padding: 4px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  // 카드 — 보더 없이 부드러운 그림자만(토스식)
+  .lead.card-kb {
+    position: relative;
+    margin: 0;
+    padding: 12px;
+    border-radius: var(--r-md);
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: box-shadow .12s ease, transform .08s ease;
+  }
+  .lead.card-kb:hover {
+    box-shadow: var(--shadow-2);
+  }
+  .lead.card-kb:active {
+    cursor: grabbing;
+  }
+  .lead.card-kb.dragging {
+    opacity: .55;
+    box-shadow: var(--shadow-2);
+    transform: rotate(1.5deg);
+  }
+  // 드래그 핸들 — 평소 흐릿, 호버 시 또렷
+  .lead.card-kb .grip {
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    color: var(--text-3);
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+  .lead.card-kb:hover .grip {
+    opacity: .55;
+  }
+  .lead.card-kb .n {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .lead.card-kb .m {
+    margin-top: 6px;
+  }
+  .lead.card-kb .amount {
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .col-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 96px;
+    margin: 0 0 4px;
+    font-size: 12px;
+    color: var(--text-3);
+    border: 1px dashed var(--hairline);
+    border-radius: var(--r-md);
+  }
+  .col.drop .col-empty {
+    border-color: var(--col);
+    color: var(--col);
+  }
+
+  // 벤토 타일 포커스 시 나머지 컬럼은 차분하게 가라앉힌다(토스식 절제).
+  &.has-focus .col.muted {
+    opacity: .45;
+    filter: saturate(.6);
+  }
+  &.has-focus .col.muted:hover {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+// 보드 상단 벤토 요약 — 단계별 건수·금액, 클릭 시 해당 단계 강조
+.bento.board-summary {
+  margin-bottom: 16px;
+
+  .tile {
+    --col: var(--st-draft);
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    border-top: 3px solid var(--col);
+    transition: box-shadow .12s ease, transform .08s ease, border-color .12s ease;
+  }
+  .tile:hover {
+    box-shadow: var(--shadow-2);
+    transform: translateY(-2px);
+  }
+  .tile.active {
+    box-shadow: 0 0 0 2px var(--col) inset, var(--shadow-2);
+  }
+  .tile .k {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-2);
+  }
+  .tile .k .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--col);
+  }
+  .tile .v {
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tile .bento-foot {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+}
+@media (max-width: 768px) {
+  .bento.board-summary { grid-template-columns: repeat(2, 1fr); }
 }
 
 // 퍼널
@@ -288,11 +491,41 @@
 }
 
 // pill 탭
+// 밑줄(underline) 탭 — 하단 구분선 위에 텍스트 탭, 활성 탭만 밑줄·진한 텍스트로 강조.
+// 마크업이 Button(primary/secondary)을 그대로 쓰므로 .tabs 내부에서 .btn 외형을 덮어쓴다.
 .tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+
+  .btn {
+    // 버튼 외형 제거 → 탭 텍스트로
+    padding: 8px 12px;
+    height: auto;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--text-2);
+    font-weight: 500;
+    // 활성 밑줄과 하단 구분선이 정확히 겹치도록 1px 아래로 내린다
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    transition: color .12s, border-color .12s;
+
+    &:hover { background: transparent; color: var(--text); }
+
+    // 활성 탭: primary 변형으로 표시됨
+    &.primary {
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      border-bottom-color: var(--text);
+    }
+  }
 }
 
 // 일정 캘린더

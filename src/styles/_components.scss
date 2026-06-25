@@ -192,6 +192,30 @@ textarea::placeholder {
   color: var(--text-3);
 }
 
+// ── 링크 복사 필드 (input 안쪽 오른쪽에 복사/공유 아이콘) ──
+.copy-link {
+  position: relative;
+  width: 100%;
+}
+.copy-link__input {
+  text-overflow: ellipsis;
+}
+.copy-link__actions {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.copy-link__actions .btn {
+  color: var(--text-2);
+}
+.copy-link__actions .btn:hover {
+  color: var(--ink);
+}
+
 // ── 버튼 (pill = 유일한 버튼 형태) ─────────────────────────
 .btn {
   display: inline-flex;
@@ -511,6 +535,12 @@ textarea::placeholder {
   display: flex;
   gap: 12px;
   align-items: center;
+}
+// 저장 완료(미변경) 상태 — 하단 고정 대신 콘텐츠 흐름 끝에 놓아 화면 점유를 줄인다.
+// 변경분이 생기면 .is-flow 가 빠지고 다시 sticky 로 떠올라 저장 행동을 유도한다.
+.actionbar.is-flow {
+  position: static;
+  box-shadow: none;
 }
 
 // ── 토스트 (검정 pill) ─────────────────────────────────────

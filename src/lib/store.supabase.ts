@@ -171,6 +171,8 @@ const DEFAULT_SETTINGS: Settings = {
     as: "시공 후 1년 무상 A/S",
   },
   units: { dimension: "mm", quantityUnits: DEFAULT_QTY_UNITS },
+  // 기본적으로 견적서와 무관한 메뉴는 숨김(견적·템플릿·품목단가·거래처 + 핵심메뉴만 노출)
+  menuHidden: ["/leads", "/contracts", "/workorders", "/signage", "/calendar", "/payments", "/invoices", "/reports"],
 };
 
 export const supabaseStore: Store = {
@@ -261,6 +263,20 @@ export const supabaseStore: Store = {
       token = cur!.public_token;
     }
     return { token, url: shareUrlFor(token) };
+  },
+
+  // 운영자 수동 상태 변경(칸반 드래그). 고객 응답 RPC와 달리 상태/타임스탬프만 갱신.
+  async setStatus(id, status) {
+    const now = new Date().toISOString();
+    const patch: Record<string, unknown> = { status, updated_at: now };
+    if (status === "accepted" || status === "rejected") patch.responded_at = now;
+    if (status === "draft") { patch.responded_at = null; patch.first_viewed_at = null; }
+    const { error } = await sb().from("quotes").update(patch).eq("id", id);
+    if (error) throw error;
+    if (status === "accepted" || status === "rejected") {
+      await sb().from("quote_events").insert({ quote_id: id, event_type: status });
+    }
+    return true;
   },
 
   async markViewed(token) {
@@ -418,7 +434,11 @@ export const supabaseStore: Store = {
       numbering: data.numbering || {},
       terms: data.terms || {},
       discountRules: data.discount_rules || [],
+      promoCodes: data.promo_codes || [],
+      approval: data.approval || {},
+      coverLetter: data.cover_letter ?? "",
       units: data.units || DEFAULT_SETTINGS.units,
+      menuHidden: data.menu_hidden ?? DEFAULT_SETTINGS.menuHidden,
     } as Settings;
   },
   async saveSettings(s) {
@@ -433,7 +453,11 @@ export const supabaseStore: Store = {
       numbering: s.numbering || {},
       terms: s.terms || {},
       discount_rules: s.discountRules || [],
+      promo_codes: s.promoCodes || [],
+      approval: s.approval || {},
+      cover_letter: s.coverLetter ?? "",
       units: s.units || {},
+      menu_hidden: s.menuHidden || [],
       updated_at: new Date().toISOString(),
     });
     if (error) throw error;
@@ -460,16 +484,23 @@ export const supabaseStore: Store = {
       .from("catalog_items")
       .select("id", { count: "exact", head: true });
     if ((count || 0) > 0) return false;
+    const added = await this.seedCatalog();
+    return added > 0;
+  },
+  async seedCatalog() {
+    // 샘플이므로 한 종류당 1행(일반 등급)만. 기존 단가표를 모두 비우고 새로 채운다(이름 중복 제거).
     const { data: user } = await sb().auth.getUser();
     const owner_id = user.user?.id;
-    const rows: any[] = [];
-    for (const [type, unit, normal, premium, imported] of CATALOG_SEED) {
-      rows.push({ id: uuid(), type, grade: "일반", unit, price: normal, memo: "", owner_id });
-      rows.push({ id: uuid(), type, grade: "고급", unit, price: premium, memo: "", owner_id });
-      rows.push({ id: uuid(), type, grade: "수입", unit, price: imported, memo: "", owner_id });
-    }
+    const { error: delErr } = await sb()
+      .from("catalog_items")
+      .delete()
+      .not("id", "is", null);
+    if (delErr) throw delErr;
+    const rows = CATALOG_SEED.map(([type, unit, normal]) => ({
+      id: uuid(), type, grade: "일반", unit, price: normal, memo: "", owner_id,
+    }));
     const { error } = await sb().from("catalog_items").insert(rows);
     if (error) throw error;
-    return true;
+    return rows.length;
   },
 };

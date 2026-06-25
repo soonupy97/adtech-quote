@@ -1,21 +1,34 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
-import { fmtDate, won } from "@/lib/quote";
+import { fmtDate, won, sampleTemplate } from "@/lib/quote";
 import { calcTotals } from "@/lib/quote";
 import type { Template } from "@/types";
 import { Button, EmptyState, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, LayoutTemplate } from "lucide-react";
+import { Plus, LayoutTemplate, Trash2 } from "lucide-react";
 
 // 부록 A20 견적 템플릿 저장/불러오기
 export default function Templates() {
   const toast = useToast();
   const navigate = useNavigate();
   const [list, setList] = useState<Template[]>([]);
+  const [seeding, setSeeding] = useState(false);
 
   const load = () => store.templates.list().then(setList);
   useEffect(() => { load(); }, []);
+
+  // 빈 상태 온보딩: 현실적인 샘플 템플릿 1건 추가
+  const addSample = async () => {
+    setSeeding(true);
+    try {
+      await store.templates.save(sampleTemplate());
+      await load();
+      toast("샘플 템플릿을 추가했습니다.");
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const apply = (t: Template) => navigate(`/editor?tpl=${t.id}`);
   const del = async (t: Template) => {
@@ -42,10 +55,11 @@ export default function Templates() {
     { key: "created_at", header: "생성일", className: "dim", render: (t) => fmtDate(t.created_at) },
     {
       key: "act",
+      header: "관리",
       render: (t) => (
         <div className="row" style={{ gap: 4 }}>
           <Button size="sm" variant="secondary" onClick={() => apply(t)}>적용</Button>
-          <Button size="sm" variant="danger" onClick={() => del(t)}>삭제</Button>
+          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(t)} />
         </div>
       ),
     },
@@ -64,7 +78,14 @@ export default function Templates() {
           columns={columns}
           rows={list}
           rowKey={(t) => t.id}
-          empty={<EmptyState icon={<LayoutTemplate size={40} strokeWidth={1.5} />} title="저장된 템플릿이 없습니다" desc="견적 작성 화면 하단의 “템플릿으로 저장”으로 만들 수 있습니다." />}
+          empty={
+            <EmptyState
+              icon={<LayoutTemplate size={40} strokeWidth={1.5} />}
+              title="저장된 템플릿이 없습니다"
+              desc={<span style={{ display: "block", marginBottom: 16 }}>견적 작성 화면 하단의 “템플릿으로 저장”으로 만들거나, 샘플로 먼저 둘러보세요.</span>}
+              action={<Button variant="secondary" loading={seeding} onClick={addSample}>샘플 템플릿 추가</Button>}
+            />
+          }
         />
       </div>
     </>

@@ -5,7 +5,7 @@ import { calendarEventUrl } from "@/lib/integrations";
 import type { Quote, QuoteSummary, WorkOrder } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, Wrench, CalendarPlus } from "lucide-react";
+import { Plus, Wrench, CalendarPlus, Trash2 } from "lucide-react";
 
 const STATUS_LABEL: Record<WorkOrder["status"], string> = { ready: "대기", in_progress: "진행중", done: "완료" };
 
@@ -75,7 +75,7 @@ export default function WorkOrders() {
               <div className="spacer" />
               <Select value={w.status} onChange={(val) => update(w, { status: val as WorkOrder["status"] })} style={{ width: 120 }}
                 options={Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v }))} />
-              <Button size="sm" variant="danger" onClick={() => del(w)}>삭제</Button>
+              <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(w)} />
             </div>
 
             <div className="grid cols-2" style={{ marginTop: 16 }}>

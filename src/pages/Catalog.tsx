@@ -6,7 +6,7 @@ import { downloadCSV, parseCSV, toCSV } from "@/lib/csv";
 import type { CatalogItem, Grade } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Tags, X, Plus } from "lucide-react";
+import { Tags, X, Plus, Trash2 } from "lucide-react";
 
 const empty: CatalogItem = {
   id: "", type: ITEM_TYPES[0], grade: "일반", unit: "㎡", price: 0, memo: "",
@@ -40,6 +40,12 @@ export default function Catalog() {
     finally { setSaving(false); }
   };
   const del = async (it: CatalogItem) => { if (!confirm(`${it.type}(${it.grade}) 삭제?`)) return; await store.removeCatalogItem(it.id); await load(); toast("삭제되었습니다."); };
+  const seed = async () => {
+    if (!confirm("기존 단가표를 모두 비우고 기본 샘플(종류당 1행)로 다시 채웁니다.\n계속할까요?")) return;
+    const n = await store.seedCatalog();
+    await load();
+    toast(`샘플 ${n}건으로 초기화했습니다.`);
+  };
 
   const exportCSV = () => downloadCSV("단가표.csv", toCSV(list.map((it) => ({
     종류: it.type, 등급: it.grade, 단위: it.unit, 단가: it.price, 원가: it.cost || 0, 과세: it.taxable === false ? "N" : "Y", 메모: it.memo,
@@ -66,10 +72,11 @@ export default function Catalog() {
     { key: "taxable", header: "과세", render: (it) => (it.taxable === false ? <Chip>면세</Chip> : <Chip variant="blue">과세</Chip>) },
     {
       key: "act",
+      header: "관리",
       render: (it) => (
         <div className="row" style={{ gap: 4 }}>
           <Button size="sm" onClick={() => setEdit({ ...empty, ...it })}>편집</Button>
-          <Button size="sm" variant="danger" onClick={() => del(it)}>삭제</Button>
+          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(it)} />
         </div>
       ),
     },
@@ -80,6 +87,7 @@ export default function Catalog() {
       <div className="page-head">
         <div><h1>품목·단가</h1><div className="sub">자동단가 키 = 종류 + 등급 · 전체 {list.length}행</div></div>
         <div className="spacer" />
+        <Button onClick={seed}>샘플 단가표 생성</Button>
         <Button onClick={exportCSV}>CSV 내보내기</Button>
         <Button onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
         <Input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => importCSV(e.target.files?.[0])} />
@@ -94,7 +102,7 @@ export default function Catalog() {
           columns={columns}
           rows={filtered}
           rowKey={(it) => it.id}
-          empty={<EmptyState icon={<Tags size={40} strokeWidth={1.5} />} title="단가 항목이 없습니다" />}
+          empty={<EmptyState icon={<Tags size={40} strokeWidth={1.5} />} title="단가 항목이 없습니다" action={<Button variant="primary" onClick={seed}>샘플 단가표 생성</Button>} />}
         />
       </div>
 

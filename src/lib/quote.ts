@@ -5,6 +5,7 @@ import type {
   Grade,
   Quote,
   QuoteItem,
+  Template,
   Totals,
 } from "@/types";
 
@@ -248,6 +249,26 @@ export function sampleQuote(): Quote {
   q.paymentTerms = { deposit: "계약금 50%", balance: "잔금 50% (설치 완료 후)", as: "1년 무상 A/S" };
   q.notes = "※ 앱 둘러보기용 샘플 견적입니다. 자유롭게 수정하거나 삭제하세요.";
   return q;
+}
+
+// 온보딩용 샘플 템플릿(빈 상태에서 1클릭 체험). 매장 전면간판 표준 시공 세트.
+// 고객·현장 정보는 템플릿에 담기지 않으므로 sampleQuote 의 품목·시공·비용 세트만 재사용한다.
+export function sampleTemplate(): Template {
+  const q = sampleQuote();
+  return {
+    id: "",
+    name: "[샘플] 매장 전면간판 표준 세트",
+    memo: "전면간판(채널)+현수막 품목에 표준 시공·인허가·부대비용을 묶은 예시입니다. 자유롭게 수정·삭제하세요.",
+    created_at: "",
+    payload: {
+      items: q.items,
+      constructions: q.constructions,
+      permits: q.permits,
+      etcCosts: q.etcCosts,
+      adjustments: q.adjustments,
+      paymentTerms: q.paymentTerms,
+    },
+  };
 }
 
 export function fmtDate(iso?: string): string {

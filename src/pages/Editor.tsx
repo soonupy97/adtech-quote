@@ -20,7 +20,7 @@ import {
   expiryDate,
   needsApproval,
 } from "@/lib/automation";
-import SendActions from "@/components/SendActions";
+import CopyLinkField from "@/components/CopyLinkField";
 import type {
   AdjMode,
   Attachment,
@@ -554,17 +554,14 @@ export default function Editor() {
           title="고객 발송"
           onClose={() => setLink(null)}
           footer={<>
-            <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("복사했습니다."); }}>링크 복사</Button>
+            <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다."); }}>링크 복사</Button>
             <a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a>
             <div className="spacer" />
             <Button onClick={() => navigate(`/quotes/${savedIdRef.current}`)}>상세로 →</Button>
           </>}
         >
           <div className="dim" style={{ marginBottom: 12 }}>고객에게 링크를 전달하세요.</div>
-          <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
-          <div className="row wrap no-print" style={{ marginTop: 16, gap: 8 }}>
-            <SendActions url={link} tel={q.customer.tel} customer={q.customer.name} quoteNo={q.quote_no} />
-          </div>
+          <CopyLinkField url={link} customer={q.customer.name} quoteNo={q.quote_no} />
         </Modal>
       )}
     </>

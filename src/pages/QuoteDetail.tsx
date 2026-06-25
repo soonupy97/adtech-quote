@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, fmtDate, fmtDateTime, STATUS_LABEL, won } from "@/lib/quote";
 import { isExpired } from "@/lib/automation";
-import SendActions from "@/components/SendActions";
+import CopyLinkField from "@/components/CopyLinkField";
 import type {
   Activity,
   Attachment,
@@ -18,7 +18,7 @@ import type {
 import QuoteReadonly from "@/components/QuoteReadonly";
 import { Button, EmptyState, Input, Modal, StatusBadge, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Check, Copy, FileSignature, Link2, Receipt, Wallet, Wrench, X } from "lucide-react";
+import { Check, FileSignature, Link2, Receipt, Wallet, Wrench, X } from "lucide-react";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -26,7 +26,6 @@ export default function QuoteDetail() {
   const toast = useToast();
   const [q, setQ] = useState<Quote | null>(null);
   const [link, setLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [versions, setVersions] = useState<QuoteVersion[]>([]);
   const [comments, setComments] = useState<QuoteComment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -51,13 +50,6 @@ export default function QuoteDetail() {
   const send = async () => { const { url } = await store.markSent(q.id); setLink(url); await load(); toast("발송 처리되었습니다."); };
   const dup = async () => { const copy = await store.duplicateQuote(q.id); toast("복제했습니다."); navigate(`/editor/${copy.id}`); };
   const customerView = () => window.open(store.shareUrl(q.public_token), "_blank");
-  const copyLink = async () => {
-    if (!link) return;
-    try { await navigator.clipboard?.writeText(link); } catch { /* clipboard 미지원 시 무시 */ }
-    setCopied(true);
-    toast("링크를 복사했습니다.");
-    window.setTimeout(() => setCopied(false), 1500);
-  };
 
   // 전환 (부록 A23/A24)
   const toContract = async () => {
@@ -105,7 +97,7 @@ export default function QuoteDetail() {
     { key: "version", header: "버전", render: (v) => `v${v.version}` },
     { key: "created_at", header: "저장 시각", className: "dim", render: (v) => fmtDateTime(v.created_at) },
     { key: "grand", header: "총액", align: "right", render: (v) => won(calcTotals(v.snapshot).grand) },
-    { key: "act", render: (v) => <Button size="sm" onClick={() => restore(v)}>복원</Button> },
+    { key: "act", header: "관리", render: (v) => <Button size="sm" onClick={() => restore(v)}>복원</Button> },
   ];
 
   return (
@@ -182,11 +174,10 @@ export default function QuoteDetail() {
               <img src={q.signature} alt="서명" style={{ maxWidth: 240, border: "1px solid var(--line)", borderRadius: 12, marginTop: 8, background: "#fff" }} />
             </div>
           )}
-          <div className="row wrap no-print" style={{ marginTop: 16, gap: 8 }}>
-            <span className="dim">재발송:</span>
-            <SendActions
+          <div className="no-print" style={{ marginTop: 16 }}>
+            <span className="dim" style={{ display: "block", marginBottom: 8 }}>재발송:</span>
+            <CopyLinkField
               url={store.shareUrl(q.public_token)}
-              tel={q.customer.tel}
               customer={q.customer.name}
               quoteNo={q.quote_no}
             />
@@ -249,19 +240,9 @@ export default function QuoteDetail() {
 
       {link && (
         <Modal title="고객 발송 링크" onClose={() => setLink(null)}
-          footer={<><a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button onClick={() => setLink(null)}>닫기</Button></>}>
-          <div className="row" style={{ gap: 8 }}>
-            <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} style={{ flex: 1 }} />
-            <Button
-              variant="outline"
-              icon={copied ? <Check size={16} /> : <Copy size={16} />}
-              onClick={copyLink}
-              title="링크 복사"
-              aria-label="링크 복사"
-            />
-          </div>
-          <div className="dim" style={{ margin: "12px 0 8px" }}>고객에게 전달:</div>
-          <SendActions url={link} tel={q.customer.tel} customer={q.customer.name} quoteNo={q.quote_no} />
+          footer={<><Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다."); }}>링크 복사</Button><a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button onClick={() => setLink(null)}>닫기</Button></>}>
+          <div className="dim" style={{ marginBottom: 12 }}>고객에게 전달:</div>
+          <CopyLinkField url={link} customer={q.customer.name} quoteNo={q.quote_no} />
         </Modal>
       )}
     </>

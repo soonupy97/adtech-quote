@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { store } from "@/lib/store";
 import { uuid } from "@/lib/quote";
 import { DIM_UNITS, DEFAULT_QTY_UNITS } from "@/lib/units";
-import type { AdjMode, DiscountRule, PromoCode, Settings as SettingsT } from "@/types";
+import type { AdjMode, DiscountRule, PromoCode, Role, Settings as SettingsT } from "@/types";
 import { useToast } from "@/components/Toast";
 import { Button, Field, Input, Select, Textarea } from "@/components/ui";
-import { Check, Plus, X } from "lucide-react";
-import Team from "./Team";
+import { Check, Plus, X, Trash2 } from "lucide-react";
 import IntegrationsPage from "./IntegrationsPage";
 import Activities from "./Activities";
 import { MENU_TOGGLES, MENU_EVENT } from "@/components/AppShell";
 
-type Tab = "company" | "units" | "branding" | "tax" | "numbering" | "terms" | "rules" | "menus" | "team" | "integrations" | "activities";
+type Tab = "company" | "units" | "branding" | "tax" | "numbering" | "terms" | "rules" | "menus" | "approval" | "integrations" | "activities";
 const TABS: { key: Tab; label: string }[] = [
   { key: "company", label: "회사·기본값" },
   { key: "units", label: "단위" },
@@ -21,12 +20,12 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "terms", label: "약관·인사말" },
   { key: "rules", label: "자동할인·프로모션" },
   { key: "menus", label: "메뉴 표시" },
-  { key: "team", label: "팀·권한" },
+  { key: "approval", label: "승인" },
   { key: "integrations", label: "연동" },
   { key: "activities", label: "활동로그" },
 ];
 // 자체 저장/별도 화면을 갖는 탭 — 설정 공통 저장바 숨김
-const SELF_MANAGED: Tab[] = ["team", "integrations", "activities"];
+const SELF_MANAGED: Tab[] = ["integrations", "activities"];
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(file); });
@@ -35,21 +34,49 @@ function fileToDataUrl(file: File): Promise<string> {
 export default function Settings() {
   const toast = useToast();
   const [s, setS] = useState<SettingsT | null>(null);
+  const [saved, setSaved] = useState<SettingsT | null>(null); // 마지막 저장 시점 스냅샷
   const [tab, setTab] = useState<Tab>("company");
   const [saving, setSaving] = useState(false);
   const [newUnit, setNewUnit] = useState("");
 
-  useEffect(() => { store.getSettings().then(setS); }, []);
-  if (!s) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+  useEffect(() => { store.getSettings().then((v) => { setS(v); setSaved(v); }); }, []);
+
+  // 현재 값이 마지막 저장본과 다른지(미저장 변경 존재 여부)
+  const dirty = useMemo(() => JSON.stringify(s) !== JSON.stringify(saved), [s, saved]);
 
   const save = async () => {
+    if (!s || saving) return;
     setSaving(true);
     try {
       await store.saveSettings(s);
+      setSaved(s); // 스냅샷 갱신 → dirty 해제
       window.dispatchEvent(new Event(MENU_EVENT)); // 사이드바 메뉴 표시 갱신
       toast("설정을 저장했습니다.");
     } finally { setSaving(false); }
   };
+  const revert = () => { if (saved) setS(saved); }; // 마지막 저장본으로 되돌리기
+
+  // 변경분이 있을 때 새로고침·창닫기 시 이탈 경고
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
+  // Ctrl/Cmd+S 로 저장
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (dirty && !SELF_MANAGED.includes(tab)) save();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  if (!s) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
   const sup = s.supplier, def = s.defaults;
   const hiddenMenus = s.menuHidden || [];
   const toggleMenu = (to: string) =>
@@ -248,7 +275,7 @@ export default function Settings() {
                     다른 규칙과 중복 적용
                   </label>
                   <div className="spacer" />
-                  <Button size="sm" variant="danger" onClick={() => delRule(i)}>삭제</Button>
+                  <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => delRule(i)} />
                 </div>
               </div>
             ))}
@@ -299,12 +326,48 @@ export default function Settings() {
         </div>
       )}
 
-      {tab === "team" && <Team embedded />}
+      {tab === "approval" && (
+        <div className="card">
+          <div className="card-title">고액·고할인 승인</div>
+          <div className="card-sub" style={{ marginTop: 4 }}>
+            기준을 넘는 견적은 발송 전 관리자 승인을 받도록 합니다. 내 역할이 관리자가 아니면 발송이 막히고, 관리자만 발송할 수 있습니다.
+          </div>
+          <div className={`toggle ${s.approval?.enabled ? "on" : ""}`} style={{ maxWidth: 360, display: "inline-flex", marginTop: 16 }}>
+            <div className="head" onClick={() => setS({ ...s, approval: { ...s.approval, enabled: !s.approval?.enabled } })}>
+              <span className="check"><Check /></span>
+              고액·고할인 견적 관리자 승인 사용
+            </div>
+          </div>
+          <div className="grid cols-2" style={{ marginTop: 12 }}>
+            <Field label="승인 필요 금액(원) 이상">
+              <Input amount value={s.approval?.amountGte || ""} onChange={(e) => setS({ ...s, approval: { ...s.approval, amountGte: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 } })} placeholder="예: 10000000" />
+            </Field>
+            <Field label="승인 필요 할인율(%) 이상">
+              <Input amount value={s.approval?.discountPctGte || ""} onChange={(e) => setS({ ...s, approval: { ...s.approval, discountPctGte: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 } })} placeholder="예: 15" />
+            </Field>
+          </div>
+          <Field label="내 역할" style={{ maxWidth: 240 }}>
+            <Select value={s.myRole || "admin"} onChange={(v) => setS({ ...s, myRole: v as Role })}
+              options={[{ value: "admin", label: "관리자" }, { value: "sales", label: "영업" }, { value: "viewer", label: "뷰어" }]} />
+          </Field>
+        </div>
+      )}
       {tab === "integrations" && <IntegrationsPage embedded />}
       {tab === "activities" && <Activities embedded />}
 
       {!SELF_MANAGED.includes(tab) && (
-        <div className="actionbar"><Button variant="primary" loading={saving} onClick={save}>저장</Button></div>
+        <div className={`actionbar${dirty ? "" : " is-flow"}`}>
+          <span className="row" style={{ gap: 8, fontSize: 14, fontWeight: 500, color: dirty ? "var(--warn)" : "var(--text-2)" }}>
+            {dirty ? (
+              <><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warn)", flexShrink: 0 }} />저장되지 않은 변경사항이 있습니다</>
+            ) : (
+              <><Check size={15} strokeWidth={3} />모든 변경사항이 저장됨</>
+            )}
+          </span>
+          <div className="spacer" />
+          {dirty && <Button variant="ghost" onClick={revert} disabled={saving}>되돌리기</Button>}
+          <Button variant="primary" loading={saving} disabled={!dirty} onClick={save}>저장</Button>
+        </div>
       )}
     </>
   );

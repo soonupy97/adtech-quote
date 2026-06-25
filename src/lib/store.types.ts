@@ -12,6 +12,7 @@ import type {
   Payment,
   Quote,
   QuoteComment,
+  QuoteStatus,
   QuoteSummary,
   QuoteVersion,
   Settings,
@@ -38,6 +39,8 @@ export interface Store {
   saveQuote(quote: Quote): Promise<Quote>;
   duplicateQuote(id: string): Promise<Quote>;
   markSent(id: string): Promise<{ token: string; url: string }>;
+  // 운영자 수동 상태 변경(칸반 드래그 등). 고객 행동 없이 상태만 갱신.
+  setStatus(id: string, status: QuoteStatus): Promise<true>;
   markViewed(token: string): Promise<true | null>;
   markResponse(
     token: string,
@@ -69,6 +72,7 @@ export interface Store {
 
   // 시드
   seedIfEmpty(): Promise<boolean>;
+  seedCatalog(): Promise<number>; // 누락된 기본 단가표(샘플) 항목 채우기 — 추가된 행 수 반환
 
   // 부록 B 확장 컬렉션 (P1~P3)
   templates: Coll<Template>;

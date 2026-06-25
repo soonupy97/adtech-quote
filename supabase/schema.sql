@@ -80,11 +80,19 @@ create table if not exists public.settings (
   numbering jsonb default '{}'::jsonb,
   terms jsonb default '{}'::jsonb,
   discount_rules jsonb default '[]'::jsonb,
+  promo_codes jsonb default '[]'::jsonb,
+  approval jsonb default '{}'::jsonb,
+  cover_letter text,
   units jsonb default '{}'::jsonb,
+  menu_hidden jsonb default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
--- 기존 설치본 업그레이드(재실행 안전): units 컬럼 보강
+-- 기존 설치본 업그레이드(재실행 안전): units / menu_hidden / promo_codes / approval / cover_letter 컬럼 보강
 alter table public.settings add column if not exists units jsonb default '{}'::jsonb;
+alter table public.settings add column if not exists menu_hidden jsonb default '[]'::jsonb;
+alter table public.settings add column if not exists promo_codes jsonb default '[]'::jsonb;
+alter table public.settings add column if not exists approval jsonb default '{}'::jsonb;
+alter table public.settings add column if not exists cover_letter text;
 
 -- 6) 부록 B 확장 엔티티(P1~P3 기반) -----------------------------------------
 create table if not exists public.templates (
@@ -135,6 +143,7 @@ create index if not exists idx_appcoll_owner on public.app_collections(owner_id,
 
 -- 7) RLS --------------------------------------------------------------------
 alter table public.app_collections enable row level security;
+drop policy if exists "owner_all_appcoll" on public.app_collections;
 create policy "owner_all_appcoll" on public.app_collections for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
 alter table public.quotes enable row level security;
@@ -148,21 +157,34 @@ alter table public.contracts enable row level security;
 alter table public.payments enable row level security;
 alter table public.activities enable row level security;
 
+drop policy if exists "owner_select" on public.quotes;
 create policy "owner_select" on public.quotes for select using (auth.uid() = owner_id);
+drop policy if exists "owner_insert" on public.quotes;
 create policy "owner_insert" on public.quotes for insert with check (auth.uid() = owner_id);
+drop policy if exists "owner_update" on public.quotes;
 create policy "owner_update" on public.quotes for update using (auth.uid() = owner_id);
+drop policy if exists "owner_delete" on public.quotes;
 create policy "owner_delete" on public.quotes for delete using (auth.uid() = owner_id);
+drop policy if exists "owner_events" on public.quote_events;
 create policy "owner_events" on public.quote_events for all using (
   exists (select 1 from public.quotes q where q.id = quote_id and q.owner_id = auth.uid()));
 
 -- 공통 owner 정책(보조 테이블)
+drop policy if exists "owner_all_clients"   on public.clients;
 create policy "owner_all_clients"  on public.clients       for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_catalog"   on public.catalog_items;
 create policy "owner_all_catalog"  on public.catalog_items for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_settings"  on public.settings;
 create policy "owner_all_settings" on public.settings      for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_templates" on public.templates;
 create policy "owner_all_templates"on public.templates     for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_leads"     on public.leads;
 create policy "owner_all_leads"    on public.leads         for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_contracts" on public.contracts;
 create policy "owner_all_contracts"on public.contracts     for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_payments"  on public.payments;
 create policy "owner_all_payments" on public.payments      for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
+drop policy if exists "owner_all_activity"  on public.activities;
 create policy "owner_all_activity" on public.activities    for all using (auth.uid() = owner_id) with check (auth.uid() = owner_id);
 
 -- 8) 고객 열람용(익명, draft 차단) -----------------------------------------

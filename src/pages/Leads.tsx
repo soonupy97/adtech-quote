@@ -5,7 +5,7 @@ import { fmtDate } from "@/lib/quote";
 import type { Lead, LeadStage } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, Inbox } from "lucide-react";
+import { Plus, Inbox, Trash2 } from "lucide-react";
 
 const SOURCE_LABEL: Record<Lead["source"], string> = {
   phone: "전화", form: "폼", kakao: "카카오", "walk-in": "방문",
@@ -77,11 +77,12 @@ export default function Leads() {
     { key: "created_at", header: "등록일", className: "dim", render: (l) => fmtDate(l.created_at) },
     {
       key: "act",
+      header: "관리",
       render: (l) => (
         <div className="row" style={{ gap: 4 }}>
           <Button size="sm" variant="secondary" onClick={() => convert(l)}>견적전환</Button>
           <Button size="sm" onClick={() => setEdit(l)}>편집</Button>
-          <Button size="sm" variant="danger" onClick={() => del(l)}>삭제</Button>
+          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(l)} />
         </div>
       ),
     },

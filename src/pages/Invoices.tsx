@@ -5,7 +5,7 @@ import { calcTotals, fmtDate, won } from "@/lib/quote";
 import type { Invoice, Quote, QuoteSummary } from "@/types";
 import { Button, Chip, EmptyState, Field, Modal, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, Receipt } from "lucide-react";
+import { Plus, Receipt, Trash2 } from "lucide-react";
 
 const PROVIDER_LABEL: Record<Invoice["provider"], string> = { popbill: "팝빌", barobill: "바로빌", manual: "수기" };
 
@@ -58,10 +58,11 @@ export default function Invoices() {
     { key: "status", header: "상태", render: (inv) => (inv.status === "issued" ? <span className="badge accepted"><span className="dot" />발행 {fmtDate(inv.issued_at)}</span> : <span className="badge draft"><span className="dot" />초안</span>) },
     {
       key: "act",
+      header: "관리",
       render: (inv) => (
         <div className="row" style={{ gap: 4 }}>
           {inv.status === "draft" && <Button size="sm" variant="secondary" onClick={() => issue(inv)}>발행</Button>}
-          <Button size="sm" variant="danger" onClick={() => del(inv)}>삭제</Button>
+          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(inv)} />
         </div>
       ),
     },

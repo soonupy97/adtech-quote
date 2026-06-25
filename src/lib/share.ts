@@ -1,6 +1,6 @@
-// "보조 발송" 헬퍼 — 서버·API키·사업자 인증·비용 없이 지금 바로 동작하는 것만 사용.
+// 견적 발송 헬퍼 — 서버·API키·사업자 인증·비용 없이 지금 바로 동작하는 것만 사용.
+// 기본: 링크 복사(copyText) — 모든 환경에서 항상 동작.
 // 모바일: navigator.share 로 OS 공유 시트 호출(카카오톡·문자·메일 등이 그대로 노출).
-// 데스크톱: sms: 는 대부분 동작하지 않아 링크 복사로 폴백, mailto: 는 어디서나 동작.
 
 export function quoteMessage(opts: {
   company?: string;
@@ -44,20 +44,4 @@ export async function copyText(text: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-export function smsHref(tel: string | undefined, body: string): string {
-  const num = (tel || "").replace(/[^0-9+]/g, "");
-  // '?body=' 가 iOS/Android 양쪽에서 가장 호환성이 좋음
-  return `sms:${num}?body=${encodeURIComponent(body)}`;
-}
-
-export function mailtoHref(email: string | undefined, subject: string, body: string): string {
-  const q = new URLSearchParams({ subject, body }).toString();
-  return `mailto:${email || ""}?${q}`;
-}
-
-// sms:/mailto: 는 같은 탭 네비게이션이 가장 호환성이 좋다.
-export function openHref(href: string): void {
-  window.location.href = href;
 }
