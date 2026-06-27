@@ -289,6 +289,24 @@ export function fmtDateTime(iso?: string): string {
   ).padStart(2, "0")}`;
 }
 
+// 상대 시간("방금 전" / "3시간 전" / "어제") — 알림 피드 등 좁은 영역용.
+// 7일을 넘어가면 절대 날짜(fmtDate)로 폴백한다.
+export function timeAgo(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (sec < 60) return "방금 전";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}분 전`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}시간 전`;
+  const day = Math.floor(hr / 24);
+  if (day === 1) return "어제";
+  if (day < 7) return `${day}일 전`;
+  return fmtDate(iso);
+}
+
 // 대표 품목 제목
 export function quoteTitle(q: Quote): string {
   const first = q.items?.find((it) => it.type);

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { fmtDate, sampleQuote, won } from "@/lib/quote";
 import type { QuoteStatus, QuoteSummary } from "@/types";
-import { Button, EmptyState, Input, Modal, StatusBadge, Table, type Column } from "@/components/ui";
+import { Button, EmptyState, Input, Modal, PageTitle, StatusBadge, Table, type Column } from "@/components/ui";
 import CopyLinkField from "@/components/CopyLinkField";
 import { useToast } from "@/components/Toast";
 import { FileText, GripVertical, Link2, Plus, Search, Send, Trash2, Pencil, Copy } from "lucide-react";
@@ -23,8 +23,8 @@ const FILTERS: { id: string; label: string; match: (s: QuoteStatus) => boolean }
 const BOARD: { id: QuoteStatus; label: string; accent: string; has: (s: QuoteStatus) => boolean }[] = [
   { id: "draft", label: "작성중", accent: "var(--st-draft)", has: (s) => s === "draft" },
   { id: "sent", label: "발송", accent: "var(--st-sent)", has: (s) => s === "sent" || s === "viewed" },
-  { id: "accepted", label: "수락", accent: "var(--st-accepted)", has: (s) => s === "accepted" },
-  { id: "rejected", label: "거절", accent: "var(--st-rejected)", has: (s) => s === "rejected" },
+  { id: "accepted", label: "수주", accent: "var(--st-accepted)", has: (s) => s === "accepted" },
+  { id: "rejected", label: "실주", accent: "var(--st-rejected)", has: (s) => s === "rejected" },
 ];
 
 export default function Quotes() {
@@ -39,7 +39,6 @@ export default function Quotes() {
   const [view, setView] = useState<"list" | "board">("list");
   const [over, setOver] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
-  const [focus, setFocus] = useState<QuoteStatus | null>(null); // 벤토 타일 클릭 시 해당 단계만 강조
 
   const load = () => store.listQuotes().then(setList);
   useEffect(() => { load(); }, []);
@@ -66,29 +65,27 @@ export default function Quotes() {
     );
   }, [list, q]);
 
-  // 보드 단계별 요약(건수·금액) — 상단 벤토 타일에 사용. 검색어를 반영한다.
-  const boardStats = useMemo(
-    () =>
-      BOARD.map((col) => {
-        const items = searched.filter((it) => col.has(it.status));
-        return { ...col, count: items.length, sum: items.reduce((a, it) => a + (it.grand || 0), 0) };
-      }),
-    [searched],
-  );
-
+  // 발송 링크 보기(이미 발송된 견적용): 상태 변경 없이 링크 모달만 연다.
   const send = async (id: string) => {
     const item = list.find((x) => x.id === id) || null;
-    const wasDraft = item?.status === "draft";
     const { url } = await store.markSent(id);
     setLinkItem(item);
     setLink(url);
     await load();
-    toast(wasDraft ? "발송 처리되었습니다. 링크를 전달하세요." : "발송 링크를 다시 불러왔습니다.");
+    toast("발송 링크를 불러왔습니다.", "success");
+  };
+
+  // 발송 처리(수동): 상태를 발송으로 기록(발송일·이벤트 포함). 링크 모달은 띄우지 않는다.
+  const setSent = async (id: string) => {
+    const it = list.find((x) => x.id === id);
+    await store.markSent(id);
+    await load();
+    toast(`'${it?.customer || it?.quote_no || "견적"}' 발송 처리했습니다.`, "success");
   };
 
   const dup = async (id: string) => {
     const copy = await store.duplicateQuote(id);
-    toast("견적을 복제했습니다.");
+    toast("견적을 복제했습니다.", "success");
     navigate(`/editor/${copy.id}`);
   };
 
@@ -96,19 +93,20 @@ export default function Quotes() {
     if (!confirm(`${no} 견적을 삭제할까요?`)) return;
     await store.removeQuote(id);
     await load();
-    toast("삭제되었습니다.");
+    toast("삭제되었습니다.", "success");
   };
 
-  // 칸반 드롭: 카드를 다른 컬럼에 놓으면 상태 변경. 작성중→발송은 링크 생성(send), 그 외는 setStatus.
+  // 칸반 드롭: 카드를 다른 컬럼에 놓으면 상태만 조용히 변경한다(링크 모달·발송 안내 없음).
+  // 작성중→발송은 발송일·이벤트 기록이 필요하므로 markSent, 그 외는 setStatus.
   const dropTo = async (colId: QuoteStatus, id: string) => {
     setOver(null);
     const it = list.find((x) => x.id === id);
     const targetCol = BOARD.find((c) => c.id === colId);
     if (!it || !targetCol || targetCol.has(it.status)) return; // 이미 같은 컬럼이면 무시
-    if (colId === "sent" && it.status === "draft") { send(id); return; } // 첫 발송 → 링크 생성
-    await store.setStatus(id, colId);
+    if (colId === "sent" && it.status === "draft") await store.markSent(id);
+    else await store.setStatus(id, colId);
     await load();
-    toast(`'${it.customer || it.quote_no}' → ${targetCol.label}`);
+    toast(`'${it.customer || it.quote_no}' → ${targetCol.label}`, "success");
   };
 
   // 빈 상태 온보딩: 현실적인 샘플 견적 1건 추가
@@ -117,7 +115,7 @@ export default function Quotes() {
     try {
       await store.saveQuote(sampleQuote());
       await load();
-      toast("샘플 견적서를 추가했습니다.");
+      toast("샘플 견적서를 추가했습니다.", "success");
     } finally {
       setSeeding(false);
     }
@@ -137,7 +135,7 @@ export default function Quotes() {
       render: (it) => (
         <RowMenu actions={[
           it.status === "draft"
-            ? { label: "발송", icon: <Send size={15} />, onClick: () => send(it.id) }
+            ? { label: "발송 처리", icon: <Send size={15} />, onClick: () => setSent(it.id) }
             : { label: "발송 링크 복사", icon: <Link2 size={15} />, onClick: () => send(it.id) },
           { label: "편집", icon: <Pencil size={15} />, onClick: () => navigate(`/editor/${it.id}`) },
           { label: "복제", icon: <Copy size={15} />, onClick: () => dup(it.id) },
@@ -150,12 +148,8 @@ export default function Quotes() {
   return (
     <>
       <div className="page-head">
-        <div>
-          <h1>견적</h1>
-          <div className="sub">전체 {list.length}건</div>
-        </div>
-        <div className="spacer" />
-        <Link className="btn primary" to="/editor"><Plus size={16} />새 견적</Link>
+        <PageTitle title="견적" sub={`전체 ${list.length}건`} />
+        <Link className="btn" data-variant="primary" data-size="sm" to="/editor"><Plus size={14} />새 견적</Link>
       </div>
 
       <div className="tabs">
@@ -201,7 +195,7 @@ export default function Quotes() {
                   desc={<span style={{ display: "block", marginBottom: 16 }}>첫 견적을 만들거나, 샘플로 먼저 둘러보세요.</span>}
                   action={
                     <div className="row" style={{ gap: 8, justifyContent: "center" }}>
-                      <Link className="btn primary" to="/editor"><Plus size={16} />첫 견적 만들기</Link>
+                      <Link className="btn" data-variant="primary" to="/editor"><Plus size={16} />첫 견적 만들기</Link>
                       <Button variant="secondary" loading={seeding} onClick={addSample}>샘플 견적서 추가</Button>
                     </div>
                   }
@@ -212,32 +206,14 @@ export default function Quotes() {
             }
           />
         ) : (
-          <>
-          {/* 벤토 요약: 단계별 건수·금액. 타일을 누르면 해당 컬럼만 강조된다. */}
-          <div className="bento cols-4 board-summary">
-            {boardStats.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className={`tile ${focus === s.id ? "active" : ""}`}
-                style={{ ["--col" as string]: s.accent }}
-                onClick={() => setFocus((v) => (v === s.id ? null : s.id))}
-              >
-                <div className="k"><i className="dot" />{s.label}</div>
-                <div className="v">{s.count}</div>
-                <div className="bento-foot">{won(s.sum)}</div>
-              </button>
-            ))}
-          </div>
-
-          <div className={`kanban quote-board cols-4 ${focus ? "has-focus" : ""}`}>
+          <div className="kanban quote-board cols-4">
             {BOARD.map((col) => {
               const items = searched.filter((it) => col.has(it.status));
               const canDrop = dragId != null && !col.has(list.find((x) => x.id === dragId)?.status as QuoteStatus);
               return (
                 <div
                   key={col.id}
-                  className={`col ${over === col.id ? "drop" : ""} ${dragId && canDrop ? "droppable" : ""} ${focus && focus !== col.id ? "muted" : ""}`}
+                  className={`col ${over === col.id ? "drop" : ""} ${dragId && canDrop ? "droppable" : ""}`}
                   style={{ ["--col" as string]: col.accent }}
                   onDragOver={(e) => { e.preventDefault(); setOver(col.id); }}
                   onDragLeave={() => setOver((v) => (v === col.id ? null : v))}
@@ -272,13 +248,12 @@ export default function Quotes() {
               );
             })}
           </div>
-          </>
         )}
       </div>
 
       {view === "board" && (
         <div className="dim" style={{ marginTop: 8, fontSize: 12 }}>
-          카드를 끌어 컬럼 사이로 옮기면 상태가 바뀝니다. <strong>작성중 → 발송</strong>은 고객 링크가 생성되고, 수락·거절은 전화·대면 응답을 수동 반영할 때 사용하세요. (고객이 링크에서 응답하면 자동으로도 갱신됩니다)
+          카드를 끌어 컬럼 사이로 옮기면 상태가 바뀝니다. <strong>작성중 → 발송</strong>은 고객 링크가 생성되고, 수주·실주는 전화·대면 응답을 수동 반영할 때 사용하세요. (고객이 링크에서 응답하면 자동으로도 갱신됩니다)
         </div>
       )}
 
@@ -288,8 +263,8 @@ export default function Quotes() {
           onClose={() => setLink(null)}
           footer={
             <>
-              <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다."); }}>링크 복사</Button>
-              <a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a>
+              <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다.", "success"); }}>링크 복사</Button>
+              <a className="btn" href={link} target="_blank" rel="noreferrer">미리보기</a>
               <div className="spacer" />
               <Button onClick={() => setLink(null)}>닫기</Button>
             </>

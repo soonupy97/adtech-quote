@@ -33,8 +33,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
-// 기존 .btn 디자인 시스템(pill)을 그대로 쓰는 얇은 래퍼.
-// 기본 .btn 자체가 secondary(회색)이므로 secondary 는 별도 클래스를 붙이지 않는다.
+// 디자인 시스템 버튼. .btn 은 베이스 마커이고, 변형/사이즈/상태(props)는 모두 data-* 속성으로
+// 노출한다 → CSS 는 [data-variant] / [data-size] / [data-icon-only] 등 속성 선택자로 스타일링.
 export default function Button({
   variant = "secondary",
   size = "md",
@@ -51,25 +51,18 @@ export default function Button({
   const hasLabel = children != null && children !== false && children !== "";
   const iconOnly = !hasLabel && (icon != null || !!loading);
 
-  const cls = [
-    "btn",
-    variant !== "secondary" && variant,
-    size !== "md" && size,
-    iconOnly && "icon-only",
-    block && "block",
-    loading && "is-loading",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  // 사이즈별 아이콘 크기 (패딩·폰트와 함께 단계적으로 증가)
+  // 사이즈별 아이콘 크기 (높이·폰트와 함께 단계적으로 증가)
   const iconSize = { sm: 14, md: 16, lg: 18 }[size];
 
   return (
     <button
       type={type}
-      className={cls}
+      className={className ? `btn ${className}` : "btn"}
+      data-variant={variant}
+      data-size={size}
+      data-icon-only={iconOnly || undefined}
+      data-block={block || undefined}
+      data-loading={loading || undefined}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       {...rest}

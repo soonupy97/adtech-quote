@@ -89,7 +89,10 @@ export default function RowMenu({ actions, label = "관리" }: { actions: RowAct
       <button
         ref={btnRef}
         type="button"
-        className="btn sm icon-only ghost"
+        className="btn"
+        data-size="sm"
+        data-icon-only
+        data-variant="ghost"
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}

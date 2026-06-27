@@ -53,7 +53,7 @@ export default function ResetPassword() {
         return;
       }
       await Auth.logout();
-      toast("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.");
+      toast("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.", "success");
       navigate("/login", { replace: true });
     } finally {
       setBusy(false);

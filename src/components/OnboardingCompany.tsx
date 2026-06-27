@@ -62,7 +62,7 @@ export default function OnboardingCompany({
         },
       });
       localStorage.removeItem(ONBOARD_SKIP_KEY);
-      toast("회사 정보를 저장했습니다.");
+      toast("회사 정보를 저장했습니다.", "success");
       onClose();
     } finally {
       setBusy(false);

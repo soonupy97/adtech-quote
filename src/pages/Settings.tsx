@@ -6,28 +6,19 @@ import { uuid } from "@/lib/quote";
 import { DIM_UNITS, DEFAULT_QTY_UNITS } from "@/lib/units";
 import type { AdjMode, DiscountRule, PromoCode, Role, Settings as SettingsT } from "@/types";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input, Modal, Select, Textarea } from "@/components/ui";
+import { Button, Field, Input, Modal, PageTitle, Select, Textarea } from "@/components/ui";
 import { AlertTriangle, Check, Plus, X, Trash2 } from "lucide-react";
-import IntegrationsPage from "./IntegrationsPage";
-import Activities from "./Activities";
 import { MENU_TOGGLES, MENU_EVENT } from "@/components/AppShell";
 
-type Tab = "company" | "units" | "branding" | "tax" | "numbering" | "terms" | "rules" | "menus" | "approval" | "integrations" | "activities";
+type Tab = "company" | "quote" | "terms" | "rules" | "approval" | "menus";
 const TABS: { key: Tab; label: string }[] = [
-  { key: "company", label: "회사·기본값" },
-  { key: "units", label: "단위" },
-  { key: "branding", label: "브랜딩" },
-  { key: "tax", label: "세금" },
-  { key: "numbering", label: "견적번호" },
+  { key: "company", label: "회사" },
+  { key: "quote", label: "견적 기본값" },
   { key: "terms", label: "약관·인사말" },
-  { key: "rules", label: "자동할인·프로모션" },
-  { key: "menus", label: "메뉴 표시" },
+  { key: "rules", label: "할인" },
   { key: "approval", label: "승인" },
-  { key: "integrations", label: "연동" },
-  { key: "activities", label: "활동로그" },
+  { key: "menus", label: "메뉴 표시" },
 ];
-// 자체 저장/별도 화면을 갖는 탭 — 설정 공통 저장바 숨김
-const SELF_MANAGED: Tab[] = ["integrations", "activities"];
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(file); });
@@ -57,8 +48,8 @@ export default function Settings() {
     setDeleting(true);
     try {
       const res = await Auth.deleteAccount();
-      if (!res.ok) { toast(res.msg || "계정 삭제에 실패했습니다."); return; }
-      toast("계정이 삭제되었습니다.");
+      if (!res.ok) { toast(res.msg || "계정 삭제에 실패했습니다.", "error"); return; }
+      toast("계정이 삭제되었습니다.", "success");
       navigate("/login", { replace: true });
     } finally { setDeleting(false); }
   };
@@ -73,7 +64,7 @@ export default function Settings() {
       await store.saveSettings(s);
       setSaved(s); // 스냅샷 갱신 → dirty 해제
       window.dispatchEvent(new Event(MENU_EVENT)); // 사이드바 메뉴 표시 갱신
-      toast("설정을 저장했습니다.");
+      toast("설정을 저장했습니다.", "success");
     } finally { setSaving(false); }
   };
   const revert = () => { if (saved) setS(saved); }; // 마지막 저장본으로 되돌리기
@@ -91,7 +82,7 @@ export default function Settings() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        if (dirty && !SELF_MANAGED.includes(tab)) save();
+        if (dirty) save();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -130,7 +121,7 @@ export default function Settings() {
 
   return (
     <>
-      <div className="page-head"><div><h1>설정</h1><div className="sub">회사정보·문서·자동화 규칙</div></div></div>
+      <div className="page-head"><PageTitle title="설정" sub="회사정보·문서·자동화 규칙" /></div>
 
       <div className="tabs">
         {TABS.map((t) => (
@@ -152,13 +143,19 @@ export default function Settings() {
             </div>
           </div>
           <div className="card">
-            <div className="card-title">견적 기본값</div>
+            <div className="card-title">회사 브랜딩 (부록 A20)</div>
             <div className="grid cols-2">
-              <Field label="유효기간"><Input value={def.validity} onChange={(e) => setS({ ...s, defaults: { ...def, validity: e.target.value } })} /></Field>
-              <Field label="계약금"><Input value={def.deposit} onChange={(e) => setS({ ...s, defaults: { ...def, deposit: e.target.value } })} /></Field>
-              <Field label="잔금"><Input value={def.balance} onChange={(e) => setS({ ...s, defaults: { ...def, balance: e.target.value } })} /></Field>
-              <Field label="A/S"><Input value={def.as} onChange={(e) => setS({ ...s, defaults: { ...def, as: e.target.value } })} /></Field>
+              <Field label="로고 업로드"><Input type="file" accept="image/*" onChange={(e) => upload("logoUrl", e.target.files?.[0])} />
+                {branding.logoUrl && <img src={branding.logoUrl} alt="logo" style={{ height: 48, marginTop: 8 }} />}
+              </Field>
+              <Field label="직인 업로드"><Input type="file" accept="image/*" onChange={(e) => upload("sealUrl", e.target.files?.[0])} />
+                {branding.sealUrl && <img src={branding.sealUrl} alt="seal" style={{ height: 48, marginTop: 8 }} />}
+              </Field>
             </div>
+            <Field label="강조색(테마)" style={{ maxWidth: 200 }}>
+              <Input type="color" value={branding.themeColor || "#3182f6"} onChange={(e) => setS({ ...s, branding: { ...branding, themeColor: e.target.value } })} style={{ height: 44 }} />
+            </Field>
+            <div className="dim">로고·직인·강조색은 견적서(PDF)/고객 화면에 반영됩니다.</div>
           </div>
 
           {/* 위험 구역 — 계정 삭제(회원 탈퇴) */}
@@ -179,8 +176,18 @@ export default function Settings() {
         </>
       )}
 
-      {tab === "units" && (
+      {tab === "quote" && (
         <>
+          <div className="card">
+            <div className="card-title">견적 기본값</div>
+            <div className="grid cols-2">
+              <Field label="유효기간"><Input value={def.validity} onChange={(e) => setS({ ...s, defaults: { ...def, validity: e.target.value } })} /></Field>
+              <Field label="계약금"><Input value={def.deposit} onChange={(e) => setS({ ...s, defaults: { ...def, deposit: e.target.value } })} /></Field>
+              <Field label="잔금"><Input value={def.balance} onChange={(e) => setS({ ...s, defaults: { ...def, balance: e.target.value } })} /></Field>
+              <Field label="A/S"><Input value={def.as} onChange={(e) => setS({ ...s, defaults: { ...def, as: e.target.value } })} /></Field>
+            </div>
+          </div>
+
           <div className="card">
             <div className="card-title">치수 단위</div>
             <div className="card-sub" style={{ marginTop: 4 }}>견적 작성의 가로·세로 입력 단위입니다. 단가는 ㎡ 기준이라 면적은 항상 ㎡로 환산해 표시됩니다.</div>
@@ -209,30 +216,9 @@ export default function Settings() {
             </div>
             <div className="dim" style={{ marginTop: 8 }}>변경 후 하단 <strong>저장</strong>을 눌러야 반영됩니다.</div>
           </div>
-        </>
-      )}
 
-      {tab === "branding" && (
-        <div className="card">
-          <div className="card-title">회사 브랜딩 (부록 A20)</div>
-          <div className="grid cols-2">
-            <Field label="로고 업로드"><Input type="file" accept="image/*" onChange={(e) => upload("logoUrl", e.target.files?.[0])} />
-              {branding.logoUrl && <img src={branding.logoUrl} alt="logo" style={{ height: 48, marginTop: 8 }} />}
-            </Field>
-            <Field label="직인 업로드"><Input type="file" accept="image/*" onChange={(e) => upload("sealUrl", e.target.files?.[0])} />
-              {branding.sealUrl && <img src={branding.sealUrl} alt="seal" style={{ height: 48, marginTop: 8 }} />}
-            </Field>
-          </div>
-          <Field label="강조색(테마)" style={{ maxWidth: 200 }}>
-            <Input type="color" value={branding.themeColor || "#3182f6"} onChange={(e) => setS({ ...s, branding: { ...branding, themeColor: e.target.value } })} style={{ height: 44 }} />
-          </Field>
-          <div className="dim">로고·직인·강조색은 견적서(PDF)/고객 화면에 반영됩니다.</div>
-        </div>
-      )}
-
-      {tab === "tax" && (
-        <div className="card">
-          <div className="card-title">세금 모드 (부록 A19)</div>
+          <div className="card">
+            <div className="card-title">세금 모드 (부록 A19)</div>
           <div className="grid cols-2">
             <Field label="과세 구분">
               <Select value={tax.mode || "taxable"} onChange={(v) => setS({ ...s, tax: { ...tax, mode: v as "taxable" | "free" | "zero" } })}
@@ -252,11 +238,9 @@ export default function Settings() {
           </div>
           <div className="dim">기본값(과세·별도)은 블루프린트 §9 계산과 동일합니다.</div>
         </div>
-      )}
 
-      {tab === "numbering" && (
-        <div className="card">
-          <div className="card-title">견적번호 채번 규칙 (부록 A19)</div>
+          <div className="card">
+            <div className="card-title">견적번호 채번 규칙 (부록 A19)</div>
           <div className="grid cols-3">
             <Field label="접두어"><Input value={numbering.prefix ?? "Q"} onChange={(e) => setS({ ...s, numbering: { ...numbering, prefix: e.target.value } })} /></Field>
             <Field label="날짜 형식">
@@ -271,6 +255,7 @@ export default function Settings() {
           </div>
           <div className="dim">예시: {`${numbering.prefix ?? "Q"}-${(numbering.dateFormat ?? "YYYYMMDD").replace("YYYY", "2026").replace("YY", "26").replace("MM", "06").replace("DD", "20")}-${"1".padStart(numbering.seqDigits ?? 3, "0")}`}</div>
         </div>
+        </>
       )}
 
       {tab === "terms" && (
@@ -309,7 +294,7 @@ export default function Settings() {
                 </div>
                 <div className="row">
                   <label className="row" style={{ gap: 8, cursor: "pointer" }} onClick={() => setRule(i, { ...r, stackable: !r.stackable })}>
-                    <span className={`check ${r.stackable ? "on" : ""}`} style={{ width: 18, height: 18, borderRadius: 5, background: r.stackable ? "var(--toss-blue)" : "var(--fill)", color: "#fff", display: "grid", placeItems: "center" }}>{r.stackable ? <Check size={12} strokeWidth={3} /> : ""}</span>
+                    <span className={`check ${r.stackable ? "on" : ""}`} style={{ width: 18, height: 18, borderRadius: 5, background: r.stackable ? "var(--toss-blue)" : "var(--canvas)", color: "#fff", display: "grid", placeItems: "center" }}>{r.stackable ? <Check size={12} strokeWidth={3} /> : ""}</span>
                     다른 규칙과 중복 적용
                   </label>
                   <div className="spacer" />
@@ -350,7 +335,7 @@ export default function Settings() {
                   const on = !hiddenMenus.includes(m.to);
                   return (
                     <div key={m.to} className="row" style={{ gap: 12, cursor: "pointer", padding: "10px 12px", background: "var(--fill-2)", borderRadius: "var(--r-md)" }} onClick={() => toggleMenu(m.to)}>
-                      <span className="check" style={{ width: 20, height: 20, borderRadius: 6, background: on ? "var(--toss-blue)" : "var(--fill)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>{on && <Check size={13} strokeWidth={3} />}</span>
+                      <span className="check" style={{ width: 20, height: 20, borderRadius: 6, background: on ? "var(--toss-blue)" : "var(--canvas)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>{on && <Check size={13} strokeWidth={3} />}</span>
                       <span style={{ fontWeight: 700 }}>{m.label}</span>
                       <div className="spacer" />
                       <span className="dim" style={{ fontSize: 12 }}>{on ? "표시" : "숨김"}</span>
@@ -390,23 +375,18 @@ export default function Settings() {
           </Field>
         </div>
       )}
-      {tab === "integrations" && <IntegrationsPage embedded />}
-      {tab === "activities" && <Activities embedded />}
-
-      {!SELF_MANAGED.includes(tab) && (
-        <div className={`actionbar${dirty ? "" : " is-flow"}`}>
-          <span className="row" style={{ gap: 8, fontSize: 14, fontWeight: 500, color: dirty ? "var(--warn)" : "var(--text-2)" }}>
-            {dirty ? (
-              <><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warn)", flexShrink: 0 }} />저장되지 않은 변경사항이 있습니다</>
-            ) : (
-              <><Check size={15} strokeWidth={3} />모든 변경사항이 저장됨</>
-            )}
-          </span>
-          <div className="spacer" />
-          {dirty && <Button variant="ghost" onClick={revert} disabled={saving}>되돌리기</Button>}
-          <Button variant="primary" loading={saving} disabled={!dirty} onClick={save}>저장</Button>
-        </div>
-      )}
+      <div className={`actionbar${dirty ? "" : " is-flow"}`}>
+        <span className="row" style={{ gap: 8, fontSize: 14, fontWeight: 500, color: dirty ? "var(--warn)" : "var(--text-2)" }}>
+          {dirty ? (
+            <><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warn)", flexShrink: 0 }} />저장되지 않은 변경사항이 있습니다</>
+          ) : (
+            <><Check size={15} strokeWidth={3} />모든 변경사항이 저장됨</>
+          )}
+        </span>
+        <div className="spacer" />
+        {dirty && <Button variant="ghost" onClick={revert} disabled={saving}>되돌리기</Button>}
+        <Button variant="primary" loading={saving} disabled={!dirty} onClick={save}>저장</Button>
+      </div>
 
       {delOpen && (
         <Modal

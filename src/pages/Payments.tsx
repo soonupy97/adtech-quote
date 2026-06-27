@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, won } from "@/lib/quote";
 import type { Payment, PaymentKind, Quote, QuoteSummary } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Wallet, Trash2, Check, Undo2 } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -27,7 +27,7 @@ export default function Payments() {
 
   // 견적 → 계약금50/잔금50 스케줄 자동 생성
   const create = async () => {
-    if (!pick) return toast("견적을 선택하세요.");
+    if (!pick) return toast("견적을 선택하세요.", "warning");
     setBusy(true);
     try {
       const q = (await store.getQuote(pick)) as Quote;
@@ -38,7 +38,7 @@ export default function Payments() {
       await store.payments.save({ id: "", kind: "balance", amount: grand - dep, due_date: "", ...base } as Payment);
       setCreating(false); setPick("");
       await load();
-      toast("입금 스케줄을 생성했습니다.");
+      toast("입금 스케줄을 생성했습니다.", "success");
     } finally { setBusy(false); }
   };
 
@@ -78,9 +78,8 @@ export default function Payments() {
   return (
     <>
       <div className="page-head">
-        <div><h1>정산 / 입금</h1><div className="sub">계약금·중도금·잔금 스케줄과 미수금</div></div>
-        <div className="spacer" />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>입금 스케줄</Button>
+        <PageTitle title="정산 / 입금" sub="계약금·중도금·잔금 스케줄과 미수금" />
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>입금 스케줄</Button>
       </div>
 
       <div className="bento">

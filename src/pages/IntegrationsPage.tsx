@@ -3,7 +3,7 @@ import { store } from "@/lib/store";
 import { fireZapier, notifySlack } from "@/lib/integrations";
 import { uuid } from "@/lib/quote";
 import type { Settings } from "@/types";
-import { Button, Field, Input } from "@/components/ui";
+import { Button, Field, Input, PageTitle } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { AlertTriangle } from "lucide-react";
 
@@ -20,22 +20,22 @@ export default function IntegrationsPage({ embedded = false }: { embedded?: bool
   const [saving, setSaving] = useState(false);
   const save = async () => {
     setSaving(true);
-    try { await store.saveSettings(s); toast("연동 설정을 저장했습니다."); }
+    try { await store.saveSettings(s); toast("연동 설정을 저장했습니다.", "success"); }
     finally { setSaving(false); }
   };
   const testSlack = async () => {
     const ok = await notifySlack(ig, "🔔 옥외광고 견적 SaaS 연동 테스트 메시지");
-    toast(ok ? "Slack 으로 전송했습니다." : "Webhook URL을 먼저 입력/저장하세요.");
+    toast(ok ? "Slack 으로 전송했습니다." : "Webhook URL을 먼저 입력/저장하세요.", ok ? "success" : "warning");
   };
   const testZapier = async () => {
     const ok = await fireZapier(ig, { event: "test", at: new Date().toISOString() });
-    toast(ok ? "Zapier 웹훅을 호출했습니다." : "Zapier Webhook URL을 먼저 입력/저장하세요.");
+    toast(ok ? "Zapier 웹훅을 호출했습니다." : "Zapier Webhook URL을 먼저 입력/저장하세요.", ok ? "success" : "warning");
   };
   const genApiKey = () => set({ apiKey: `oad_${uuid().replace(/-/g, "")}` });
 
   return (
     <>
-      {!embedded && <div className="page-head"><div><h1>연동</h1><div className="sub">알림·캘린더·자동화·API</div></div></div>}
+      {!embedded && <div className="page-head"><PageTitle title="연동" sub="알림·캘린더·자동화·API" /></div>}
 
       <div className="card">
         <div className="card-title">알림 연동</div>

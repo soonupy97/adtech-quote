@@ -7,6 +7,7 @@ export { default as Field } from "./Field";
 export { default as Table } from "./Table";
 export type { Column } from "./Table";
 export { default as EmptyState } from "./EmptyState";
+export { default as PageTitle } from "./PageTitle";
 export { default as Chip } from "./Chip";
 
 // 기존 공용 컴포넌트도 같은 입구에서 가져올 수 있게 재노출

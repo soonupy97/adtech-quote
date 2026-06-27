@@ -12,10 +12,10 @@
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 1.5rem;
 }
 .card + .card {
-  margin-top: 16px;
+  margin-top: 1rem;
 }
 // 그리드(다단) 안에서는 gap 이 간격을 담당 → 스택용 margin 제거(카드 어긋남 방지)
 .grid .card + .card {
@@ -28,34 +28,34 @@
 .bento + .card,
 .card + .bento,
 .bento + .bento {
-  margin-top: 16px;
+  margin-top: 1rem;
 }
 .card-title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: -0.02em;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 .card-sub {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-3);
-  margin-top: -10px;
-  margin-bottom: 16px;
+  margin-top: -0.625rem;
+  margin-bottom: 1rem;
 }
 
 // ── 입력 (흰 배경 + 헤어라인 + 포커스 링) ──────────────────
 label.field {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 label.field > span {
   display: block;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   font-weight: 500;
 }
 
@@ -67,8 +67,8 @@ textarea {
   background: var(--canvas);
   color: var(--ink);
   border-radius: var(--r-md);
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
   font-family: inherit;
   font-weight: 400;
   outline: none;
@@ -94,7 +94,7 @@ select[aria-invalid="true"]:focus {
 }
 textarea {
   resize: vertical;
-  min-height: 84px;
+  min-height: 5.25rem;
 }
 
 // ── 커스텀 셀렉트 (네이티브 select 대체: 버튼 트리거 + 포털 드롭다운) ──
@@ -102,13 +102,13 @@ textarea {
   width: 100%;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   border: 1px solid var(--hairline);
   background: var(--canvas);
   color: var(--ink);
   border-radius: var(--r-md);
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
   font-family: inherit;
   font-weight: 400;
   line-height: 1.2;
@@ -155,20 +155,20 @@ textarea {
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-2);
-  padding: 4px;
+  padding: 0.25rem;
   animation: selectIn 0.1s ease-out;
 }
 @keyframes selectIn {
-  from { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(-0.25rem); }
   to { opacity: 1; transform: translateY(0); }
 }
 .select-option {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--r-sm);
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--ink);
   cursor: pointer;
   user-select: none;
@@ -215,11 +215,11 @@ textarea::placeholder {
 .copy-link__actions {
   position: absolute;
   top: 50%;
-  right: 6px;
+  right: 0.375rem;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0.125rem;
 }
 .copy-link__actions .btn {
   color: var(--text-2);
@@ -233,11 +233,14 @@ textarea::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
   border: none;
   border-radius: var(--r-md); // Cursor: CTA = 8px(developer dialect), 풀-pill 아님
-  padding: 9px 20px;
-  font-size: 16px;
+  // 사이즈 = 높이로 정의(세로 패딩 없음). 같은 사이즈 버튼은 아이콘 유무·글꼴과 무관하게 높이가 항상 일치.
+  // 가로 패딩만 별도로 둔다. 토큰은 4의 배수(높이 40/32/48, 패딩 20/12/24).
+  height: 2.5rem;
+  padding: 0 1.25rem;
+  font-size: 1rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   cursor: pointer;
@@ -257,7 +260,7 @@ textarea::placeholder {
   cursor: not-allowed;
 }
 // 진행 중: 비활성이지만 죽어보이지 않게 살짝만 흐리고 대기 커서
-.btn.is-loading {
+.btn[data-loading] {
   opacity: 0.75;
   cursor: wait;
 }
@@ -267,88 +270,84 @@ textarea::placeholder {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-// ── 버튼 변형 (범용 컨벤션 · 모노크롬 코어 + danger 시맨틱) ──
-// 기본 .btn 자체가 secondary(회색 솔리드). 아래는 그 외 변형.
-.btn.primary {
+// ── 버튼 변형 (data-variant · 모노크롬 코어 + danger 시맨틱) ──
+// 기본 .btn 자체가 secondary(회색 솔리드). 아래는 data-variant 로 지정하는 그 외 변형.
+.btn[data-variant="primary"] {
   background: var(--primary);
   color: var(--canvas); // primary 는 ink 색이므로 글씨는 캔버스색(테마 반전 대응)
 }
-.btn.primary:hover {
+.btn[data-variant="primary"]:hover {
   background: var(--toss-blue-dark);
 }
-.btn.outline {
+.btn[data-variant="outline"] {
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--hairline);
 }
-.btn.outline:hover {
+.btn[data-variant="outline"]:hover {
   background: var(--surface-soft);
 }
-.btn.ghost {
+.btn[data-variant="ghost"] {
   background: transparent;
 }
-.btn.ghost:hover {
+.btn[data-variant="ghost"]:hover {
   background: var(--surface-soft);
 }
-.btn.danger {
+.btn[data-variant="danger"] {
   background: var(--st-rejected-bg);
   color: var(--danger);
 }
-.btn.danger:hover {
+.btn[data-variant="danger"]:hover {
   filter: brightness(0.97);
 }
-.btn.link {
+.btn[data-variant="link"] {
   background: transparent;
-  padding-left: 6px;
-  padding-right: 6px;
+  height: auto; // 텍스트 링크형은 높이 고정 없이 인라인처럼
+  padding: 0.25rem 0.5rem;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 0.125rem;
 }
-.btn.link:hover {
+.btn[data-variant="link"]:hover {
   background: transparent;
   color: var(--text-2);
 }
-.btn.sm {
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: 14px;
+// ── 버튼 사이즈 (data-size · 높이 기반, 토큰은 4의 배수) ──
+.btn[data-size="sm"] {
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem; // 작은 버튼 글자: 타입 스케일이라 2의 배수 예외
 }
-.btn.lg {
-  gap: 10px;
-  padding: 13px 26px;
-  font-size: 18px;
+.btn[data-size="lg"] {
+  height: 3rem;
+  padding: 0 1.5rem;
+  font-size: 1.125rem; // 큰 버튼 글자: 타입 스케일이라 2의 배수 예외
+  gap: 0.75rem;
 }
-.btn.block {
+.btn[data-block] {
   width: 100%;
 }
-// 아이콘 전용(라벨 없음): 정사각 패딩 → 원형 버튼. 사이즈별 패딩 비례.
-.btn.icon-only {
+// 아이콘 전용(라벨 없음): 높이 = 너비 정사각(원형). 높이는 사이즈에서 결정되므로 별도 패딩 불필요.
+.btn[data-icon-only] {
   gap: 0;
-  padding: 9px;
+  padding: 0;
   aspect-ratio: 1;
 }
-.btn.sm.icon-only {
-  padding: 6px;
-}
-.btn.lg.icon-only {
-  padding: 13px;
-}
 // 어두운 컬러블록(ink) 위에서 쓰는 버튼
-.btn.inverse {
+.btn[data-variant="inverse"] {
   background: var(--canvas);
   color: var(--ink);
 }
-.btn.inverse:hover {
+.btn[data-variant="inverse"]:hover {
   background: var(--surface-soft);
 }
-.btn.inverse-ghost {
+.btn[data-variant="inverse-ghost"] {
   background: rgba(255, 255, 255, 0.16);
   color: #f2f2f0;
 }
-.btn.inverse-ghost:hover {
+.btn[data-variant="inverse-ghost"]:hover {
   background: rgba(255, 255, 255, 0.26);
 }
 // 카카오 브랜드 (로그인/발송)
-.btn.kakao {
+.btn[data-variant="kakao"] {
   background: #fee500;
   color: #191600;
 }
@@ -357,17 +356,17 @@ textarea::placeholder {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 0.5rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  padding: 4px 12px;
+  padding: 0.25rem 0.75rem;
   border-radius: var(--pill);
   color: var(--ink);
   white-space: nowrap;
 }
 .badge .dot {
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
   border-radius: 50%;
 }
 .badge.draft { background: var(--st-draft-bg); }
@@ -384,9 +383,9 @@ textarea::placeholder {
 // ── 테이블 (헤어라인-소프트 디바이더) ──────────────────────
 .table {
   width: 100%;
-  min-width: 560px; // 좁은 화면에서 칸이 뭉개지지 않고 .table-wrap 이 가로 스크롤되도록
+  min-width: 35rem; // 좁은 화면에서 칸이 뭉개지지 않고 .table-wrap 이 가로 스크롤되도록
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .table th {
   text-align: left;
@@ -395,13 +394,14 @@ textarea::placeholder {
   letter-spacing: 0.05em;
   color: var(--text-3);
   font-weight: 500;
-  font-size: 12px;
-  padding: 12px 12px;
+  font-size: 0.75rem;
+  padding: 0.75rem 0.75rem;
+  min-width: 5rem;
   border-bottom: 1px solid var(--hairline);
   white-space: nowrap;
 }
 .table td {
-  padding: 12px 12px;
+  padding: 0.75rem 0.75rem;
   border-bottom: 1px solid var(--hairline-soft);
   vertical-align: middle;
   white-space: nowrap;
@@ -423,7 +423,7 @@ textarea::placeholder {
   color: var(--ink);
   font-weight: 500;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.125rem;
   text-decoration-thickness: 1px;
 }
 .table-wrap {
@@ -433,14 +433,14 @@ textarea::placeholder {
 // ── 토글 카드 ──────────────────────────────────────────────
 .toggle-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(13.75rem, 1fr));
+  gap: 0.75rem;
 }
 .toggle {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--r-md);
   background: var(--surface-soft);
   border: 1px solid transparent;
@@ -454,13 +454,13 @@ textarea::placeholder {
 .toggle .head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .toggle .check {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
   border-radius: var(--r-sm);
   background: var(--canvas);
   border: 1px solid var(--hairline);
@@ -476,8 +476,8 @@ textarea::placeholder {
   color: var(--canvas);
 }
 .toggle .check svg {
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   opacity: 0;
   transform: scale(0.5);
   transition: all 0.15s;
@@ -494,19 +494,19 @@ textarea::placeholder {
 .totals {
   background: var(--surface-soft);
   border-radius: var(--r-md);
-  padding: 20px 20px;
+  padding: 1.25rem 1.25rem;
 }
 .totals .line {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  font-size: 14px;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 .totals .line.sep {
   border-top: 1px solid var(--hairline);
-  margin-top: 8px;
-  padding-top: 12px;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
 }
 .totals .line .v {
   font-variant-numeric: tabular-nums;
@@ -517,17 +517,17 @@ textarea::placeholder {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-top: 12px;
-  padding-top: 16px;
+  margin-top: 0.75rem;
+  padding-top: 1rem;
   border-top: 2px solid var(--ink);
 }
 .totals .grand .label {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 1rem;
 }
 .totals .grand .v {
   font-weight: 700;
-  font-size: 24px;
+  font-size: 1.5rem;
   color: var(--ink);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -538,14 +538,14 @@ textarea::placeholder {
   position: sticky;
   bottom: 0;
   z-index: 20;
-  margin: 24px -1px -1px;
-  padding: 16px 20px;
+  margin: 1.5rem -1px -1px;
+  padding: 1rem 1.25rem;
   background: var(--canvas);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: center;
 }
 // 저장 완료(미변경) 상태 — 하단 고정 대신 콘텐츠 흐름 끝에 놓아 화면 점유를 줄인다.
@@ -555,30 +555,76 @@ textarea::placeholder {
   box-shadow: none;
 }
 
-// ── 토스트 (검정 pill) ─────────────────────────────────────
+// ── 토스트 알럿 (헤더 아래 우측 상단 스택 · 카드 + 타입별 좌측 액센트) ──
 .toast-wrap {
   position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(var(--appbar-h) + 1rem);
+  right: 1.5rem;
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: center;
+  gap: 0.5rem;
+  align-items: flex-end;
+  pointer-events: none; // 래퍼는 클릭 통과, 개별 토스트만 상호작용
 }
 .toast {
-  background: var(--ink); // 잉크 pill(오렌지는 CTA·워드마크에만 — scarce)
-  color: var(--canvas);
-  padding: 12px 24px;
-  border-radius: var(--pill);
-  font-size: 14px;
-  font-weight: 500;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: max-content;
+  min-width: 15rem;
+  max-width: 22.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-left: 4px solid var(--ink); // 좌측 타입 액센트(기본 = 잉크)
+  border-radius: var(--r-md);
   box-shadow: var(--shadow-2);
+  font-size: 0.875rem;
+  font-weight: 500;
   animation: toast-in 0.2s ease;
 }
+.toast .toast-ic {
+  flex-shrink: 0;
+}
+.toast .toast-msg {
+  flex: 1;
+  min-width: 0;
+}
+.toast .toast-x {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+.toast .toast-x:hover {
+  color: var(--ink);
+  background: var(--fill);
+}
+// 타입별 액센트(좌측 보더 + 아이콘 색)
+.toast[data-type="success"] { border-left-color: var(--success); }
+.toast[data-type="success"] .toast-ic { color: var(--success); }
+.toast[data-type="error"] { border-left-color: var(--danger); }
+.toast[data-type="error"] .toast-ic { color: var(--danger); }
+.toast[data-type="warning"] { border-left-color: var(--warn); }
+.toast[data-type="warning"] .toast-ic { color: var(--warn); }
+.toast[data-type="info"] { border-left-color: var(--secondary); }
+.toast[data-type="info"] .toast-ic { color: var(--secondary); }
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateX(1rem); }
+}
+@media (max-width: 768px) {
+  .toast-wrap { right: 1rem; left: 1rem; align-items: stretch; }
+  .toast { width: auto; max-width: none; }
 }
 
 // ── 모달 ───────────────────────────────────────────────────
@@ -590,7 +636,7 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 1.25rem;
   animation: fade 0.15s ease;
 }
 @keyframes fade {
@@ -601,7 +647,7 @@ textarea::placeholder {
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   width: 100%;
-  max-width: 460px;
+  max-width: 28.75rem;
   max-height: 88vh;
   // head(고정) · body(스크롤) · foot(고정) 3단 → 긴 모달에서도 저장/취소 항상 노출
   display: flex;
@@ -610,30 +656,30 @@ textarea::placeholder {
   box-shadow: var(--shadow-3);
 }
 .modal.wide {
-  max-width: 600px;
+  max-width: 37.5rem;
 }
 .modal-head {
   flex: none;
   display: flex;
   align-items: center;
-  padding: 24px 24px 16px;
+  padding: 1.5rem 1.5rem 1rem;
 }
 .modal-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 0 24px 24px;
+  padding: 0 1.5rem 1.5rem;
 }
 .modal-foot {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 24px;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--hairline-soft);
   background: var(--card);
 }
 .modal-title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -642,13 +688,13 @@ textarea::placeholder {
 @media (max-width: 768px) {
   // 하단 액션바 → 화면 폭 꽉 채운 고정 바 + 버튼 균등 분배(모바일 액션 시트 느낌)
   .actionbar {
-    margin: 16px -16px -20px;
+    margin: 1rem -1rem -1.25rem;
     border-radius: 0;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0.5rem;
   }
   .actionbar .spacer {
     display: none;
@@ -660,39 +706,39 @@ textarea::placeholder {
     flex-wrap: wrap;
   }
   .modal-head {
-    padding: 16px 16px 12px;
+    padding: 1rem 1rem 0.75rem;
   }
   .modal-body {
-    padding: 0 16px 16px;
+    padding: 0 1rem 1rem;
   }
   .modal-foot {
-    padding: 12px 16px;
+    padding: 0.75rem 1rem;
   }
   .table th,
   .table td {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 
 // ── 빈 상태 ────────────────────────────────────────────────
 .empty {
   text-align: center;
-  padding: 64px 20px;
+  padding: 4rem 1.25rem;
   color: var(--text-3);
 }
 .empty .big {
   display: flex;
   justify-content: center;
   color: var(--text-3);
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 .empty .ttl {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--ink);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 // ── 진행 타임라인 ──────────────────────────────────────────
@@ -702,128 +748,67 @@ textarea::placeholder {
 }
 .timeline .ev {
   display: flex;
-  gap: 16px;
-  padding: 0 0 20px;
+  gap: 1rem;
+  padding: 0 0 1.25rem;
   position: relative;
 }
 .timeline .ev:not(:last-child)::before {
   content: "";
   position: absolute;
-  left: 7px;
-  top: 18px;
-  bottom: -2px;
+  left: 0.4375rem;
+  top: 1.125rem;
+  bottom: -0.125rem;
   width: 1px;
   background: var(--hairline);
 }
 .timeline .ev .pin {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   border-radius: 50%;
   background: var(--ink);
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: 0.25rem;
   z-index: 1;
 }
 .timeline .ev .body .t {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .timeline .ev .body .d {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 
 // 결과 배너 (파스텔)
 .banner {
   border-radius: var(--r-md);
-  padding: 16px 20px;
+  padding: 1rem 1.25rem;
   font-weight: 500;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
   color: var(--ink);
 }
 .banner.ok { background: var(--block-mint); }
 .banner.no { background: var(--block-pink); }
 .banner.info { background: var(--block-lilac); }
 
-// 파이프라인
-.pipeline {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-}
-.pipeline .stage {
-  background: var(--surface-soft);
-  border-radius: var(--r-md);
-  padding: 16px;
-  text-align: center;
-}
-.pipeline .stage .n {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-.pipeline .stage .l {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-3);
-  margin-top: 4px;
-}
-@media (max-width: 768px) {
-  .pipeline { grid-template-columns: repeat(2, 1fr); }
-}
-
-// 상태 분포 막대
-.distbar {
-  display: flex;
-  height: 14px;
-  border-radius: var(--pill);
-  overflow: hidden;
-  background: var(--surface-soft);
-}
-.distbar > span {
-  display: block;
-  height: 100%;
-}
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 16px;
-  font-size: 14px;
-  color: var(--text-2);
-}
-.legend .it {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.legend .sw {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-}
-
 // 수주율 링 (모노크롬)
 .ring {
-  width: 96px;
-  height: 96px;
+  width: 6rem;
+  height: 6rem;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: conic-gradient(var(--ink) calc(var(--p) * 1%), var(--surface-soft) 0);
 }
 .ring .inner {
-  width: 72px;
-  height: 72px;
+  width: 4.5rem;
+  height: 4.5rem;
   border-radius: 50%;
   background: var(--card);
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 1.25rem;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -831,23 +816,23 @@ textarea::placeholder {
 // 통계 카드
 .stat .k {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
   font-weight: 500;
 }
 .stat .v {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin-top: 8px;
+  margin-top: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
 .stat .sub {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 // ── 벤토 그리드 ──────────────────────────────────────────────
@@ -855,8 +840,8 @@ textarea::placeholder {
 .bento {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: minmax(132px, auto);
-  gap: 16px;
+  grid-auto-rows: minmax(8.25rem, auto);
+  gap: 1rem;
 }
 .bento.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .bento.cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -864,7 +849,7 @@ textarea::placeholder {
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
-  padding: 24px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -880,35 +865,35 @@ textarea::placeholder {
 // 타일 내부 타이포
 .bento .tile .k {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
   font-weight: 500;
 }
 .bento .tile .v {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin-top: 8px;
+  margin-top: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
 .bento .tile .v-lg {
-  font-size: 48px;
+  font-size: 3rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.04;
   font-variant-numeric: tabular-nums;
 }
 .bento .tile .bento-foot {
-  margin-top: 12px;
-  font-size: 14px;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 .bento .tile .sub {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 // 타일 하단으로 콘텐츠 밀어내기 (라벨은 위, 수치는 아래)
 .bento .tile .push-bottom { margin-top: auto; }
@@ -930,40 +915,20 @@ textarea::placeholder {
 }
 
 // ── 대시보드 개편 ────────────────────────────────────────────
-// 인사 헤더
-.dash-head {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.dash-head > .btn {
-  margin-left: auto;
-}
-.dash-greet {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.dash-date {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--text-3);
-}
 
 // KPI 타일 상단: 라벨 + 아이콘 배지
 .bento .tile .kpi-top {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .bento .tile .kpi-top .k {
   flex: 1;
 }
 .kpi-ic {
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   display: grid;
   place-items: center;
   border-radius: var(--r-md);
@@ -971,90 +936,179 @@ textarea::placeholder {
   color: var(--primary);
 }
 
-// 2단 그리드: 최근 견적(주) | 사이드(후속조치·빠른작업)
+// 2단 그리드: 최근 견적(메인) | 알림 우측 레일
 .dash-grid {
   display: grid;
-  grid-template-columns: 1.7fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
   align-items: start;
 }
 .dash-side {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
-// dash-side 내부 카드 간 간격은 .card + .card(16px)에 위임
+// 데스크톱: 후속 조치 레일을 헤더 아래 sticky 로 고정(긴 본문을 스크롤해도 따라옴)
+@media (min-width: 1025px) {
+  .dash-side {
+    position: sticky;
+    top: calc(var(--appbar-h) + 1rem);
+  }
+}
+// 태블릿 이하: 1열로 쌓임(레일 → 본문 아래)
 @media (max-width: 1024px) {
   .dash-grid {
     grid-template-columns: 1fr;
   }
 }
 
-// 후속 조치: 비어있을 때
-.dash-clear {
+// 알림 카드: 제목줄(아이콘 + 카운트 배지 + 모두 읽음)
+.dash-noti .card-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 4px;
-  font-size: 14px;
-  color: var(--text-3);
+  gap: 0.5rem;
 }
-.dash-clear svg {
-  color: var(--success);
+// 안 읽음 카운트 배지
+.followup-count {
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding: 0 0.4375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--danger);
+  border-radius: var(--r-full);
 }
-// 후속 조치 알림(클릭 가능한 배너)
-.dash-alert {
-  display: block;
-  text-decoration: none;
-}
-.dash-alert + .dash-alert {
-  margin-top: 8px;
-}
-.dash-alert-msg {
-  margin-top: 2px;
-  font-size: 13px;
-  color: var(--text-2);
+// 제목줄의 '모두 읽음' 버튼은 작게(1.25rem 폰트 상속 방지)
+.dash-noti .card-title .btn {
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-// 빠른 작업
-.quick-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.quick-action {
+// 알림 목록(미니뷰)
+.dash-noti-list {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--hairline);
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.25rem;
+}
+.noti-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.625rem 0.5rem;
   border-radius: var(--r-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
   text-decoration: none;
-  transition: background 0.12s, border-color 0.12s;
+  color: var(--ink);
+  transition: background 0.12s;
 }
-.quick-action:hover {
-  background: var(--surface-soft);
-  border-color: var(--hairline-strong);
+.noti-row:hover {
+  background: var(--fill-2);
 }
-.quick-action .qa-ic {
+.noti-row.unread {
+  background: var(--toss-blue-soft);
+}
+.noti-ic {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 1.875rem;
+  height: 1.875rem;
   display: grid;
   place-items: center;
   border-radius: var(--r-md);
-  background: var(--toss-blue-soft);
-  color: var(--primary);
+  background: var(--surface-soft);
+  color: var(--text-2);
 }
+// 종류별 파스텔 그라운드 + 색
+.noti-ic.t-viewed { background: var(--st-viewed-bg); color: var(--st-viewed); }
+.noti-ic.t-accepted { background: var(--st-accepted-bg); color: var(--st-accepted); }
+.noti-ic.t-rejected { background: var(--st-rejected-bg); color: var(--st-rejected); }
+.noti-ic.t-comment { background: var(--secondary-soft); color: var(--secondary); }
+.noti-ic.t-expiring,
+.noti-ic.t-reminder { background: var(--st-sent-bg); color: var(--warn); }
+.noti-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+// 첫 줄: 제목(신축) + 상대시간 + 안읽음 점
+.noti-top {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.noti-main .t {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.noti-time {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.noti-main .b {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.noti-unread-dot {
+  flex-shrink: 0;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: var(--r-full);
+  background: var(--primary);
+}
+
+// 알림 카드: 비어있을 때 — 아이콘 칩 + 제목 + 안내
+.dash-clear {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.125rem;
+}
+.dash-clear-ic {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: var(--surface-soft);
+  color: var(--text-3);
+}
+.dash-clear-t {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+.dash-clear-d {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
+  line-height: 1.45;
+}
+
+// 카드 하단 '전체 보기' 링크
 .dash-more {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 12px;
-  font-size: 13px;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-2);
   text-decoration: none;
@@ -1070,59 +1124,59 @@ textarea::placeholder {
   background: var(--canvas);
   touch-action: none;
   width: 100%;
-  height: 180px;
+  height: 11.25rem;
   display: block;
   cursor: crosshair;
 }
 
 // 견적 전문(readonly)
 .qdoc {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .qdoc h2 {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: -0.03em;
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 .qdoc .qmeta {
   font-family: var(--font-sans);
   text-align: center;
   color: var(--text-3);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 .qdoc .twocol {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
 }
 .qdoc .box {
   background: var(--surface-soft);
   border-radius: var(--r-md);
-  padding: 16px 16px;
+  padding: 1rem 1rem;
 }
 .qdoc .box .bt {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-3);
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 .qdoc .kv {
   display: flex;
-  gap: 8px;
-  padding: 4px 0;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
 }
 .qdoc .kv .k {
   color: var(--text-3);
-  min-width: 64px;
+  min-width: 4rem;
 }
 @media (max-width: 768px) {
   .qdoc .twocol { grid-template-columns: 1fr; }
@@ -1130,9 +1184,9 @@ textarea::placeholder {
 
 .chip {
   display: inline-block;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
-  padding: 4px 12px;
+  padding: 0.25rem 0.75rem;
   border-radius: var(--pill);
   background: var(--surface-soft);
   color: var(--text-2);

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, fmtDate, won } from "@/lib/quote";
 import type { Contract, ContractParty, Quote, QuoteSummary } from "@/types";
-import { Button, Chip, EmptyState, Field, Modal, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
 import SignaturePad, { type SignaturePadHandle } from "@/components/SignaturePad";
 import { useToast } from "@/components/Toast";
 import { Plus, FileSignature, Check, Trash2, PenLine } from "lucide-react";
@@ -27,7 +27,7 @@ export default function Contracts() {
   }, []);
 
   const create = async () => {
-    if (!pick) return toast("견적을 선택하세요.");
+    if (!pick) return toast("견적을 선택하세요.", "warning");
     setBusy(true);
     try {
       const q = (await store.getQuote(pick)) as Quote;
@@ -45,13 +45,13 @@ export default function Contracts() {
       await store.activities.save({ id: "", actor: "직원", action: "전자계약 생성", target_type: "contract", target_id: q.id, created_at: "" } as never);
       setCreating(false); setPick("");
       await load();
-      toast("계약서를 생성했습니다.");
+      toast("계약서를 생성했습니다.", "success");
     } finally { setBusy(false); }
   };
 
   const doSign = async () => {
     if (!signing) return;
-    if (sigRef.current?.isEmpty()) return toast("서명을 해주세요.");
+    if (sigRef.current?.isEmpty()) return toast("서명을 해주세요.", "warning");
     setBusy(true);
     try {
       const c = { ...signing.c, parties: signing.c.parties.map((p) => ({ ...p })) };
@@ -64,7 +64,7 @@ export default function Contracts() {
       await store.contracts.save(c);
       setSigning(null);
       await load();
-      toast("서명이 완료되었습니다.");
+      toast("서명이 완료되었습니다.", "success");
     } finally { setBusy(false); }
   };
 
@@ -107,9 +107,8 @@ export default function Contracts() {
   return (
     <>
       <div className="page-head">
-        <div><h1>전자계약</h1><div className="sub">수락된 견적을 계약서로 전환 · {list.length}건</div></div>
-        <div className="spacer" />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>계약 생성</Button>
+        <PageTitle title="전자계약" sub={`수락된 견적을 계약서로 전환 · ${list.length}건`} />
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>계약 생성</Button>
       </div>
 
       <div className="card">

@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Wallet,
   Wrench,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { Auth } from "@/lib/auth";
@@ -164,13 +165,6 @@ export default function AppShell() {
   return (
     <div className="shell">
       <header className="appbar no-print">
-        <button
-          className="btn icon-only ghost appbar-burger"
-          onClick={() => setNavOpen(true)}
-          aria-label="메뉴 열기"
-        >
-          <Menu size={18} />
-        </button>
         <Link to="/" className="appbar-brand" aria-label="홈으로">
           <img className="brand-logo" src="/logo.png" alt="애드텍디자인 — 옥외광고 견적" />
         </Link>
@@ -214,6 +208,17 @@ export default function AppShell() {
             </div>
           )}
         </div>
+        {/* 햄버거 토글 — 우측 끝(사이드바가 오른쪽이므로 동선 일치) */}
+        <button
+          className="btn appbar-burger"
+          data-icon-only
+          data-variant="ghost"
+          onClick={() => setNavOpen((v) => !v)}
+          aria-label={navOpen ? "메뉴 닫기" : "메뉴 열기"}
+          aria-expanded={navOpen}
+        >
+          {navOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
       </header>
 
       <div className="body">

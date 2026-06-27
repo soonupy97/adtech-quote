@@ -16,9 +16,9 @@ import type {
   QuoteVersion,
 } from "@/types";
 import QuoteReadonly from "@/components/QuoteReadonly";
-import { Button, EmptyState, Input, Modal, StatusBadge, Table, type Column } from "@/components/ui";
+import { Button, EmptyState, Input, Modal, PageTitle, StatusBadge, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Check, FileSignature, Link2, Receipt, Wallet, Wrench, X } from "lucide-react";
+import { Check, FileSignature, Link2, Receipt, Send, Wallet, Wrench, X } from "lucide-react";
 
 export default function QuoteDetail() {
   const { id } = useParams();
@@ -47,8 +47,11 @@ export default function QuoteDetail() {
   const totals = calcTotals(q);
   const expired = isExpired(q);
 
-  const send = async () => { const { url } = await store.markSent(q.id); setLink(url); await load(); toast("발송 처리되었습니다."); };
-  const dup = async () => { const copy = await store.duplicateQuote(q.id); toast("복제했습니다."); navigate(`/editor/${copy.id}`); };
+  // 발송 처리: 상태를 '발송'으로 바꾸는 명시적 수동 동작(링크 복사와 분리). 자동 발송 없음.
+  const doSend = async () => { await store.markSent(q.id); await load(); toast("발송 처리했습니다.", "success"); };
+  // 발송 링크: 상태를 바꾸지 않고 공유 링크만 연다(이미 발송된 견적용).
+  const showLink = () => setLink(store.shareUrl(q.public_token));
+  const dup = async () => { const copy = await store.duplicateQuote(q.id); toast("복제했습니다.", "success"); navigate(`/editor/${copy.id}`); };
   const customerView = () => window.open(store.shareUrl(q.public_token), "_blank");
 
   // 전환 (부록 A23/A24)
@@ -59,29 +62,29 @@ export default function QuoteDetail() {
       { role: "을", name: q.customer?.name || "고객" },
     ];
     await store.contracts.save({ id: "", quote_id: q.id, quote_no: q.quote_no, customer: q.customer?.name || "", amount: totals.grand, terms: s.terms?.standard || "", parties, status: "draft", created_at: "" } as Contract);
-    toast("계약서를 생성했습니다."); navigate("/contracts");
+    toast("계약서를 생성했습니다.", "success"); navigate("/contracts");
   };
   const toWorkOrder = async () => {
     await store.workorders.save({ id: "", quote_id: q.id, quote_no: q.quote_no, site: q.site, items: q.items.map((it) => ({ type: it.type, spec: `${it.w || "-"}×${it.h || "-"}m`, qty: it.qty })), constructions: q.constructions.filter((c) => c.checked).map((c) => c.name), schedule: { installDate: "" }, crew: "", status: "ready", created_at: "" });
-    toast("작업지시서를 생성했습니다."); navigate("/workorders");
+    toast("작업지시서를 생성했습니다.", "success"); navigate("/workorders");
   };
   const toInvoice = async () => {
     await store.invoices.save({ id: "", quote_id: q.id, quote_no: q.quote_no, customer: q.customer?.name || "", supplyAmount: totals.supply, vat: totals.vat, total: totals.grand, status: "draft", provider: "popbill", created_at: "" } as Invoice);
-    toast("세금계산서 초안을 생성했습니다."); navigate("/invoices");
+    toast("세금계산서 초안을 생성했습니다.", "success"); navigate("/invoices");
   };
   const toPayments = async () => {
     const dep = Math.round(totals.grand * 0.5);
     const base = { quote_id: q.id, quote_no: q.quote_no, customer: q.customer?.name || "", paid: false, created_at: "" };
     await store.payments.save({ id: "", kind: "deposit", amount: dep, due_date: "", ...base } as Payment);
     await store.payments.save({ id: "", kind: "balance", amount: totals.grand - dep, due_date: "", ...base } as Payment);
-    toast("입금 스케줄을 생성했습니다."); navigate("/payments");
+    toast("입금 스케줄을 생성했습니다.", "success"); navigate("/payments");
   };
 
   const restore = async (v: QuoteVersion) => {
     if (!confirm(`버전 ${v.version} 으로 복원할까요?`)) return;
     await store.saveQuote({ ...v.snapshot, id: q.id });
     await load();
-    toast(`버전 ${v.version} 복원 완료`);
+    toast(`버전 ${v.version} 복원 완료`, "success");
   };
 
   const addReply = async () => {
@@ -103,21 +106,26 @@ export default function QuoteDetail() {
   return (
     <>
       <div className="page-head no-print">
-        <div>
-          <div className="row" style={{ gap: 12 }}>
-            <h1>{q.quote_no}</h1>
-            <StatusBadge status={q.status} />
-            {expired && <span className="badge rejected"><span className="dot" />만료</span>}
-          </div>
-          <div className="sub">{q.customer?.name || "고객 미지정"} · 총 {won(totals.grand)}</div>
-        </div>
-        <div className="spacer" />
+        <PageTitle
+          title={q.quote_no}
+          badges={
+            <>
+              <StatusBadge status={q.status} />
+              {expired && <span className="badge rejected"><span className="dot" />만료</span>}
+            </>
+          }
+          sub={`${q.customer?.name || "고객 미지정"} · 총 ${won(totals.grand)}`}
+        />
         <div className="row" style={{ gap: 8 }}>
-          <Button variant="secondary" icon={<Link2 size={16} />} onClick={send}>발송 링크</Button>
-          <Button onClick={() => navigate(`/editor/${q.id}`)}>편집</Button>
-          <Button onClick={dup}>복제</Button>
-          <Button onClick={customerView}>고객화면</Button>
-          <Button onClick={() => window.print()}>PDF</Button>
+          {q.status === "draft" ? (
+            <Button size="sm" variant="primary" icon={<Send size={16} />} onClick={doSend}>발송 처리</Button>
+          ) : (
+            <Button size="sm" variant="secondary" icon={<Link2 size={16} />} onClick={showLink}>발송 링크</Button>
+          )}
+          <Button size="sm" onClick={() => navigate(`/editor/${q.id}`)}>편집</Button>
+          <Button size="sm" onClick={dup}>복제</Button>
+          <Button size="sm" onClick={customerView}>고객화면</Button>
+          <Button size="sm" onClick={() => window.print()}>PDF</Button>
         </div>
       </div>
 
@@ -175,12 +183,20 @@ export default function QuoteDetail() {
             </div>
           )}
           <div className="no-print" style={{ marginTop: 16 }}>
-            <span className="dim" style={{ display: "block", marginBottom: 8 }}>재발송:</span>
-            <CopyLinkField
-              url={store.shareUrl(q.public_token)}
-              customer={q.customer.name}
-              quoteNo={q.quote_no}
-            />
+            {q.status === "draft" ? (
+              <span className="dim" style={{ display: "block", fontSize: 13 }}>
+                ‘발송 처리’하면 고객 열람용 링크가 활성화됩니다.
+              </span>
+            ) : (
+              <>
+                <span className="dim" style={{ display: "block", marginBottom: 8 }}>고객 열람 링크:</span>
+                <CopyLinkField
+                  url={store.shareUrl(q.public_token)}
+                  customer={q.customer.name}
+                  quoteNo={q.quote_no}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -240,7 +256,7 @@ export default function QuoteDetail() {
 
       {link && (
         <Modal title="고객 발송 링크" onClose={() => setLink(null)}
-          footer={<><Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다."); }}>링크 복사</Button><a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button onClick={() => setLink(null)}>닫기</Button></>}>
+          footer={<><Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다.", "success"); }}>링크 복사</Button><a className="btn" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button onClick={() => setLink(null)}>닫기</Button></>}>
           <div className="dim" style={{ marginBottom: 12 }}>고객에게 전달:</div>
           <CopyLinkField url={link} customer={q.customer.name} quoteNo={q.quote_no} />
         </Modal>

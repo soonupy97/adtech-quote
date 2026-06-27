@@ -4,7 +4,7 @@ import { GRADES, ITEM_TYPES, won } from "@/lib/quote";
 import { quantityUnits } from "@/lib/units";
 import { downloadCSV, parseCSV, toCSV } from "@/lib/csv";
 import type { CatalogItem, Grade } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Tags, X, Plus, Trash2, Pencil } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -37,15 +37,15 @@ export default function Catalog() {
   const save = async () => {
     if (!edit) return;
     setSaving(true);
-    try { await store.saveCatalogItem(edit); setEdit(null); await load(); toast("저장되었습니다."); }
+    try { await store.saveCatalogItem(edit); setEdit(null); await load(); toast("저장되었습니다.", "success"); }
     finally { setSaving(false); }
   };
-  const del = async (it: CatalogItem) => { if (!confirm(`${it.type}(${it.grade}) 삭제?`)) return; await store.removeCatalogItem(it.id); await load(); toast("삭제되었습니다."); };
+  const del = async (it: CatalogItem) => { if (!confirm(`${it.type}(${it.grade}) 삭제?`)) return; await store.removeCatalogItem(it.id); await load(); toast("삭제되었습니다.", "success"); };
   const seed = async () => {
     if (!confirm("기존 단가표를 모두 비우고 기본 샘플(종류당 1행)로 다시 채웁니다.\n계속할까요?")) return;
     const n = await store.seedCatalog();
     await load();
-    toast(`샘플 ${n}건으로 초기화했습니다.`);
+    toast(`샘플 ${n}건으로 초기화했습니다.`, "success");
   };
 
   const exportCSV = () => downloadCSV("단가표.csv", toCSV(list.map((it) => ({
@@ -60,7 +60,7 @@ export default function Catalog() {
       await store.saveCatalogItem({ id: "", type: r["종류"], grade: (r["등급"] as Grade) || "일반", unit: r["단위"] || "㎡", price: Number((r["단가"] || "0").replace(/[^0-9]/g, "")) || 0, cost: Number((r["원가"] || "0").replace(/[^0-9]/g, "")) || 0, taxable: r["과세"] !== "N", memo: r["메모"] || "", options: [], priceTiers: [] });
       n++;
     }
-    await load(); toast(`${n}건을 가져왔습니다.`);
+    await load(); toast(`${n}건을 가져왔습니다.`, "success");
   };
 
   const columns: Column<CatalogItem>[] = [
@@ -86,13 +86,12 @@ export default function Catalog() {
   return (
     <>
       <div className="page-head">
-        <div><h1>품목·단가</h1><div className="sub">자동단가 키 = 종류 + 등급 · 전체 {list.length}행</div></div>
-        <div className="spacer" />
-        <Button onClick={seed}>샘플 단가표 생성</Button>
-        <Button onClick={exportCSV}>CSV 내보내기</Button>
-        <Button onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
+        <PageTitle title="품목·단가" sub={`자동단가 키 = 종류 + 등급 · 전체 ${list.length}행`} />
+        <Button size="sm" onClick={seed}>샘플 단가표 생성</Button>
+        <Button size="sm" onClick={exportCSV}>CSV 내보내기</Button>
+        <Button size="sm" onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
         <Input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => importCSV(e.target.files?.[0])} />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setEdit({ ...empty })}>품목 추가</Button>
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>품목 추가</Button>
       </div>
 
       <div className="card">

@@ -3,7 +3,7 @@ import { store } from "@/lib/store";
 import { fmtDateTime } from "@/lib/quote";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type { Activity } from "@/types";
-import { Button, EmptyState } from "@/components/ui";
+import { Button, EmptyState, PageTitle } from "@/components/ui";
 import { ScrollText } from "lucide-react";
 
 // 부록 A26 활동 로그(감사)
@@ -21,9 +21,8 @@ export default function Activities({ embedded = false }: { embedded?: boolean })
     <>
       {!embedded ? (
         <div className="page-head">
-          <div><h1>활동 로그</h1><div className="sub">작성·발송·수정·삭제 감사 기록 · {list.length}건</div></div>
-          <div className="spacer" />
-          <Button onClick={exportCSV} disabled={list.length === 0}>CSV 내보내기</Button>
+          <PageTitle title="활동 로그" sub={`작성·발송·수정·삭제 감사 기록 · ${list.length}건`} />
+          <Button size="sm" onClick={exportCSV} disabled={list.length === 0}>CSV 내보내기</Button>
         </div>
       ) : (
         <div className="row" style={{ marginBottom: 12 }}>

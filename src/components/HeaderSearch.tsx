@@ -160,7 +160,7 @@ export default function HeaderSearch() {
   return (
     <div className={`appbar-search${open ? " open" : ""}`} ref={wrapRef}>
       {/* 모바일 전용 토글(아이콘) */}
-      <button type="button" className="btn icon-only ghost search-toggle" aria-label="검색" onClick={openMobile}>
+      <button type="button" className="btn search-toggle" data-icon-only data-variant="ghost" aria-label="검색" onClick={openMobile}>
         <Search size={18} />
       </button>
 

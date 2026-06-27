@@ -11,14 +11,14 @@
   min-height: 0;
 }
 .sidebar {
-  width: 236px;
+  width: 14.75rem;
   flex-shrink: 0;
   background: var(--canvas);
   border-right: 1px solid var(--hairline);
-  padding: 24px 16px;
+  padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
   position: sticky;
   top: var(--appbar-h); // 헤더 높이만큼 내려서 고정
   height: calc(100vh - var(--appbar-h));
@@ -27,21 +27,21 @@
 .sidebar .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 1rem;
   letter-spacing: -0.02em;
-  padding: 8px;
+  padding: 0.5rem;
 }
 .sidebar .brand .logo {
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: var(--r-md);
   background: var(--primary);
   color: var(--canvas);
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
 }
 // 실제 로고 이미지 (AD TECH / 애드텍디자인)
@@ -50,45 +50,45 @@
 }
 .brand-logo {
   display: block;
-  height: 36px;
+  height: 2.25rem;
   width: auto;
   padding: 0; // 로고는 배경·패딩 없이 이미지 그대로
 }
 .sidebar nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
   flex: 1;
   min-height: 0; // flex 자식이 줄어들 수 있게 → nav 내부 스크롤
   overflow-y: auto;
   // 스크롤바가 메뉴 텍스트에 너무 붙지 않도록 약간의 여백
-  margin-right: -4px;
-  padding-right: 4px;
+  margin-right: -0.25rem;
+  padding-right: 0.25rem;
 }
 .sidebar .nav-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
 }
 .sidebar .nav-section {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
   color: var(--text-3);
-  padding: 8px;
+  padding: 0.5rem;
   letter-spacing: 0.08em;
 }
 .sidebar nav a {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--r-md); // Cursor 8px dialect(내비 행)
   color: var(--text-2);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .sidebar nav a:hover {
   background: var(--surface-soft);
@@ -98,77 +98,86 @@
   color: var(--ink);
 }
 .sidebar nav a .ic {
-  width: 18px;
-  height: 18px;
+  width: 1.125rem;
+  height: 1.125rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .sidebar .foot {
   border-top: 1px solid var(--hairline);
-  padding-top: 12px;
-  font-size: 14px;
+  padding-top: 0.75rem;
+  font-size: 0.875rem;
   color: var(--text-3);
 }
 .sidebar .foot .u {
   font-weight: 500;
   color: var(--text-2);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 
 .main {
   flex: 1;
   min-width: 0;
-  padding: 32px 32px;
-  /* max-width: 1280px; */
+  padding: 2rem 2rem;
+  /* max-width: 80rem; */
   /* margin: 0 auto; */
   width: 100%;
 }
 .page-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+// 제목 묶음(PageTitle): 남은 가로 공간을 차지해 형제 액션을 우측으로 밀어냄(spacer 불필요)
+.page-head .page-title {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .page-head h1 {
-  font-size: 32px;
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 .page-head .sub {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-3);
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
+// 페이지 헤더 액션 버튼은 sm 사이즈(size="sm")로 통일 — 헤더가 과하게 무거워 보이지 않도록.
 
 @media (max-width: 1024px) {
-  // 사이드바 → 좌측 오프캔버스 드로어(햄버거로 열고 닫음)
+  // 사이드바 → 우측 오프캔버스 드로어. 헤더 아래에서 시작해 헤더(햄버거 토글)는 항상 노출.
   .sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 280px;
+    top: var(--appbar-h);
+    right: 0;
+    left: auto;
+    height: calc(100vh - var(--appbar-h));
+    width: 17.5rem;
     max-width: 84vw;
     z-index: 60;
-    transform: translateX(-100%);
+    transform: translateX(100%);
     transition: transform 0.24s ease;
     box-shadow: var(--shadow-3);
   }
   .sidebar.open {
     transform: translateX(0);
   }
-  // 드로어 뒤 어둑한 배경(탭하면 닫힘)
+  // 드로어 뒤 어둑한 배경(탭하면 닫힘) — 헤더 아래만 덮어 햄버거 토글은 계속 누를 수 있게.
   .nav-backdrop {
     position: fixed;
-    inset: 0;
+    inset: var(--appbar-h) 0 0 0;
     z-index: 55;
     background: rgba(0, 0, 0, 0.5);
     animation: fade 0.15s ease;
   }
   .main {
-    padding: 20px 16px;
+    padding: 1.25rem 1rem;
   }
 }
 
@@ -177,10 +186,10 @@
   .page-head {
     flex-wrap: wrap;
     align-items: flex-start;
-    row-gap: 12px;
+    row-gap: 0.75rem;
   }
   .page-head h1 {
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 }
 
@@ -189,45 +198,45 @@
   min-height: 100vh;
   display: flex;
   overflow-y: auto; // 폼이 화면보다 길면 컨테이너가 스크롤(내용 잘림 방지)
-  padding: 20px;
+  padding: 1.25rem;
 }
 .auth-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 25rem;
   // 화면보다 짧으면 중앙 정렬, 길면 위에서부터 → 스크롤로 전체 도달(place-items:center 의 상단 잘림 회피)
   margin: auto;
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
-  padding: 40px 32px;
+  padding: 2.5rem 2rem;
 }
 .auth-card .logo-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 1.25rem;
   letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 // 폼 헤더(제목 + 설명) — 로고 숨김 시 상단을 채우는 위계
 .auth-head {
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
 }
 .auth-title {
-  font-size: 26px;
+  font-size: 1.625rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 .auth-desc {
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-3);
 }
 .auth-card .logo-row .logo {
-  width: 34px;
-  height: 34px;
+  width: 2.125rem;
+  height: 2.125rem;
   border-radius: var(--r-md);
   background: var(--primary);
   color: var(--canvas);
@@ -236,31 +245,31 @@
 }
 .auth-logo {
   display: block;
-  height: 48px;
+  height: 3rem;
   width: auto;
 }
 // 다크모드: 로그인 로고만 어두운 배경에 묻히지 않도록 흰 칩 처리
 // (헤더 brand-logo 는 배경 없이 투명하게 둔다)
 [data-theme="dark"] .auth-logo {
   background: #fff;
-  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--r-md);
 }
 .auth-note {
   font-family: var(--font-sans);
   background: var(--block-cream);
   color: var(--ink);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 12px 12px;
+  padding: 0.75rem 0.75rem;
   border-radius: var(--r-md);
-  margin: 16px 0 20px;
+  margin: 1rem 0 1.25rem;
 }
 .auth-toggle {
   text-align: center;
-  margin-top: 16px;
-  font-size: 14px;
+  margin-top: 1rem;
+  font-size: 0.875rem;
   color: var(--text-3);
 }
 .auth-toggle button {
@@ -269,20 +278,20 @@
   color: var(--ink);
   font-weight: 500;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.125rem;
 }
 .hr-or {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   color: var(--text-3);
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin: 20px 0;
+  margin: 1.25rem 0;
 }
 .hr-or::before,
 .hr-or::after {
@@ -303,25 +312,25 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 40px;
-  padding: 56px 48px;
+  gap: 2.5rem;
+  padding: 3.5rem 3rem;
   background: linear-gradient(155deg, var(--primary) 0%, var(--toss-blue-dark) 100%);
   color: #fff;
 }
 .auth-aside .aside-mark {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 .auth-aside .aside-hero h2 {
-  font-size: 36px;
+  font-size: 2.25rem;
   line-height: 1.18;
   font-weight: 700;
   letter-spacing: -0.03em;
 }
 .auth-aside .aside-sub {
-  margin-top: 14px;
-  font-size: 15px;
+  margin-top: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.9);
   max-width: 32ch;
@@ -330,21 +339,21 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0.875rem;
   margin: 0;
   padding: 0;
 }
 .auth-aside .aside-list li {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 15px;
+  gap: 0.625rem;
+  font-size: 0.9375rem;
   font-weight: 500;
 }
 .auth-aside .aside-list .tick {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 1.375rem;
+  height: 1.375rem;
   display: grid;
   place-items: center;
   border-radius: var(--r-full);
@@ -353,7 +362,7 @@
 .auth-main {
   display: flex;
   overflow-y: auto; // 가입 폼이 길어지면 이 영역이 스크롤(카드 내부 스크롤바 대신)
-  padding: 40px 20px;
+  padding: 2.5rem 1.25rem;
   background: var(--bg);
 }
 // 컨테이너보다 길면 위에서부터, 짧으면 중앙 — margin auto 가 둘 다 안전하게 처리
@@ -382,18 +391,18 @@
   position: relative;
 }
 .pw-field input {
-  padding-right: 40px;
+  padding-right: 2.5rem;
 }
 .pw-toggle {
   position: absolute;
   top: 50%;
-  right: 6px;
+  right: 0.375rem;
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   border: 0;
   background: none;
   border-radius: var(--r-sm);
@@ -407,17 +416,17 @@
 .pw-strength {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 0.625rem;
+  margin-top: 0.5rem;
 }
 .pw-bars {
   display: flex;
-  gap: 4px;
+  gap: 0.25rem;
   flex: 1;
 }
 .pw-bar {
   flex: 1;
-  height: 4px;
+  height: 0.25rem;
   border-radius: var(--r-full);
   background: var(--hairline);
 }
@@ -434,7 +443,7 @@
   background: var(--success);
 }
 .pw-strength-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -453,21 +462,21 @@
 
 // 비밀번호 요건 라이브 체크리스트
 .pw-meter {
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 .pw-checks {
   list-style: none;
-  margin: 8px 0 0;
+  margin: 0.5rem 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
+  gap: 0.25rem 0.75rem;
 }
 .pw-checks li {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 0.375rem;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 .pw-checks li svg {
@@ -483,9 +492,9 @@
 .field-error {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  font-size: 12px;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
   color: var(--danger);
 }
 .field-error svg {
@@ -494,20 +503,20 @@
 
 // 폼 구획(예: 가입의 '회사 정보') — 상단 헤어라인 + 라벨로 그룹핑
 .form-section {
-  margin-top: 8px;
-  padding-top: 16px;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--hairline);
 }
 .form-section-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--ink);
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 // 좁은 폼 안의 2단 그리드 간격은 살짝 좁게
 .form-section .grid.cols-2 {
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 // 허니팟 — 사람·스크린리더 모두에서 완전히 숨김(봇만 인지/입력)
@@ -525,8 +534,8 @@
 
 // 이메일 오타 추정 제안
 .email-suggest {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
   color: var(--text-2);
 }
 .email-suggest button {
@@ -537,28 +546,28 @@
   font-weight: 600;
   color: var(--primary);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.125rem;
   cursor: pointer;
 }
 
 // ── 약관·개인정보 동의 ──────────────────────────────────────
 .agree {
-  margin-top: 14px;
+  margin-top: 0.875rem;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
   background: var(--canvas-soft);
 }
-// 커스텀 체크박스(표준 16px) — 흰색 SVG 체크로 항상 흰 체크 보장(accent-color 자동 대비 회피)
+// 커스텀 체크박스(표준 1rem) — 흰색 SVG 체크로 항상 흰 체크 보장(accent-color 자동 대비 회피)
 .agree input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   box-sizing: border-box;
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   flex-shrink: 0;
   margin: 0;
   padding: 0; // 전역 input 패딩(12/16) 제거 → 정사각형 유지
@@ -573,29 +582,29 @@
   background:
     var(--primary)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5'/%3E%3C/svg%3E")
-    center / 13px 13px no-repeat;
+    center / 0.8125rem 0.8125rem no-repeat;
 }
 .agree-all {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   cursor: pointer;
-  padding-bottom: 8px;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--hairline-soft);
 }
 .agree-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .agree-chk {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
   color: var(--text-2);
   cursor: pointer;
 }
@@ -607,14 +616,14 @@
   flex-shrink: 0;
   border: 0;
   background: none;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.125rem;
   cursor: pointer;
 }
 .terms-doc {
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.7;
   color: var(--text-2);
   white-space: pre-wrap;

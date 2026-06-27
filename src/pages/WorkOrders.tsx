@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calendarEventUrl } from "@/lib/integrations";
 import type { Quote, QuoteSummary, WorkOrder } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Wrench, CalendarPlus, Trash2 } from "lucide-react";
 
@@ -25,7 +25,7 @@ export default function WorkOrders() {
   }, []);
 
   const create = async () => {
-    if (!pick) return toast("견적을 선택하세요.");
+    if (!pick) return toast("견적을 선택하세요.", "warning");
     setBusy(true);
     try {
       const q = (await store.getQuote(pick)) as Quote;
@@ -37,7 +37,7 @@ export default function WorkOrders() {
       });
       setCreating(false); setPick("");
       await load();
-      toast("작업지시서를 생성했습니다.");
+      toast("작업지시서를 생성했습니다.", "success");
     } finally { setBusy(false); }
   };
 
@@ -54,9 +54,8 @@ export default function WorkOrders() {
   return (
     <>
       <div className="page-head">
-        <div><h1>작업지시서</h1><div className="sub">수주 건의 시공팀 지시서 · {list.length}건</div></div>
-        <div className="spacer" />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>작업지시서 생성</Button>
+        <PageTitle title="작업지시서" sub={`수주 건의 시공팀 지시서 · ${list.length}건`} />
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>작업지시서 생성</Button>
       </div>
 
       {list.length === 0 ? (
@@ -101,7 +100,7 @@ export default function WorkOrders() {
                   <Input value={w.crew} onChange={(e) => update(w, { crew: e.target.value })} placeholder="예: 1팀 김반장" />
                 </Field>
                 {w.schedule.installDate && (
-                  <a className="btn sm secondary" href={calendarEventUrl(`설치: ${w.quote_no}`, w.schedule.installDate, w.crew)} target="_blank" rel="noreferrer">
+                  <a className="btn" data-size="sm" href={calendarEventUrl(`설치: ${w.quote_no}`, w.schedule.installDate, w.crew)} target="_blank" rel="noreferrer">
                     <CalendarPlus size={15} />구글 캘린더 추가
                   </a>
                 )}

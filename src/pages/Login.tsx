@@ -209,7 +209,7 @@ export default function Login() {
           return;
         }
         if (res.loggedIn) {
-          toast("환영합니다! 계정이 생성되었습니다.");
+          toast("환영합니다! 계정이 생성되었습니다.", "success");
           navigate("/", { replace: true });
         } else {
           // 이메일 인증이 켜져 있어 즉시 로그인되지 않음 → 인증 안내 화면
@@ -263,7 +263,7 @@ export default function Login() {
     setBusy(true);
     try {
       const r = await Auth.resendVerification(verifyEmail);
-      toast(r.msg || (r.ok ? "다시 보냈습니다." : "재발송에 실패했습니다."));
+      toast(r.msg || (r.ok ? "다시 보냈습니다." : "재발송에 실패했습니다."), r.ok ? "success" : "error");
       if (r.ok) startCooldown(60);
     } finally {
       setBusy(false);
@@ -276,7 +276,7 @@ export default function Login() {
     setBusy(true);
     try {
       const r = await Auth.sendResetEmail(email.trim());
-      toast(r.msg || "다시 보냈습니다.");
+      toast(r.msg || "다시 보냈습니다.", "success");
       if (r.ok) startCooldown(60);
     } finally {
       setBusy(false);

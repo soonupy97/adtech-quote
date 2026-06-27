@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { ITEM_TYPES, fmtDate, won } from "@/lib/quote";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type { QuoteSummary, Signage as SignageT } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { MapPin, Plus, SignpostBig, Trash2, Pencil } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -48,13 +48,13 @@ export default function Signage() {
 
   const save = async () => {
     if (!edit) return;
-    if (!edit.name.trim()) return toast("광고물명을 입력하세요.");
+    if (!edit.name.trim()) return toast("광고물명을 입력하세요.", "warning");
     setSaving(true);
     try {
       await store.signage.save(edit);
       setEdit(null);
       await load();
-      toast("저장되었습니다.");
+      toast("저장되었습니다.", "success");
     } finally { setSaving(false); }
   };
   const del = async (s: SignageT) => {
@@ -115,10 +115,9 @@ export default function Signage() {
   return (
     <>
       <div className="page-head">
-        <div><h1>광고물 관리</h1><div className="sub">게시중 {active.length} · 만료임박 {expiringSoon} · 만료 {expired}</div></div>
-        <div className="spacer" />
-        <Button onClick={exportCSV} disabled={list.length === 0}>CSV</Button>
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setEdit({ ...empty })}>광고물 등록</Button>
+        <PageTitle title="광고물 관리" sub={`게시중 ${active.length} · 만료임박 ${expiringSoon} · 만료 ${expired}`} />
+        <Button size="sm" onClick={exportCSV} disabled={list.length === 0}>CSV</Button>
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>광고물 등록</Button>
       </div>
 
       <div className="bento">

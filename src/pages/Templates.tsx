@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { fmtDate, won, sampleTemplate } from "@/lib/quote";
 import { calcTotals } from "@/lib/quote";
 import type { Template } from "@/types";
-import { Button, EmptyState, Table, type Column } from "@/components/ui";
+import { Button, EmptyState, PageTitle, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, LayoutTemplate, Trash2, Check } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -25,7 +25,7 @@ export default function Templates() {
     try {
       await store.templates.save(sampleTemplate());
       await load();
-      toast("샘플 템플릿을 추가했습니다.");
+      toast("샘플 템플릿을 추가했습니다.", "success");
     } finally {
       setSeeding(false);
     }
@@ -36,7 +36,7 @@ export default function Templates() {
     if (!confirm(`템플릿 '${t.name}' 을 삭제할까요?`)) return;
     await store.templates.remove(t.id);
     await load();
-    toast("삭제되었습니다.");
+    toast("삭제되었습니다.", "success");
   };
 
   const sum = (t: Template) =>
@@ -69,9 +69,8 @@ export default function Templates() {
   return (
     <>
       <div className="page-head">
-        <div><h1>견적 템플릿</h1><div className="sub">자주 쓰는 품목·시공 세트를 1클릭 적용 · {list.length}개</div></div>
-        <div className="spacer" />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => navigate("/editor")}>새 견적에서 저장</Button>
+        <PageTitle title="견적 템플릿" sub={`자주 쓰는 품목·시공 세트를 1클릭 적용 · ${list.length}개`} />
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => navigate("/editor")}>새 견적에서 저장</Button>
       </div>
 
       <div className="card">

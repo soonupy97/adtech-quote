@@ -10,8 +10,8 @@
 }
 // WebKit (Chrome/Edge/Safari)
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
@@ -30,6 +30,17 @@ body,
   height: 100%;
 }
 
+// rem 환산 기준 — 데스크톱 16px, 모바일(≤768px) 14px.
+// 전역 스타일이 rem 단위라 이 값만 바뀌면 여백·크기·폰트가 비례 축소된다.
+html {
+  font-size: 16px;
+}
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -39,7 +50,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "kern" 1;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.45;
   letter-spacing: -0.01em;
 }
@@ -65,7 +76,7 @@ h4 {
   color: var(--ink);
 }
 h1 {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 400;
   letter-spacing: -0.03em;
 }
@@ -88,7 +99,7 @@ h1 {
 // ── 모노 eyebrow / caption (taxonomy 라벨) ──
 .eyebrow {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -96,7 +107,7 @@ h1 {
 }
 .caption {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -105,7 +116,7 @@ h1 {
 
 .row {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: center;
 }
 .row.wrap {
@@ -123,7 +134,7 @@ h1 {
 
 .grid {
   display: grid;
-  gap: 16px;
+  gap: 1rem;
 }
 .grid.cols-2 {
   grid-template-columns: 1fr 1fr;
@@ -133,6 +144,14 @@ h1 {
 }
 .grid.cols-4 {
   grid-template-columns: repeat(4, 1fr);
+}
+
+// 태블릿(≤1024): 3·4열은 2열로 한 단계 완충(.bento 와 동일한 리듬). 모바일에서 다시 1열.
+@media (max-width: 1024px) {
+  .grid.cols-3,
+  .grid.cols-4 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -146,8 +165,8 @@ h1 {
 // ── 시그니처: 오버사이즈 파스텔 컬러블록 ──
 .color-block {
   border-radius: var(--r-lg);
-  padding: 48px;
-  margin: 0 0 16px;
+  padding: 3rem;
+  margin: 0 0 1rem;
 }
 .color-block.lime { background: var(--block-lime); color: var(--ink); }
 .color-block.lilac { background: var(--block-lilac); color: var(--ink); }
@@ -159,7 +178,7 @@ h1 {
 .color-block.ink { background: var(--ink); color: #f2f2f0; }
 .color-block.plain { background: var(--surface-soft); color: var(--ink); }
 .color-block .display {
-  font-size: 48px;
+  font-size: 3rem;
   font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1.05;
@@ -167,11 +186,11 @@ h1 {
 @media (max-width: 768px) {
   .color-block {
     border-radius: 0;
-    margin-left: -16px;
-    margin-right: -16px;
-    padding: 32px 16px;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 2rem 1rem;
   }
   .color-block .display {
-    font-size: 32px;
+    font-size: 2rem;
   }
 }

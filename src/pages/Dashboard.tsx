@@ -1,70 +1,76 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
-import { Auth } from "@/lib/auth";
-import { fmtDate, won } from "@/lib/quote";
-import { isExpired, reminderFor } from "@/lib/automation";
-import type { QuoteStatus, QuoteSummary, Stats } from "@/types";
-import { EmptyState, StatusBadge, Table, type Column } from "@/components/ui";
+import { fmtDate, timeAgo, won } from "@/lib/quote";
+import type { AppNotification, NotiType, QuoteSummary, Stats } from "@/types";
+import { EmptyState, PageTitle, StatusBadge, Table, type Column } from "@/components/ui";
 import {
   ArrowRight,
-  Building2,
+  Bell,
+  Check,
   CheckCircle2,
-  Clock,
+  Eye,
   FileText,
+  MessageSquare,
   Plus,
   Send,
-  TrendingUp,
-  Wallet,
+  TimerReset,
+  XCircle,
+  type LucideIcon,
 } from "lucide-react";
 
-const DIST: { key: QuoteStatus; label: string; color: string }[] = [
-  { key: "draft", label: "작성", color: "var(--st-draft)" },
-  { key: "sent", label: "발송", color: "var(--st-sent)" },
-  { key: "viewed", label: "열람", color: "var(--st-viewed)" },
-  { key: "accepted", label: "수락", color: "var(--st-accepted)" },
-  { key: "rejected", label: "거절", color: "var(--st-rejected)" },
-];
-
-// 시간대별 인사말
-function greetingFor(d: Date): string {
-  const h = d.getHours();
-  if (h < 6) return "늦은 시간까지 고생이 많으세요";
-  if (h < 12) return "좋은 아침이에요";
-  if (h < 18) return "안녕하세요";
-  return "좋은 저녁이에요";
-}
+// 알림 종류별 아이콘(우측 레일 알림 카드)
+const NOTI_ICON: Record<NotiType, LucideIcon> = {
+  viewed: Eye,
+  accepted: CheckCircle2,
+  rejected: XCircle,
+  comment: MessageSquare,
+  expiring: TimerReset,
+  reminder: Bell,
+};
 
 export default function Dashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [recent, setRecent] = useState<QuoteSummary[]>([]);
-  const [alerts, setAlerts] = useState<{ id: string; quote_no: string; customer: string; msg: string }[]>([]);
-  const [name, setName] = useState("");
+  const [quotes, setQuotes] = useState<QuoteSummary[]>([]);
+  const [notis, setNotis] = useState<AppNotification[]>([]);
 
   useEffect(() => {
-    Auth.current().then((s) => setName(s?.name || ""));
     store.stats().then(setStats);
-    store.listQuotes().then(async (l) => {
-      setRecent(l.slice(0, 6));
-      const open = l.filter((q) => q.status === "sent" || q.status === "viewed");
-      const full = await Promise.all(open.map((q) => store.getQuote(q.id)));
-      const out: { id: string; quote_no: string; customer: string; msg: string }[] = [];
-      for (const q of full) {
-        if (!q) continue;
-        const s = l.find((x) => x.id === q.id)!;
-        if (isExpired(q)) out.push({ id: q.id, quote_no: s.quote_no, customer: s.customer, msg: "유효기간 만료 — 재발송 필요" });
-        else { const r = reminderFor(q); if (r) out.push({ id: q.id, quote_no: s.quote_no, customer: s.customer, msg: r }); }
-      }
-      setAlerts(out);
-    });
+    store.listQuotes().then(setQuotes);
+    store.notifications.list().then(setNotis);
   }, []);
 
+  const markRead = async (n: AppNotification) => {
+    await store.notifications.save({ ...n, read: true });
+    setNotis(await store.notifications.list());
+  };
+  const markAll = async () => {
+    for (const n of notis.filter((x) => !x.read)) await store.notifications.save({ ...n, read: true });
+    setNotis(await store.notifications.list());
+  };
+
   if (!stats) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+
+  const unread = notis.filter((n) => !n.read).length;
 
   const total = Object.values(stats.byStatus).reduce((a, b) => a + b, 0);
   const empty = total === 0;
   const today = new Date();
   const dateStr = today.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "long" });
+  const recent = quotes.slice(0, 6);
+
+  // 월별 매출 추이(최근 6개월, 수주 견적 grand 합) — 표준 대시보드 추이 밴드
+  const trend: { key: string; label: string; amt: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    trend.push({ key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, label: `${d.getMonth() + 1}월`, amt: 0 });
+  }
+  for (const q of quotes) {
+    if (q.status !== "accepted") continue;
+    const m = trend.find((x) => x.key === (q.responded_at || q.created_at || "").slice(0, 7));
+    if (m) m.amt += q.grand;
+  }
+  const maxAmt = Math.max(1, ...trend.map((m) => m.amt));
 
   const recentColumns: Column<QuoteSummary>[] = [
     { key: "quote_no", header: "견적번호", render: (q) => <Link className="link" to={`/quotes/${q.id}`}>{q.quote_no}</Link> },
@@ -76,13 +82,9 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* 인사 헤더 */}
-      <div className="dash-head">
-        <div>
-          <div className="dash-greet">{greetingFor(today)}{name ? `, ${name}님` : ""} 👋</div>
-          <div className="dash-date">{dateStr}</div>
-        </div>
-        <Link className="btn primary lg" to="/editor"><Plus size={18} />새 견적 만들기</Link>
+      <div className="page-head">
+        <PageTitle title="대시보드" sub={dateStr} />
+        <Link className="btn" data-variant="primary" data-size="sm" to="/editor"><Plus size={14} />새 견적 만들기</Link>
       </div>
 
       {empty ? (
@@ -91,7 +93,7 @@ export default function Dashboard() {
             icon={<FileText size={40} strokeWidth={1.5} />}
             title="아직 견적이 없습니다"
             desc={<span style={{ marginBottom: 20 }}>첫 견적을 만들어 고객에게 보내보세요.</span>}
-            action={<Link className="btn primary" to="/editor">첫 견적 만들기</Link>}
+            action={<Link className="btn" data-variant="primary" to="/editor">첫 견적 만들기</Link>}
           />
         </div>
       ) : (
@@ -133,36 +135,28 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 파이프라인 현황 (스테이지 + 분포 통합) */}
+          {/* 월별 매출 추이 — KPI 아래 전체폭 추이 밴드 */}
           <div className="card">
-            <div className="card-title">파이프라인 현황</div>
-            <div className="pipeline">
-              {DIST.map((d) => (
-                <div className="stage" key={d.key}>
-                  <div className="n" style={{ color: d.color }}>{stats.byStatus[d.key]}</div>
-                  <div className="l">{d.label}</div>
+            <div className="row">
+              <div className="card-title" style={{ marginBottom: 0 }}>월별 매출 추이</div>
+              <span className="dim" style={{ fontSize: 12 }}>최근 6개월 · 수주 기준</span>
+              <div className="spacer" />
+              <Link className="chip blue" to="/reports">매출 리포트 →</Link>
+            </div>
+            <div className="barchart" style={{ marginTop: 16 }}>
+              {trend.map((m) => (
+                <div className="b" key={m.key}>
+                  <div className="val">{m.amt ? `${Math.round(m.amt / 10000)}만` : ""}</div>
+                  <div className="fill" style={{ height: `${(m.amt / maxAmt) * 100}%` }} />
+                  <div className="lab">{m.label}</div>
                 </div>
-              ))}
-            </div>
-            <div className="distbar" style={{ marginTop: 20 }}>
-              {DIST.map((d) =>
-                stats.byStatus[d.key] > 0 ? (
-                  <span key={d.key} style={{ width: `${(stats.byStatus[d.key] / total) * 100}%`, background: d.color }} />
-                ) : null,
-              )}
-            </div>
-            <div className="legend">
-              {DIST.map((d) => (
-                <span className="it" key={d.key}>
-                  <span className="sw" style={{ background: d.color }} />
-                  {d.label} {stats.byStatus[d.key]}
-                </span>
               ))}
             </div>
           </div>
 
-          {/* 2단: 최근 견적 | 후속조치 + 빠른작업 */}
+          {/* 작업 영역: 최근 견적 메인 | 알림 우측 레일 */}
           <div className="dash-grid">
+            {/* 최근 견적 */}
             <div className="card">
               <div className="row">
                 <div className="card-title" style={{ marginBottom: 0 }}>최근 견적</div>
@@ -172,46 +166,60 @@ export default function Dashboard() {
               <Table columns={recentColumns} rows={recent} rowKey={(q) => q.id} style={{ marginTop: 16 }} />
             </div>
 
-            <div className="dash-side">
-              <div className="card">
+            {/* 알림 우측 레일 (데스크톱에서 sticky) — 알림센터 미니뷰 */}
+            <aside className="dash-side">
+              <div className="card dash-noti">
                 <div className="card-title">
-                  <Clock size={16} /> 후속 조치 필요{alerts.length > 0 ? ` (${alerts.length})` : ""}
+                  <Bell size={16} /> 알림
+                  {unread > 0 && <span className="followup-count">{unread}</span>}
+                  <div className="spacer" />
+                  {unread > 0 && (
+                    <button className="btn" data-variant="ghost" data-size="sm" onClick={markAll} title="모두 읽음">
+                      <Check size={14} /> 모두 읽음
+                    </button>
+                  )}
                 </div>
-                {alerts.length === 0 ? (
+
+                {notis.length === 0 ? (
                   <div className="dash-clear">
-                    <CheckCircle2 size={18} /> 처리할 항목이 없습니다
+                    <span className="dash-clear-ic"><Bell size={22} /></span>
+                    <div>
+                      <div className="dash-clear-t">새 알림이 없습니다</div>
+                      <div className="dash-clear-d">열람·수락·코멘트·만료 알림이 여기에 표시됩니다.</div>
+                    </div>
                   </div>
                 ) : (
-                  alerts.map((a) => (
-                    <Link to={`/quotes/${a.id}`} className="banner info dash-alert" key={a.id}>
-                      <strong>{a.quote_no}</strong> · {a.customer}
-                      <div className="dash-alert-msg">{a.msg}</div>
+                  <>
+                    <div className="dash-noti-list">
+                      {notis.slice(0, 6).map((n) => {
+                        const Ic = NOTI_ICON[n.type] ?? Bell;
+                        return (
+                          <Link
+                            key={n.id}
+                            to={n.quote_id ? `/quotes/${n.quote_id}` : "/notifications"}
+                            className={`noti-row ${n.read ? "" : "unread"}`}
+                            onClick={() => { if (!n.read) markRead(n); }}
+                          >
+                            <span className={`noti-ic t-${n.type}`}><Ic size={15} /></span>
+                            <span className="noti-main">
+                              <span className="noti-top">
+                                <span className="t">{n.title}</span>
+                                <span className="noti-time">{timeAgo(n.created_at)}</span>
+                                {!n.read && <span className="noti-unread-dot" aria-hidden />}
+                              </span>
+                              <span className="b">{n.body}</span>
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    <Link className="dash-more" to="/notifications">
+                      알림센터 전체 보기 <ArrowRight size={14} />
                     </Link>
-                  ))
+                  </>
                 )}
               </div>
-
-              <div className="card">
-                <div className="card-title">빠른 작업</div>
-                <div className="quick-actions">
-                  <Link className="quick-action" to="/editor">
-                    <span className="qa-ic"><Plus size={16} /></span> 새 견적
-                  </Link>
-                  <Link className="quick-action" to="/clients">
-                    <span className="qa-ic"><Building2 size={16} /></span> 거래처
-                  </Link>
-                  <Link className="quick-action" to="/payments">
-                    <span className="qa-ic"><Wallet size={16} /></span> 정산/입금
-                  </Link>
-                  <Link className="quick-action" to="/reports">
-                    <span className="qa-ic"><TrendingUp size={16} /></span> 매출 리포트
-                  </Link>
-                </div>
-                <Link className="dash-more" to="/quotes">
-                  견적 전체 보기 <ArrowRight size={14} />
-                </Link>
-              </div>
-            </div>
+            </aside>
           </div>
         </>
       )}

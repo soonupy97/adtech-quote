@@ -48,7 +48,7 @@ export default function CopyLinkField({ url, customer, company, quoteNo, share =
           aria-label="링크 복사"
           onClick={async () => {
             const ok = await copyText(url);
-            toast(ok ? "링크를 복사했습니다." : "복사에 실패했습니다.");
+            toast(ok ? "링크를 복사했습니다." : "복사에 실패했습니다.", ok ? "success" : "error");
             if (ok) {
               setCopied(true);
               window.setTimeout(() => setCopied(false), 1500);
@@ -68,7 +68,7 @@ export default function CopyLinkField({ url, customer, company, quoteNo, share =
                 text: quoteMessage({ company, customer, quoteNo, url }),
                 url,
               });
-              if (!ok) toast("공유가 취소되었습니다.");
+              if (!ok) toast("공유가 취소되었습니다.", "info");
             }}
           />
         )}

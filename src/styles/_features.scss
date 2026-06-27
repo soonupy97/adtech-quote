@@ -1,6 +1,6 @@
 // 헤더 높이 토큰(사이드바 sticky 위치 계산에 공유)
 :root {
-  --appbar-h: 64px;
+  --appbar-h: 4rem;
 }
 // 화면 최상단 전체 폭 고정 헤더바 + 알림 벨
 .appbar {
@@ -9,10 +9,10 @@
   z-index: 50; // 사이드바(드로어 60) 아래, 본문 위
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   height: var(--appbar-h);
   flex-shrink: 0;
-  padding: 0 24px;
+  padding: 0 1.5rem;
   background: var(--canvas);
   border-bottom: 1px solid var(--hairline);
 }
@@ -21,7 +21,7 @@
 }
 .appbar-brand .brand-logo {
   display: block;
-  height: 32px;
+  height: 2rem;
   width: auto;
 }
 // 검색~우측 컨트롤(벨·프로필) 묶음을 오른쪽으로 밀어붙임(로고만 좌측)
@@ -36,16 +36,16 @@
 .danger-zone .dz-row {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 .danger-zone .dz-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .danger-zone .dz-desc {
-  margin-top: 4px;
-  font-size: 13px;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
   color: var(--text-2);
   line-height: 1.5;
 }
@@ -63,10 +63,10 @@
 .search-field {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 300px;
-  height: 38px;
-  padding: 0 10px 0 12px;
+  gap: 0.5rem;
+  width: 18.75rem;
+  height: 2.375rem;
+  padding: 0 0.625rem 0 0.75rem;
   background: var(--fill);
   border: 1px solid transparent;
   border-radius: var(--r-md);
@@ -89,8 +89,8 @@
   background: transparent;
   padding: 0;
   height: auto;
-  font-size: 14px;
-  line-height: 22px; // 포커스 캐럿(세로 막대) 높이 = line-height → 필드에 맞게 키움
+  font-size: 0.875rem;
+  line-height: 1.375rem; // 포커스 캐럿(세로 막대) 높이 = line-height → 필드에 맞게 키움
   color: var(--ink);
 }
 .search-field input:focus {
@@ -104,7 +104,7 @@
   justify-content: center;
   border: 0;
   background: none;
-  padding: 2px;
+  padding: 0.125rem;
   border-radius: var(--r-full);
   color: var(--text-3);
   cursor: pointer;
@@ -116,46 +116,46 @@
 
 .search-panel {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 0.5rem);
   right: 0; // 검색이 헤더 우측에 있으므로 패널도 우측 정렬(화면 밖 넘침 방지)
   z-index: 60;
-  width: min(420px, 92vw);
-  max-height: min(60vh, 460px);
+  width: min(26.25rem, 92vw);
+  max-height: min(60vh, 28.75rem);
   overflow-y: auto;
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
-  padding: 6px;
+  padding: 0.375rem;
 }
 .search-empty {
-  padding: 20px 12px;
+  padding: 1.25rem 0.75rem;
   text-align: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-3);
 }
 .search-group + .search-group {
-  margin-top: 4px;
-  padding-top: 4px;
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
   border-top: 1px solid var(--hairline-soft);
 }
 .search-group-label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-3);
-  padding: 8px 10px 4px;
+  padding: 0.5rem 0.625rem 0.25rem;
 }
 .search-hit {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   width: 100%;
   border: 0;
   background: none;
   text-align: left;
-  padding: 8px 10px;
+  padding: 0.5rem 0.625rem;
   border-radius: var(--r-md);
   cursor: pointer;
   color: var(--ink);
@@ -175,14 +175,14 @@
   flex-direction: column;
 }
 .search-hit .hit-label {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .search-hit .hit-sub {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
   white-space: nowrap;
   overflow: hidden;
@@ -205,20 +205,20 @@
     top: var(--appbar-h);
     z-index: 60;
     width: auto;
-    height: 48px;
+    height: 3rem;
     border: 0;
     border-bottom: 1px solid var(--hairline);
     border-radius: 0;
     background: var(--canvas);
-    padding: 0 16px;
+    padding: 0 1rem;
   }
   .appbar-search.open .search-panel {
     position: fixed;
     left: 0;
     right: 0;
-    top: calc(var(--appbar-h) + 48px);
+    top: calc(var(--appbar-h) + 3rem);
     width: auto;
-    max-height: calc(100vh - var(--appbar-h) - 48px);
+    max-height: calc(100vh - var(--appbar-h) - 3rem);
     border-radius: 0;
     border-left: 0;
     border-right: 0;
@@ -232,8 +232,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   padding: 0;
   border: none;
   border-radius: var(--r-full);
@@ -247,14 +247,14 @@
 .avatar {
   position: relative; // 안읽음 점(.avatar-dot) 기준
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   border-radius: var(--r-full);
   background: var(--primary);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 // 안 읽은 알림이 있을 때 아바타 우상단 점
@@ -262,49 +262,49 @@
   position: absolute;
   top: -1px;
   right: -1px;
-  width: 9px;
-  height: 9px;
+  width: 0.5625rem;
+  height: 0.5625rem;
   border-radius: var(--r-full);
   background: var(--danger);
   border: 2px solid var(--canvas); // 헤더 배경과 분리되는 링
 }
 .avatar.lg {
-  width: 40px;
-  height: 40px;
-  font-size: 17px;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1.0625rem;
 }
 .profile-menu {
   position: absolute;
   right: 0;
   top: 110%;
   z-index: 50;
-  width: min(260px, calc(100vw - 32px));
+  width: min(16.25rem, calc(100vw - 2rem));
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-2);
-  padding: 8px;
+  padding: 0.5rem;
 }
 .profile-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 8px 12px;
+  gap: 0.625rem;
+  padding: 0.5rem 0.5rem 0.75rem;
   border-bottom: 1px solid var(--hairline);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
 }
 .profile-head .profile-id {
   min-width: 0; // 말줄임 처리되도록
 }
 .profile-head .nm {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .profile-head .em {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
   white-space: nowrap;
   overflow: hidden;
@@ -313,13 +313,13 @@
 .profile-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   width: 100%;
-  padding: 10px 8px;
+  padding: 0.625rem 0.5rem;
   border: none;
   background: none;
   border-radius: var(--r-md);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
   cursor: pointer;
@@ -335,13 +335,13 @@
 // 메뉴 항목 우측 카운트 배지(알림 읽지않음 수)
 .profile-item .profile-count {
   margin-left: auto;
-  min-width: 20px;
-  height: 18px;
-  padding: 0 6px;
+  min-width: 1.25rem;
+  height: 1.125rem;
+  padding: 0 0.375rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: #fff;
   background: var(--danger);
@@ -351,30 +351,30 @@
 .profile-sep {
   height: 1px;
   background: var(--hairline);
-  margin: 8px 0;
+  margin: 0.5rem 0;
 }
 
 // 테이블 행 "관리" 셀 — ⋮ kebab 드롭다운 (position:fixed 로 표시되어 표 overflow 무시)
 .row-menu-pop {
   z-index: 70; // 표·헤더 위로 확실히 띄움
-  min-width: 168px;
-  max-width: calc(100vw - 16px);
+  min-width: 10.5rem;
+  max-width: calc(100vw - 1rem);
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-3);
-  padding: 6px;
+  padding: 0.375rem;
 }
 .row-menu-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   width: 100%;
-  padding: 9px 10px;
+  padding: 0.5625rem 0.625rem;
   border: none;
   background: none;
   border-radius: var(--r-sm);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
   cursor: pointer;
@@ -389,14 +389,14 @@
 }
 .row-menu-item .ic {
   display: inline-flex;
-  width: 16px;
+  width: 1rem;
   flex-shrink: 0;
   justify-content: center;
 }
 .row-menu-sep {
   height: 1px;
   background: var(--hairline);
-  margin: 6px 4px;
+  margin: 0.375rem 0.25rem;
 }
 // 햄버거는 모바일에서만(사이드바가 드로어로 전환될 때) 노출
 .appbar-burger {
@@ -404,10 +404,10 @@
 }
 @media (max-width: 1024px) {
   :root {
-    --appbar-h: 56px;
+    --appbar-h: 3.5rem;
   }
   .appbar {
-    padding: 0 16px;
+    padding: 0 1rem;
   }
   .appbar-burger {
     display: inline-flex;
@@ -416,9 +416,9 @@
 // 알림 목록 항목(.noti) — 알림센터 페이지에서 사용
 .noti {
   display: block;
-  padding: 12px 12px;
+  padding: 0.75rem 0.75rem;
   border-radius: var(--r-md);
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 .noti:hover {
   background: var(--fill-2);
@@ -428,33 +428,33 @@
 }
 .noti .t {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .noti .b {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 
 // 칸반 (파이프라인)
 .kanban {
   display: grid;
-  grid-template-columns: repeat(5, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(11.25rem, 1fr));
+  gap: 0.75rem;
   overflow-x: auto;
 }
 .kanban .col {
   background: var(--fill-2);
   border-radius: var(--radius-sm);
-  padding: 12px;
-  min-height: 200px;
+  padding: 0.75rem;
+  /* min-height: 12.5rem; */
 }
 .kanban .col.drop {
   box-shadow: 0 0 0 2px var(--toss-blue) inset;
 }
 .kanban .col h4 {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
   display: flex;
   justify-content: space-between;
 }
@@ -462,22 +462,22 @@
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
-  padding: 12px 12px;
-  margin-bottom: 8px;
+  padding: 0.75rem 0.75rem;
+  margin-bottom: 0.5rem;
   cursor: grab;
 }
 .kanban .lead .n {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .kanban .lead .m {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 // 견적 보드(작성중/발송/수락/거절) — 4컬럼
 .kanban.cols-4 {
-  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, minmax(12.5rem, 1fr));
 }
 @media (max-width: 768px) {
   .kanban,
@@ -490,7 +490,7 @@
 .kanban.quote-board {
   --col: var(--st-draft);
   align-items: start;
-  gap: 16px;
+  gap: 1rem;
 
   .col {
     background: var(--fill-2);
@@ -517,33 +517,33 @@
     top: 0;
     z-index: 1;
     margin: 0;
-    padding: 12px 12px 8px;
+    padding: 0.75rem 0.75rem 0.5rem;
     background: var(--fill-2);
     border-radius: 0 0 0 0;
     align-items: center;
-    font-size: 13px;
+    font-size: 0.8125rem;
     font-weight: 700;
     color: var(--text-2);
   }
   .col-title {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.375rem;
   }
   .col-title .dot {
-    width: 8px;
-    height: 8px;
+    width: 0.5rem;
+    height: 0.5rem;
     border-radius: 50%;
     background: var(--col);
   }
   .col h4 .count {
-    min-width: 22px;
-    height: 20px;
-    padding: 0 7px;
+    min-width: 1.375rem;
+    height: 1.25rem;
+    padding: 0 0.4375rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--text-2);
     background: var(--card);
@@ -553,18 +553,18 @@
 
   .col-body {
     flex: 1;
-    min-height: 120px;
-    padding: 4px 8px 8px;
+    /* min-height: 7.5rem; */
+    padding: 0.25rem 0.5rem 0.5rem;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.5rem;
   }
 
   // 카드 — 보더 없이 부드러운 그림자만(토스식)
   .lead.card-kb {
     position: relative;
     margin: 0;
-    padding: 12px;
+    padding: 0.75rem;
     border-radius: var(--r-md);
     border: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -584,8 +584,8 @@
   // 드래그 핸들 — 평소 흐릿, 호버 시 또렷
   .lead.card-kb .grip {
     position: absolute;
-    top: 12px;
-    right: 8px;
+    top: 0.75rem;
+    right: 0.5rem;
     color: var(--text-3);
     opacity: 0;
     transition: opacity .12s ease;
@@ -594,16 +594,16 @@
     opacity: .55;
   }
   .lead.card-kb .n {
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 700;
     letter-spacing: -0.01em;
   }
   .lead.card-kb .m {
-    margin-top: 6px;
+    margin-top: 0.375rem;
   }
   .lead.card-kb .amount {
-    margin-top: 8px;
-    font-size: 16px;
+    margin-top: 0.5rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--text);
     letter-spacing: -0.01em;
@@ -615,9 +615,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 96px;
-    margin: 0 0 4px;
-    font-size: 12px;
+    min-height: 6rem;
+    /* margin: 0 0 0.25rem; */
+    font-size: 0.75rem;
     color: var(--text-3);
     border: 1px dashed var(--hairline);
     border-radius: var(--r-md);
@@ -638,86 +638,40 @@
   }
 }
 
-// 보드 상단 벤토 요약 — 단계별 건수·금액, 클릭 시 해당 단계 강조
-.bento.board-summary {
-  margin-bottom: 16px;
-
-  .tile {
-    --col: var(--st-draft);
-    text-align: left;
-    cursor: pointer;
-    font: inherit;
-    border-top: 3px solid var(--col);
-    transition: box-shadow .12s ease, transform .08s ease, border-color .12s ease;
-  }
-  .tile:hover {
-    box-shadow: var(--shadow-2);
-    transform: translateY(-2px);
-  }
-  .tile.active {
-    box-shadow: 0 0 0 2px var(--col) inset, var(--shadow-2);
-  }
-  .tile .k {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-2);
-  }
-  .tile .k .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--col);
-  }
-  .tile .v {
-    margin-top: 4px;
-    font-variant-numeric: tabular-nums;
-  }
-  .tile .bento-foot {
-    margin-top: 4px;
-    font-size: 13px;
-    color: var(--text-3);
-    font-variant-numeric: tabular-nums;
-  }
-}
-@media (max-width: 768px) {
-  .bento.board-summary { grid-template-columns: repeat(2, 1fr); }
-}
-
 // 퍼널
 .funnel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .funnel .step {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 .funnel .bar {
-  height: 34px;
+  height: 2.125rem;
   border-radius: var(--r-sm);
   background: var(--ink);
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 0.75rem;
   color: var(--canvas);
   font-weight: 500;
-  font-size: 14px;
-  min-width: 44px;
+  font-size: 0.875rem;
+  min-width: 2.75rem;
   font-variant-numeric: tabular-nums;
   transition: width 0.3s;
 }
 .funnel .lab {
-  width: 96px;
-  min-width: 96px; // flex 자식이라 좁은 화면에서 줄어들지 않도록 최소폭 고정
+  width: 6rem;
+  min-width: 6rem; // flex 자식이라 좁은 화면에서 줄어들지 않도록 최소폭 고정
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-2);
 }
 .funnel .rate {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 
@@ -725,34 +679,34 @@
 .barchart {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
-  height: 180px;
-  padding-top: 12px;
+  gap: 0.75rem;
+  height: 11.25rem;
+  padding-top: 0.75rem;
 }
 .barchart .b {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   height: 100%;
   justify-content: flex-end;
 }
 .barchart .b .fill {
   width: 100%;
-  max-width: 46px;
+  max-width: 2.875rem;
   background: var(--ink);
   border: 1px solid var(--ink);
   border-bottom: none;
   border-radius: var(--r-sm) var(--r-sm) 0 0;
-  min-height: 3px;
+  min-height: 0.1875rem;
 }
 .barchart .b .lab {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 .barchart .b .val {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
@@ -769,7 +723,7 @@
   display: grid;
   place-items: center;
   font-family: var(--font-sans);
-  font-size: 64px;
+  font-size: 4rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   color: rgba(24, 24, 24, 0.05);
@@ -781,8 +735,8 @@
 // 첨부 갤러리
 .gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
 }
 .gallery .thumb {
   position: relative;
@@ -798,18 +752,18 @@
 }
 .gallery .thumb .del {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 0.25rem;
+  right: 0.25rem;
 }
 
 // 코멘트 스레드
 .thread {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 .comment {
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
   border-radius: 12px;
   background: var(--fill-2);
   max-width: 80%;
@@ -823,31 +777,31 @@
   background: var(--toss-blue-soft);
 }
 .comment .who {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 // 마진 표시
 .margin-box {
   display: flex;
-  gap: 20px;
+  gap: 1.25rem;
   flex-wrap: wrap;
 }
 .margin-box .mi {
   background: var(--surface-soft);
   border-radius: var(--r-md);
-  padding: 12px 16px;
+  padding: 0.75rem 1rem;
 }
 .margin-box .mi .k {
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-3);
 }
 .margin-box .mi .v {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -858,14 +812,14 @@
 // 마크업이 Button(primary/secondary)을 그대로 쓰므로 .tabs 내부에서 .btn 외형을 덮어쓴다.
 .tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
   border-bottom: 1px solid var(--line);
 
   .btn {
     // 버튼 외형 제거 → 탭 텍스트로
-    padding: 8px 12px;
+    padding: 0.5rem 0.75rem;
     height: auto;
     min-height: 0;
     border: 0;
@@ -881,8 +835,8 @@
 
     &:hover { background: transparent; color: var(--text); }
 
-    // 활성 탭: primary 변형으로 표시됨
-    &.primary {
+    // 활성 탭: primary 변형(data-variant="primary")으로 표시됨
+    &[data-variant="primary"] {
       background: transparent;
       color: var(--text);
       font-weight: 700;
@@ -905,27 +859,27 @@
 .cal-h {
   background: var(--fill-2);
   text-align: center;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-2);
-  padding: 8px 0;
+  padding: 0.5rem 0;
   &.sun { color: var(--danger); }
   &.sat { color: var(--toss-blue); }
 }
 .cal-cell {
   background: var(--card);
-  min-height: 96px;
-  padding: 8px 8px 8px;
+  min-height: 6rem;
+  padding: 0.5rem 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
   &.dim-cell { background: var(--fill-2); }
   &.today { box-shadow: 0 0 0 2px var(--toss-blue) inset; }
   &.clickable { cursor: pointer; transition: background 0.1s; }
   &.clickable:hover { background: var(--fill); }
 }
 .cal-num {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-2);
   &.sun { color: var(--danger); }
@@ -938,9 +892,9 @@
   border: none;
   text-align: left;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.3;
-  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
   border-radius: 6px;
   color: var(--canvas); // ev-install 배경(--toss-blue)이 다크에서 밝아져 흰 글씨가 묻히는 문제 대응
   cursor: pointer;
@@ -950,13 +904,13 @@
   text-overflow: ellipsis;
 }
 .cal-more {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
-  padding-left: 4px;
+  padding-left: 0.25rem;
 }
 .cal-dot {
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 3px;
   display: inline-block;
 }
@@ -980,6 +934,6 @@
   text-align: left;
 }
 @media (max-width: 768px) {
-  .cal-cell { min-height: 70px; padding: 4px; }
-  .cal-ev { font-size: 12px; padding: 4px; }
+  .cal-cell { min-height: 4.375rem; padding: 0.25rem; }
+  .cal-ev { font-size: 0.75rem; padding: 0.25rem; }
 }

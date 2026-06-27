@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { store } from "@/lib/store";
 import { downloadCSV, parseCSV, toCSV } from "@/lib/csv";
 import type { Client, Contact } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Building2, X, Trash2, Pencil } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -24,20 +24,20 @@ export default function Clients() {
 
   const save = async () => {
     if (!edit) return;
-    if (!edit.name.trim()) return toast("상호를 입력하세요.");
+    if (!edit.name.trim()) return toast("상호를 입력하세요.", "warning");
     setSaving(true);
     try {
       await store.saveClient(edit);
       setEdit(null);
       await load();
-      toast("저장되었습니다.");
+      toast("저장되었습니다.", "success");
     } finally { setSaving(false); }
   };
   const del = async (c: Client) => {
     if (!confirm(`${c.name} 거래처를 삭제할까요?`)) return;
     await store.removeClient(c.id);
     await load();
-    toast("삭제되었습니다.");
+    toast("삭제되었습니다.", "success");
   };
 
   const setContact = (i: number, p: Partial<Contact>) => {
@@ -62,7 +62,7 @@ export default function Clients() {
       n++;
     }
     await load();
-    toast(`${n}건을 가져왔습니다.`);
+    toast(`${n}건을 가져왔습니다.`, "success");
   };
 
   const columns: Column<Client>[] = [
@@ -87,12 +87,11 @@ export default function Clients() {
   return (
     <>
       <div className="page-head">
-        <div><h1>거래처</h1><div className="sub">전체 {list.length}곳</div></div>
-        <div className="spacer" />
-        <Button onClick={exportCSV}>CSV 내보내기</Button>
-        <Button onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
+        <PageTitle title="거래처" sub={`전체 ${list.length}곳`} />
+        <Button size="sm" onClick={exportCSV}>CSV 내보내기</Button>
+        <Button size="sm" onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
         <Input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => importCSV(e.target.files?.[0])} />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setEdit({ ...empty })}>거래처 추가</Button>
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>거래처 추가</Button>
       </div>
 
       <div className="card">

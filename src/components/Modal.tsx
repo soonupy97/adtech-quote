@@ -16,7 +16,7 @@ export default function Modal({ title, onClose, children, wide, footer }: Props)
         <div className="modal-head">
           <div className="modal-title">{title}</div>
           <div className="spacer" />
-          <button className="btn sm" onClick={onClose}>
+          <button className="btn" data-size="sm" onClick={onClose}>
             <X size={15} />
           </button>
         </div>

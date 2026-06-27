@@ -49,14 +49,14 @@ export default function View() {
   }, [token]);
 
   const postComment = async () => {
-    if (!q || !cName.trim() || !cBody.trim()) return toast("성함과 내용을 입력하세요.");
+    if (!q || !cName.trim() || !cBody.trim()) return toast("성함과 내용을 입력하세요.", "warning");
     try {
       await store.comments.save({ id: "", quote_id: q.id, author: "customer", name: cName.trim(), body: cBody.trim(), created_at: "" });
       try { await store.notifications.save({ id: "", type: "comment", title: "고객 코멘트가 등록되었습니다", body: `${q.quote_no} · ${cName.trim()}`, quote_id: q.id, read: false, created_at: "" } as never); } catch { /* noop */ }
       setCBody("");
       await loadThread(q.id);
-      toast("문의를 남겼습니다.");
-    } catch { toast("등록에 실패했습니다."); }
+      toast("문의를 남겼습니다.", "success");
+    } catch { toast("등록에 실패했습니다.", "error"); }
   };
 
   if (state === "loading") return <EmptyState title="불러오는 중…" />;
@@ -80,10 +80,10 @@ export default function View() {
   const respond = async (accept: boolean) => {
     if (busy) return;
     if (accept) {
-      if (!name.trim()) return toast("성함을 입력해 주세요.");
-      if (sigRef.current?.isEmpty()) return toast("서명을 해주세요.");
+      if (!name.trim()) return toast("성함을 입력해 주세요.", "warning");
+      if (sigRef.current?.isEmpty()) return toast("서명을 해주세요.", "warning");
     } else {
-      if (!name.trim()) return toast("성함을 입력해 주세요.");
+      if (!name.trim()) return toast("성함을 입력해 주세요.", "warning");
     }
     setBusy(true);
     try {
@@ -91,7 +91,7 @@ export default function View() {
       const updated = await store.markResponse(token, accept, name.trim(), sig);
       if (updated) {
         setQ(updated);
-        toast(accept ? "견적을 수락했습니다. 감사합니다!" : "견적을 거절하셨습니다.");
+        toast(accept ? "견적을 수락했습니다. 감사합니다!" : "견적을 거절하셨습니다.", accept ? "success" : "info");
       }
     } finally {
       setBusy(false);

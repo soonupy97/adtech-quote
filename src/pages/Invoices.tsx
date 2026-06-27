@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, fmtDate, won } from "@/lib/quote";
 import type { Invoice, Quote, QuoteSummary } from "@/types";
-import { Button, Chip, EmptyState, Field, Modal, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Receipt, Trash2, Send } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -27,7 +27,7 @@ export default function Invoices() {
   }, []);
 
   const create = async () => {
-    if (!pick) return toast("견적을 선택하세요.");
+    if (!pick) return toast("견적을 선택하세요.", "warning");
     setBusy(true);
     try {
       const q = (await store.getQuote(pick)) as Quote;
@@ -38,14 +38,14 @@ export default function Invoices() {
       });
       setCreating(false); setPick("");
       await load();
-      toast("세금계산서 초안을 생성했습니다.");
+      toast("세금계산서 초안을 생성했습니다.", "success");
     } finally { setBusy(false); }
   };
 
   const issue = async (inv: Invoice) => {
     await store.invoices.save({ ...inv, status: "issued", issued_at: new Date().toISOString() });
     await load();
-    toast(`${PROVIDER_LABEL[inv.provider]}(으)로 발행 처리되었습니다.`);
+    toast(`${PROVIDER_LABEL[inv.provider]}(으)로 발행 처리되었습니다.`, "success");
   };
   const del = async (inv: Invoice) => { await store.invoices.remove(inv.id); await load(); };
 
@@ -72,9 +72,8 @@ export default function Invoices() {
   return (
     <>
       <div className="page-head">
-        <div><h1>세금계산서</h1><div className="sub">수주 건의 전자세금계산서 발행 · {list.length}건</div></div>
-        <div className="spacer" />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setCreating(true)}>계산서 생성</Button>
+        <PageTitle title="세금계산서" sub={`수주 건의 전자세금계산서 발행 · ${list.length}건`} />
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>계산서 생성</Button>
       </div>
 
       <div className="card">

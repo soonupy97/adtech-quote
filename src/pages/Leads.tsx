@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { fmtDate } from "@/lib/quote";
 import type { Lead, LeadStage } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Inbox, Trash2, Pencil, FileText } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -41,13 +41,13 @@ export default function Leads() {
 
   const save = async () => {
     if (!edit) return;
-    if (!edit.customerName.trim()) return toast("고객명을 입력하세요.");
+    if (!edit.customerName.trim()) return toast("고객명을 입력하세요.", "warning");
     setSaving(true);
     try {
       await store.leads.save(edit);
       setEdit(null);
       await load();
-      toast("저장되었습니다.");
+      toast("저장되었습니다.", "success");
     } finally { setSaving(false); }
   };
   const del = async (l: Lead) => {
@@ -66,7 +66,7 @@ export default function Leads() {
     if (!lead || lead.stage === stage) return;
     await store.leads.save({ ...lead, stage });
     await load();
-    toast(`'${lead.customerName}' → ${STAGES.find((s) => s.key === stage)?.label}`);
+    toast(`'${lead.customerName}' → ${STAGES.find((s) => s.key === stage)?.label}`, "success");
   };
 
   const columns: Column<Lead>[] = [
@@ -92,14 +92,13 @@ export default function Leads() {
   return (
     <>
       <div className="page-head">
-        <div><h1>리드 · 영업</h1><div className="sub">외부 문의 등록·견적 전환과 파이프라인 · {list.length}건</div></div>
-        <div className="spacer" />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => setEdit({ ...empty })}>문의 등록</Button>
+        <PageTitle title="리드 · 영업" sub={`외부 문의 등록·견적 전환과 파이프라인 · ${list.length}건`} />
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>문의 등록</Button>
       </div>
 
       <div className="tabs">
-        <button className={`btn sm ${view === "list" ? "primary" : ""}`} onClick={() => setView("list")}>리스트</button>
-        <button className={`btn sm ${view === "board" ? "primary" : ""}`} onClick={() => setView("board")}>파이프라인</button>
+        <button className="btn" data-size="sm" data-variant={view === "list" ? "primary" : "secondary"} onClick={() => setView("list")}>리스트</button>
+        <button className="btn" data-size="sm" data-variant={view === "board" ? "primary" : "secondary"} onClick={() => setView("board")}>파이프라인</button>
       </div>
 
       {view === "list" ? (

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { won } from "@/lib/quote";
 import type { CalendarColor, CalendarEvent, Payment, Signage, WorkOrder } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 
@@ -128,14 +128,14 @@ export default function CalendarPage() {
 
   const save = async () => {
     if (!edit) return;
-    if (!edit.title.trim()) return toast("일정 제목을 입력하세요.");
-    if (!edit.date) return toast("날짜를 선택하세요.");
+    if (!edit.title.trim()) return toast("일정 제목을 입력하세요.", "warning");
+    if (!edit.date) return toast("날짜를 선택하세요.", "warning");
     setSaving(true);
     try {
       await store.events.save(edit);
       setEdit(null);
       await loadCustom();
-      toast("일정을 저장했습니다.");
+      toast("일정을 저장했습니다.", "success");
     } finally { setSaving(false); }
   };
   const del = async () => {
@@ -146,7 +146,7 @@ export default function CalendarPage() {
       await store.events.remove(edit.id);
       setEdit(null);
       await loadCustom();
-      toast("일정을 삭제했습니다.");
+      toast("일정을 삭제했습니다.", "success");
     } finally { setSaving(false); }
   };
 
@@ -164,13 +164,12 @@ export default function CalendarPage() {
   return (
     <>
       <div className="page-head">
-        <div><h1>일정</h1><div className="sub">설치 예정 · 입금 납기 · 광고물 만료 + 직접 등록 일정</div></div>
-        <div className="spacer" />
+        <PageTitle title="일정" sub="설치 예정 · 입금 납기 · 광고물 만료 + 직접 등록 일정" />
         <Button size="sm" onClick={() => setCur({ y: today.getFullYear(), m: today.getMonth() })}>오늘</Button>
         <Button size="sm" icon={<ChevronLeft size={16} />} onClick={() => move(-1)} />
         <strong style={{ minWidth: 96, textAlign: "center" }}>{cur.y}.{String(cur.m + 1).padStart(2, "0")}</strong>
         <Button size="sm" icon={<ChevronRight size={16} />} onClick={() => move(1)} />
-        <Button variant="primary" icon={<Plus size={15} />} onClick={() => openAdd(todayStr)}>일정 추가</Button>
+        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => openAdd(todayStr)}>일정 추가</Button>
       </div>
 
       <div className="card">

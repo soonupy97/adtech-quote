@@ -32,7 +32,7 @@ import type {
   Settings,
 } from "@/types";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input, Modal, Select, Textarea } from "@/components/ui";
+import { Button, Field, Input, Modal, PageTitle, Select, Textarea } from "@/components/ui";
 import { AlertTriangle, Check, Plus, Settings2, X, Zap } from "lucide-react";
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -77,7 +77,7 @@ export default function Editor() {
         // 자동저장으로 막 id가 붙었거나 이미 보유한 견적이면 재로딩 생략(편집 중 내용 보존)
         if (savedIdRef.current === id) return;
         const loaded = await store.getQuote(id);
-        if (!loaded) { toast("견적을 찾을 수 없습니다."); navigate("/quotes"); return; }
+        if (!loaded) { toast("견적을 찾을 수 없습니다.", "error"); navigate("/quotes"); return; }
         savedIdRef.current = loaded.id;
         setQ(loaded);
         setAttachments(await store.attachments.list().then((l) => l.filter((a) => a.quote_id === loaded.id)));
@@ -101,7 +101,7 @@ export default function Editor() {
           fresh.etcCosts = tpl.payload.etcCosts.map((c) => ({ ...c }));
           fresh.adjustments = { surcharge: [...tpl.payload.adjustments.surcharge], discount: [...tpl.payload.adjustments.discount] };
           fresh.paymentTerms = { ...tpl.payload.paymentTerms };
-          toast(`템플릿 '${tpl.name}' 적용`);
+          toast(`템플릿 '${tpl.name}' 적용`, "success");
         }
       }
       // 리드 전환 (부록 A21)
@@ -181,7 +181,7 @@ export default function Editor() {
   const onTypeOrGrade = (i: number, p: Partial<QuoteItem>) => {
     const merged = recalcPrice({ ...q.items[i], ...p });
     const items = q.items.slice(); items[i] = merged; patch({ items });
-    if (catalog[`${merged.type}|${merged.grade}`]) toast(`자동단가 적용: ${won(merged.price)}`);
+    if (catalog[`${merged.type}|${merged.grade}`]) toast(`자동단가 적용: ${won(merged.price)}`, "success");
   };
   const onQty = (i: number, qty: number) => {
     const merged = recalcPrice({ ...q.items[i], qty });
@@ -211,37 +211,37 @@ export default function Editor() {
   // 자동 할인 규칙 적용 (부록 C)
   const applyAutoDiscounts = () => {
     const rules = settings?.discountRules || [];
-    if (!rules.length) return toast("설정 > 자동할인 규칙이 없습니다.");
+    if (!rules.length) return toast("설정 > 자동할인 규칙이 없습니다.", "warning");
     const client = clients.find((c) => c.name === q.customer.name);
     const matched = evaluateDiscountRules(q, rules, client?.grade);
-    if (!matched.length) return toast("충족하는 할인 규칙이 없습니다.");
+    if (!matched.length) return toast("충족하는 할인 규칙이 없습니다.", "warning");
     const existing = q.adjustments.discount.filter((d) => !d.label.startsWith("[자동]"));
     const auto = matched.map((m) => ({ label: `[자동] ${m.rule.label}`, mode: m.rule.then.mode, value: m.rule.then.value }));
     patch({ adjustments: { ...q.adjustments, discount: [...existing, ...auto] } });
-    toast(`자동할인 ${auto.length}건 적용`);
+    toast(`자동할인 ${auto.length}건 적용`, "success");
   };
 
   // 프로모션 코드 적용 (부록 A19)
   const applyPromo = () => {
     const code = promo.trim().toUpperCase();
     const found = (settings?.promoCodes || []).find((p) => p.code === code);
-    if (!found) return toast("유효하지 않은 코드입니다.");
+    if (!found) return toast("유효하지 않은 코드입니다.", "error");
     const existing = q.adjustments.discount.filter((d) => d.label !== `[코드] ${found.code}`);
     patch({ adjustments: { ...q.adjustments, discount: [...existing, { label: `[코드] ${found.code}`, mode: found.mode, value: found.value }] } });
     setPromo("");
-    toast(`프로모션 '${found.label}' 적용`);
+    toast(`프로모션 '${found.label}' 적용`, "success");
   };
 
   const loadClient = (cid: string) => {
     const c = clients.find((x) => x.id === cid); if (!c) return;
     patch({ customer: { name: c.name, tel: c.tel, addr: c.addr } });
-    toast(`${c.name} 정보를 불러왔습니다.`);
+    toast(`${c.name} 정보를 불러왔습니다.`, "success");
   };
   const saveAsClient = async () => {
-    if (!q.customer.name) return toast("고객 상호/성함을 입력하세요.");
+    if (!q.customer.name) return toast("고객 상호/성함을 입력하세요.", "warning");
     await store.saveClient({ id: "", name: q.customer.name, tel: q.customer.tel, addr: q.customer.addr, manager: "", memo: "", created_at: "" });
     setClients(await store.listClients());
-    toast("거래처로 저장했습니다.");
+    toast("거래처로 저장했습니다.", "success");
   };
 
   // 템플릿으로 저장 (부록 A20)
@@ -252,16 +252,16 @@ export default function Editor() {
       id: "", name, memo: "", created_at: "",
       payload: { items: q.items, constructions: q.constructions, permits: q.permits, etcCosts: q.etcCosts, adjustments: q.adjustments, paymentTerms: q.paymentTerms },
     });
-    toast("템플릿으로 저장했습니다.");
+    toast("템플릿으로 저장했습니다.", "success");
   };
 
   // 첨부 (부록 A20)
   const addAttachment = async (file?: File) => {
-    if (!file || !q.id) { if (!q.id) toast("먼저 견적을 저장하세요."); return; }
+    if (!file || !q.id) { if (!q.id) toast("먼저 견적을 저장하세요.", "warning"); return; }
     const url = await fileToDataUrl(file);
     await store.attachments.save({ id: "", quote_id: q.id, kind: "photo", url, name: file.name, created_at: "" });
     setAttachments(await store.attachments.list().then((l) => l.filter((a) => a.quote_id === q.id)));
-    toast("첨부했습니다.");
+    toast("첨부했습니다.", "success");
   };
   const delAttachment = async (aid: string) => {
     await store.attachments.remove(aid);
@@ -279,20 +279,20 @@ export default function Editor() {
       dirtyRef.current = false;
       setQ(saved);
       if (!id) navigate(`/editor/${saved.id}`, { replace: true });
-      toast("저장되었습니다.");
+      toast("저장되었습니다.", "success");
       return saved;
     } finally { setBusy(false); }
   };
 
   const sendLink = async () => {
     if (approval && settings?.myRole && settings.myRole !== "admin") {
-      return toast("관리자 승인이 필요한 견적입니다.");
+      return toast("관리자 승인이 필요한 견적입니다.", "warning");
     }
     const saved = q.id ? await store.saveQuote(q) : await doSave();
     const { url } = await store.markSent(saved.id);
     savedIdRef.current = saved.id;
     setLink(url);
-    toast("발송 링크가 생성되었습니다.");
+    toast("발송 링크가 생성되었습니다.", "success");
   };
 
   const exp = expiryDate(q);
@@ -300,10 +300,10 @@ export default function Editor() {
   return (
     <>
       <div className="page-head no-print">
-        <div>
-          <h1>{id ? "견적 수정" : "견적 작성"}</h1>
-          <div className="sub">{q.quote_no || "저장 시 견적번호 발급"}{exp ? ` · 만료 ${fmtDate(exp)}` : ""}</div>
-        </div>
+        <PageTitle
+          title={id ? "견적 수정" : "견적 작성"}
+          sub={`${q.quote_no || "저장 시 견적번호 발급"}${exp ? ` · 만료 ${fmtDate(exp)}` : ""}`}
+        />
       </div>
 
       {approval && <div className="banner info no-print"><AlertTriangle size={16} /> 고액/고할인 견적 — 발송 전 관리자 승인이 필요합니다 (부록 D).</div>}
@@ -508,7 +508,7 @@ export default function Editor() {
       {/* 첨부 (부록 A20) */}
       <div className="card no-print">
         <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>첨부 (현장사진·도면·시안)</div><div className="spacer" />
-          <label className="btn sm secondary" style={{ cursor: "pointer" }}><Plus size={14} />파일<input type="file" accept="image/*" hidden onChange={(e) => addAttachment(e.target.files?.[0])} /></label>
+          <label className="btn" data-size="sm" style={{ cursor: "pointer" }}><Plus size={14} />파일<input type="file" accept="image/*" hidden onChange={(e) => addAttachment(e.target.files?.[0])} /></label>
         </div>
         {attachments.length > 0 ? (
           <div className="gallery" style={{ marginTop: 12 }}>
@@ -554,8 +554,8 @@ export default function Editor() {
           title="고객 발송"
           onClose={() => setLink(null)}
           footer={<>
-            <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다."); }}>링크 복사</Button>
-            <a className="btn secondary" href={link} target="_blank" rel="noreferrer">미리보기</a>
+            <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다.", "success"); }}>링크 복사</Button>
+            <a className="btn" href={link} target="_blank" rel="noreferrer">미리보기</a>
             <div className="spacer" />
             <Button onClick={() => navigate(`/quotes/${savedIdRef.current}`)}>상세로 →</Button>
           </>}

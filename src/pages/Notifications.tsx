@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { fmtDateTime } from "@/lib/quote";
 import { reminderFor } from "@/lib/automation";
 import type { AppNotification, QuoteSummary } from "@/types";
-import { Button, EmptyState } from "@/components/ui";
+import { Button, EmptyState, PageTitle } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Clock, Bell } from "lucide-react";
 
@@ -37,7 +37,7 @@ export default function Notifications() {
   const markAll = async () => {
     for (const n of list.filter((x) => !x.read)) await store.notifications.save({ ...n, read: true });
     load();
-    toast("모두 읽음 처리했습니다.");
+    toast("모두 읽음 처리했습니다.", "success");
   };
   const clear = async () => {
     if (!confirm("모든 알림을 삭제할까요?")) return;
@@ -48,10 +48,9 @@ export default function Notifications() {
   return (
     <>
       <div className="page-head">
-        <div><h1>알림센터</h1><div className="sub">열람·수락·코멘트·만료·리마인더</div></div>
-        <div className="spacer" />
-        <Button onClick={markAll} disabled={list.every((n) => n.read)}>모두 읽음</Button>
-        <Button variant="danger" onClick={clear} disabled={list.length === 0}>전체 삭제</Button>
+        <PageTitle title="알림센터" sub="열람·수락·코멘트·만료·리마인더" />
+        <Button size="sm" onClick={markAll} disabled={list.every((n) => n.read)}>모두 읽음</Button>
+        <Button size="sm" variant="danger" onClick={clear} disabled={list.length === 0}>전체 삭제</Button>
       </div>
 
       {reminders.length > 0 && (
