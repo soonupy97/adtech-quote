@@ -93,6 +93,30 @@ export const Auth = {
     return { ok: true };
   },
 
+  // 구글 OAuth 로그인. 구글 동의 화면을 거쳐 origin 으로 돌아오며,
+  // supabase-js 가 콜백 URL에서 세션을 자동 수립한다(AppShell 가 이어받음).
+  // ※ Supabase 대시보드에서 Google provider 활성화 + 구글 OAuth 클라이언트 등록이 선행돼야 한다.
+  async loginWithGoogle(): Promise<Result> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) return { ok: false, msg: "구글 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    return { ok: true };
+  },
+
+  // 카카오 OAuth 로그인. 카카오 동의 화면을 거쳐 origin 으로 돌아오며,
+  // supabase-js 가 콜백 URL에서 세션을 자동 수립한다(AppShell 가 이어받음).
+  // ※ Supabase 대시보드에서 Kakao provider 활성화 + 카카오 개발자 앱 등록이 선행돼야 한다.
+  async loginWithKakao(): Promise<Result> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "kakao",
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) return { ok: false, msg: "카카오 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+    return { ok: true };
+  },
+
   // 인증 메일 재발송(가입 확인용). 미인증 계정에만 의미가 있다.
   async resendVerification(email: string): Promise<Result> {
     const { error } = await supabase.auth.resend({
@@ -109,10 +133,15 @@ export const Auth = {
     const s = data.session;
     if (!s) return null;
     const email = s.user.email || "";
+    // 로그인 수단(이메일/카카오 등) — 카카오면 프로필에 '· 카카오'로 표시
+    const provider = (s.user.app_metadata?.provider as string) || "email";
     return {
-      name: (s.user.user_metadata?.name as string) || email,
+      name: (s.user.user_metadata?.name as string)
+        || (s.user.user_metadata?.full_name as string)
+        || email
+        || "사용자",
       email,
-      provider: "email",
+      provider,
       at: new Date(s.user.created_at).toISOString(),
     };
   },

@@ -8,6 +8,18 @@ import Modal from "@/components/Modal";
 import PasswordStrength from "@/components/PasswordStrength";
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Mail } from "lucide-react";
 
+// 구글 브랜드 로고(4색 G) — lucide 에 없어 인라인 SVG 로 표기
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden focusable="false">
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" />
+      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+    </svg>
+  );
+}
+
 type Mode = "login" | "register" | "resetPw" | "findEmail";
 type Terms = "tos" | "privacy";
 
@@ -283,6 +295,19 @@ export default function Login() {
     }
   };
 
+  // 구글 소셜 로그인 — 성공 시 구글 동의 화면으로 리다이렉트된다.
+  const googleLogin = async () => {
+    if (busy) return;
+    setErr("");
+    setBusy(true);
+    const r = await Auth.loginWithGoogle();
+    if (!r.ok) {
+      setErr(r.msg || "구글 로그인에 실패했습니다.");
+      setBusy(false);
+    }
+    // 성공 시 페이지가 구글로 이동하므로 busy 해제는 불필요
+  };
+
   const submitLabel = busy
     ? "처리 중…"
     : mode === "resetPw"
@@ -532,6 +557,23 @@ export default function Login() {
                   {submitLabel}
                 </Button>
               </form>
+
+              {/* 구글 소셜 로그인 (로그인·가입 모드) */}
+              {(mode === "login" || mode === "register") && (
+                <>
+                  <div className="hr-or">또는</div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    block
+                    icon={<GoogleIcon />}
+                    onClick={googleLogin}
+                    disabled={busy}
+                  >
+                    Google로 {mode === "register" ? "시작하기" : "로그인"}
+                  </Button>
+                </>
+              )}
 
               {(mode === "login" || mode === "register") && (
                 <div className="auth-toggle">
