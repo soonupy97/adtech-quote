@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth } from "@/lib/auth";
+import { passwordError } from "@/lib/password";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/components/Toast";
 import { Button, Field, Input } from "@/components/ui";
-import { AlertTriangle } from "lucide-react";
+import PasswordStrength from "@/components/PasswordStrength";
+import { AlertTriangle, Eye, EyeOff } from "lucide-react";
 
 // 비밀번호 재설정 메일의 링크로 돌아오는 착지 페이지.
 // supabase-js 가 URL 의 복구 토큰을 감지해 임시 세션을 만들고
@@ -15,6 +17,7 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false); // 복구 세션 확인됨
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -33,8 +36,9 @@ export default function ResetPassword() {
     e.preventDefault();
     if (busy) return;
     setErr("");
-    if (pw.length < 6) {
-      setErr("비밀번호는 6자 이상이어야 합니다.");
+    const pe = passwordError(pw);
+    if (pe) {
+      setErr(pe);
       return;
     }
     if (pw !== pw2) {
@@ -83,25 +87,46 @@ export default function ResetPassword() {
               </div>
             )}
             <Field label="새 비밀번호">
-              <Input
-                type="password"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="new-password"
-                autoFocus
-                required
-              />
+              <div className="pw-field">
+                <Input
+                  type={showPw ? "text" : "password"}
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  autoFocus
+                  required
+                />
+                <button
+                  type="button"
+                  className="pw-toggle"
+                  onClick={() => setShowPw((v) => !v)}
+                  aria-label={showPw ? "비밀번호 숨기기" : "비밀번호 표시"}
+                  aria-pressed={showPw}
+                >
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {pw ? (
+                <PasswordStrength pw={pw} />
+              ) : (
+                <div className="eyebrow" style={{ marginTop: 6 }}>8자 이상, 영문·숫자·특수문자 조합 권장</div>
+              )}
             </Field>
             <Field label="비밀번호 확인">
               <Input
-                type="password"
+                type={showPw ? "text" : "password"}
                 value={pw2}
                 onChange={(e) => setPw2(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
               />
+              {pw2 && pw !== pw2 && (
+                <div className="field-error" role="alert" style={{ marginTop: 6 }}>
+                  <AlertTriangle size={12} /> <span>비밀번호가 일치하지 않습니다.</span>
+                </div>
+              )}
             </Field>
             <Button variant="primary" size="lg" block type="submit" disabled={busy} style={{ marginTop: 8 }}>
               {busy ? "처리 중…" : "비밀번호 변경"}

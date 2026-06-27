@@ -9,6 +9,7 @@ import {
   Inbox,
   LayoutDashboard,
   LayoutTemplate,
+  LogOut,
   Menu,
   Moon,
   Receipt,
@@ -19,11 +20,12 @@ import {
   TrendingUp,
   Wallet,
   Wrench,
-  X,
   type LucideIcon,
 } from "lucide-react";
 import { Auth } from "@/lib/auth";
 import { store } from "@/lib/store";
+import HeaderSearch from "@/components/HeaderSearch";
+import OnboardingCompany, { ONBOARD_SKIP_KEY } from "@/components/OnboardingCompany";
 import type { AppNotification, Session } from "@/types";
 
 interface NavItem {
@@ -99,16 +101,22 @@ export default function AppShell() {
   const [checked, setChecked] = useState(false);
   const [theme, toggleTheme] = useTheme();
   const [notis, setNotis] = useState<AppNotification[]>([]);
-  const [bellOpen, setBellOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false); // 헤더 프로필 popover
   const [navOpen, setNavOpen] = useState(false); // 모바일 햄버거 드로어
   const [hidden, setHidden] = useState<string[]>([]);
+  const [needCompany, setNeedCompany] = useState(false); // 가입 후 회사 정보 온보딩
 
   const loadNotis = useCallback(() => {
     store.notifications.list().then((l) => setNotis(l.slice(0, 30)));
   }, []);
 
   const loadMenus = useCallback(() => {
-    store.getSettings().then((s) => setHidden(s.menuHidden || []));
+    store.getSettings().then((s) => {
+      setHidden(s.menuHidden || []);
+      // 공급자(회사) 정보가 비어 있고, '나중에 하기'로 미룬 적 없으면 온보딩 노출
+      const empty = !(s.supplier?.name || "").trim();
+      setNeedCompany(empty && !localStorage.getItem(ONBOARD_SKIP_KEY));
+    });
   }, []);
 
   // 메뉴 표시 설정 로드 + 설정 저장 시 갱신
@@ -133,12 +141,14 @@ export default function AppShell() {
     return () => { alive = false; };
   }, [navigate, loadNotis]);
 
-  // 라우트 이동 시 알림 갱신 + 모바일 드로어 닫기
-  useEffect(() => { if (checked) loadNotis(); setNavOpen(false); }, [location.pathname, checked, loadNotis]);
+  // 라우트 이동 시 알림 갱신 + 모바일 드로어·프로필 popover 닫기
+  useEffect(() => { if (checked) loadNotis(); setNavOpen(false); setProfileOpen(false); }, [location.pathname, checked, loadNotis]);
 
   if (!checked) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
 
   const unread = notis.filter((n) => !n.read).length;
+  // 아바타 이니셜(이름 우선, 없으면 이메일 첫 글자)
+  const avatarInitial = (session?.name || session?.email || "?").trim().charAt(0).toUpperCase();
 
   // 숨김 설정 반영 (핵심 메뉴는 항상 표시), 빈 섹션 제거
   const visibleNav = NAV.map((grp) => ({
@@ -151,100 +161,89 @@ export default function AppShell() {
     navigate("/login", { replace: true });
   };
 
-  const markAllRead = async () => {
-    for (const n of notis.filter((x) => !x.read)) {
-      await store.notifications.save({ ...n, read: true });
-    }
-    loadNotis();
-  };
-
-  // 알림 벨 (사이드바 foot=desktop / topbar=mobile 공용 렌더)
-  const bell = (extra = "") => (
-    <div className={`bell-wrap ${extra}`}>
-      <button className="btn sm" onClick={() => setBellOpen((v) => !v)} title="알림">
-        <Bell size={15} />{unread > 0 && <span className="bell-badge">{unread}</span>}
-      </button>
-      {bellOpen && (
-        <div className="bell-panel" onMouseLeave={() => setBellOpen(false)}>
-          <div className="row" style={{ marginBottom: 8 }}>
-            <strong>알림센터</strong>
-            <div className="spacer" />
-            <button className="chip" onClick={markAllRead}>모두 읽음</button>
-            <Link className="chip blue" to="/notifications" onClick={() => setBellOpen(false)}>전체</Link>
-          </div>
-          {notis.length === 0 ? (
-            <div className="dim" style={{ padding: "12px 0" }}>알림이 없습니다</div>
-          ) : (
-            notis.slice(0, 8).map((n) => (
-              <Link
-                key={n.id}
-                to={n.quote_id ? `/quotes/${n.quote_id}` : "/notifications"}
-                className={`noti ${n.read ? "" : "unread"}`}
-                onClick={() => setBellOpen(false)}
-              >
-                <div className="t">{n.title}</div>
-                <div className="b">{n.body}</div>
-              </Link>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="shell">
-      <aside className={`sidebar${navOpen ? " open" : ""}`}>
-        <div className="brand">
-          <Link to="/" onClick={() => setNavOpen(false)} aria-label="홈으로">
-            <img className="brand-logo" src="/logo.png" alt="애드텍디자인 — 옥외광고 견적" />
-          </Link>
-          <div className="spacer" />
-          <button className="btn icon-only ghost drawer-only" onClick={() => setNavOpen(false)} aria-label="메뉴 닫기">
-            <X size={18} />
+      <header className="appbar no-print">
+        <button
+          className="btn icon-only ghost appbar-burger"
+          onClick={() => setNavOpen(true)}
+          aria-label="메뉴 열기"
+        >
+          <Menu size={18} />
+        </button>
+        <Link to="/" className="appbar-brand" aria-label="홈으로">
+          <img className="brand-logo" src="/logo.png" alt="애드텍디자인 — 옥외광고 견적" />
+        </Link>
+        <HeaderSearch />
+        <div className="profile-wrap">
+          <button
+            className="profile-btn"
+            onClick={() => setProfileOpen((v) => !v)}
+            aria-label={unread > 0 ? `프로필 — 안 읽은 알림 ${unread}건` : "프로필"}
+            aria-expanded={profileOpen}
+          >
+            <span className="avatar">
+              {avatarInitial}
+              {unread > 0 && <span className="avatar-dot" aria-hidden />}
+            </span>
           </button>
-        </div>
-        <nav>
-          {visibleNav.map((grp) => (
-            <div key={grp.section} className="nav-group">
-              <div className="nav-section">{grp.section}</div>
-              {grp.items.map((n) => (
-                <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setNavOpen(false)} className={({ isActive }) => (isActive ? "active" : "")}>
-                  <span className="ic"><n.icon size={18} /></span>
-                  {n.label}
-                </NavLink>
-              ))}
+          {profileOpen && (
+            <div className="profile-menu" onMouseLeave={() => setProfileOpen(false)}>
+              <div className="profile-head">
+                <span className="avatar lg">{avatarInitial}</span>
+                <div className="profile-id">
+                  <div className="nm">{session?.name || "사용자"}</div>
+                  <div className="em">
+                    {session?.email}
+                    {session?.provider === "kakao" ? " · 카카오" : ""}
+                  </div>
+                </div>
+              </div>
+              <Link className="profile-item" to="/notifications" onClick={() => setProfileOpen(false)}>
+                <Bell size={16} /> 알림센터
+                {unread > 0 && <span className="profile-count">{unread}</span>}
+              </Link>
+              <button className="profile-item" onClick={toggleTheme}>
+                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                {theme === "dark" ? "라이트 모드" : "다크 모드"}
+              </button>
+              <div className="profile-sep" />
+              <button className="profile-item danger" onClick={onLogout}>
+                <LogOut size={16} /> 로그아웃
+              </button>
             </div>
-          ))}
-        </nav>
-        <div className="foot">
-          <div className="u">
-            {session?.name || session?.email}
-            {session?.provider === "kakao" ? " · 카카오" : ""}
-          </div>
-          <div className="row" style={{ gap: 8 }}>
-            {bell("bell-up")}
-            <button className="btn sm" onClick={toggleTheme}>{theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}</button>
-            <button className="btn sm" onClick={onLogout}>로그아웃</button>
-          </div>
+          )}
         </div>
-      </aside>
+      </header>
 
-      {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
+      <div className="body">
+        <aside className={`sidebar${navOpen ? " open" : ""}`}>
+          <nav>
+            {visibleNav.map((grp) => (
+              <div key={grp.section} className="nav-group">
+                <div className="nav-section">{grp.section}</div>
+                {grp.items.map((n) => (
+                  <NavLink key={n.to} to={n.to} end={n.end} onClick={() => setNavOpen(false)} className={({ isActive }) => (isActive ? "active" : "")}>
+                    <span className="ic"><n.icon size={18} /></span>
+                    {n.label}
+                  </NavLink>
+                ))}
+              </div>
+            ))}
+          </nav>
+        </aside>
 
-      <main className="main">
-        <div className="topbar no-print">
-          <Link to="/" className="topbar-only" aria-label="홈으로">
-            <img className="topbar-logo" src="/logo.png" alt="애드텍디자인" />
-          </Link>
-          <div className="spacer" />
-          {bell("topbar-only")}
-          <button className="btn icon-only ghost topbar-only" onClick={() => setNavOpen(true)} aria-label="메뉴 열기">
-            <Menu size={18} />
-          </button>
-        </div>
-        <Outlet />
-      </main>
+        {navOpen && <div className="nav-backdrop" onClick={() => setNavOpen(false)} />}
+
+        <main className="main">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* 가입 직후 1회: 회사(공급자) 정보 온보딩 */}
+      {needCompany && (
+        <OnboardingCompany managerName={session?.name} onClose={() => setNeedCompany(false)} />
+      )}
     </div>
   );
 }

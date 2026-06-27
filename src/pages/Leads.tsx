@@ -5,7 +5,8 @@ import { fmtDate } from "@/lib/quote";
 import type { Lead, LeadStage } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, Inbox, Trash2 } from "lucide-react";
+import { Plus, Inbox, Trash2, Pencil, FileText } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 const SOURCE_LABEL: Record<Lead["source"], string> = {
   phone: "전화", form: "폼", kakao: "카카오", "walk-in": "방문",
@@ -79,11 +80,11 @@ export default function Leads() {
       key: "act",
       header: "관리",
       render: (l) => (
-        <div className="row" style={{ gap: 4 }}>
-          <Button size="sm" variant="secondary" onClick={() => convert(l)}>견적전환</Button>
-          <Button size="sm" onClick={() => setEdit(l)}>편집</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(l)} />
-        </div>
+        <RowMenu actions={[
+          { label: "견적전환", icon: <FileText size={15} />, onClick: () => convert(l) },
+          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit(l) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(l) },
+        ]} />
       ),
     },
   ];

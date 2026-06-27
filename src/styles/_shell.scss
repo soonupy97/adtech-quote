@@ -1,7 +1,14 @@
-// 앱 셸 / 사이드바
+// 앱 셸: 상단 헤더 + 그 아래 (사이드바 | 메인)
 .shell {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
+}
+// 헤더 아래 본문 영역(사이드바 + 메인을 가로로 배치)
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
 }
 .sidebar {
   width: 236px;
@@ -13,9 +20,9 @@
   flex-direction: column;
   gap: 4px;
   position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden; // 스크롤은 nav 가 담당(브랜드/푸터 고정)
+  top: var(--appbar-h); // 헤더 높이만큼 내려서 고정
+  height: calc(100vh - var(--appbar-h));
+  overflow: hidden; // 스크롤은 nav 가 담당
 }
 .sidebar .brand {
   display: flex;
@@ -45,6 +52,7 @@
   display: block;
   height: 36px;
   width: auto;
+  padding: 0; // 로고는 배경·패딩 없이 이미지 그대로
 }
 .sidebar nav {
   display: flex;
@@ -77,7 +85,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-radius: var(--pill);
+  border-radius: var(--r-md); // Cursor 8px dialect(내비 행)
   color: var(--text-2);
   font-weight: 500;
   font-size: 14px;
@@ -134,15 +142,6 @@
   margin-top: 4px;
 }
 
-// 모바일 전용 UI 토글: 드로어 닫기(X)·햄버거·상단 로고는 데스크톱에서 숨김
-.drawer-only {
-  display: none;
-}
-.topbar-logo {
-  height: 28px;
-  width: auto;
-}
-
 @media (max-width: 1024px) {
   // 사이드바 → 좌측 오프캔버스 드로어(햄버거로 열고 닫음)
   .sidebar {
@@ -168,14 +167,6 @@
     background: rgba(0, 0, 0, 0.5);
     animation: fade 0.15s ease;
   }
-  // 드로어 닫기 버튼 노출
-  .drawer-only {
-    display: inline-flex;
-  }
-  // 드로어 푸터의 벨은 상단바에 별도로 있으므로 숨김
-  .sidebar .foot .bell-wrap {
-    display: none;
-  }
   .main {
     padding: 20px 16px;
   }
@@ -196,13 +187,15 @@
 // 로그인 화면 (에디토리얼 페이퍼)
 .auth-wrap {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
+  display: flex;
+  overflow-y: auto; // 폼이 화면보다 길면 컨테이너가 스크롤(내용 잘림 방지)
   padding: 20px;
 }
 .auth-card {
   width: 100%;
   max-width: 400px;
+  // 화면보다 짧으면 중앙 정렬, 길면 위에서부터 → 스크롤로 전체 도달(place-items:center 의 상단 잘림 회피)
+  margin: auto;
   background: var(--card);
   border: 1px solid var(--hairline);
   border-radius: var(--r-lg);
@@ -216,6 +209,21 @@
   font-size: 20px;
   letter-spacing: -0.02em;
   margin-bottom: 8px;
+}
+// 폼 헤더(제목 + 설명) — 로고 숨김 시 상단을 채우는 위계
+.auth-head {
+  margin-bottom: 24px;
+}
+.auth-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.auth-desc {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-3);
 }
 .auth-card .logo-row .logo {
   width: 34px;
@@ -231,10 +239,9 @@
   height: 48px;
   width: auto;
 }
-// 다크모드: 로고(네이비 글자)가 어두운 배경에 묻히지 않도록 흰 칩 처리
-[data-theme="dark"] .brand-logo,
-[data-theme="dark"] .auth-logo,
-[data-theme="dark"] .topbar-logo {
+// 다크모드: 로그인 로고만 어두운 배경에 묻히지 않도록 흰 칩 처리
+// (헤더 brand-logo 는 배경 없이 투명하게 둔다)
+[data-theme="dark"] .auth-logo {
   background: #fff;
   padding: 4px 8px;
   border-radius: var(--r-md);
@@ -283,4 +290,332 @@
   flex: 1;
   height: 1px;
   background: var(--hairline);
+}
+
+// ── SaaS 2단 분할 인증 레이아웃 ──────────────────────────────
+.auth-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+// 좌측 브랜드·가치제안 패널
+.auth-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 56px 48px;
+  background: linear-gradient(155deg, var(--primary) 0%, var(--toss-blue-dark) 100%);
+  color: #fff;
+}
+.auth-aside .aside-mark {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.auth-aside .aside-hero h2 {
+  font-size: 36px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.auth-aside .aside-sub {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 32ch;
+}
+.auth-aside .aside-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+}
+.auth-aside .aside-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+}
+.auth-aside .aside-list .tick {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.18);
+}
+.auth-main {
+  display: flex;
+  overflow-y: auto; // 가입 폼이 길어지면 이 영역이 스크롤(카드 내부 스크롤바 대신)
+  padding: 40px 20px;
+  background: var(--bg);
+}
+// 컨테이너보다 길면 위에서부터, 짧으면 중앙 — margin auto 가 둘 다 안전하게 처리
+.auth-main > .auth-card {
+  margin: auto;
+}
+// 태블릿 이하(≤1024): 좌측 브랜드 패널 숨기고 폼만 (브레이크포인트 체계 통일)
+@media (max-width: 1024px) {
+  .auth-split {
+    grid-template-columns: 1fr;
+  }
+  .auth-aside {
+    display: none;
+  }
+}
+// 데스크톱(≥1025): 좌측 패널이 브랜드를 담당하므로 폼 상단 로고는 숨김(중복 제거).
+// 모바일에선 패널이 숨겨지므로 폼 로고가 유일한 브랜딩 → 유지.
+@media (min-width: 1025px) {
+  .auth-split .logo-row {
+    display: none;
+  }
+}
+
+// ── 비밀번호 표시 토글 + 강도 미터 ──────────────────────────
+.pw-field {
+  position: relative;
+}
+.pw-field input {
+  padding-right: 40px;
+}
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: none;
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  cursor: pointer;
+}
+.pw-toggle:hover {
+  color: var(--ink);
+  background: var(--surface-soft);
+}
+.pw-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.pw-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.pw-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--hairline);
+}
+.pw-bar.on.s1 {
+  background: var(--danger);
+}
+.pw-bar.on.s2 {
+  background: var(--warn);
+}
+.pw-bar.on.s3 {
+  background: var(--primary);
+}
+.pw-bar.on.s4 {
+  background: var(--success);
+}
+.pw-strength-label {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.pw-strength-label.s1 {
+  color: var(--danger);
+}
+.pw-strength-label.s2 {
+  color: var(--warn);
+}
+.pw-strength-label.s3 {
+  color: var(--primary);
+}
+.pw-strength-label.s4 {
+  color: var(--success);
+}
+
+// 비밀번호 요건 라이브 체크리스트
+.pw-meter {
+  margin-top: 8px;
+}
+.pw-checks {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.pw-checks li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.pw-checks li svg {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+.pw-checks li.ok,
+.pw-checks li.ok svg {
+  color: var(--success);
+}
+
+// 인라인 필드 에러(이메일·비밀번호 등)
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--danger);
+}
+.field-error svg {
+  flex-shrink: 0;
+}
+
+// 폼 구획(예: 가입의 '회사 정보') — 상단 헤어라인 + 라벨로 그룹핑
+.form-section {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+}
+.form-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+// 좁은 폼 안의 2단 그리드 간격은 살짝 좁게
+.form-section .grid.cols-2 {
+  gap: 12px;
+}
+
+// 허니팟 — 사람·스크린리더 모두에서 완전히 숨김(봇만 인지/입력)
+.hp-field {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// 이메일 오타 추정 제안
+.email-suggest {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.email-suggest button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+// ── 약관·개인정보 동의 ──────────────────────────────────────
+.agree {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--canvas-soft);
+}
+// 커스텀 체크박스(표준 16px) — 흰색 SVG 체크로 항상 흰 체크 보장(accent-color 자동 대비 회피)
+.agree input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0; // 전역 input 패딩(12/16) 제거 → 정사각형 유지
+  border: 1.5px solid var(--hairline-strong);
+  border-radius: var(--r-xs);
+  background: var(--canvas);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.agree input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background:
+    var(--primary)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5'/%3E%3C/svg%3E")
+    center / 13px 13px no-repeat;
+}
+.agree-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.agree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agree-chk {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.agree-chk b {
+  color: var(--primary);
+  font-weight: 700;
+}
+.agree-view {
+  flex-shrink: 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--text-3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.terms-doc {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+  white-space: pre-wrap;
 }

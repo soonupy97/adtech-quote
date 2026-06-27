@@ -6,7 +6,8 @@ import type { QuoteStatus, QuoteSummary } from "@/types";
 import { Button, EmptyState, Input, Modal, StatusBadge, Table, type Column } from "@/components/ui";
 import CopyLinkField from "@/components/CopyLinkField";
 import { useToast } from "@/components/Toast";
-import { FileText, GripVertical, Link2, Plus, Search, Send, Trash2 } from "lucide-react";
+import { FileText, GripVertical, Link2, Plus, Search, Send, Trash2, Pencil, Copy } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 // 상태 추적(발송/열람/수락/거절)은 그대로 두고, 목록 필터만 3개로 단순화.
 // "발송됨" = 작성중이 아닌 모든 견적(발송·열람·수락·거절)을 묶는다.
@@ -134,16 +135,14 @@ export default function Quotes() {
       key: "act",
       header: "관리",
       render: (it) => (
-        <div className="row" style={{ gap: 4 }}>
-          {it.status === "draft" ? (
-            <Button size="sm" variant="primary" title="고객에게 발송" aria-label="고객에게 발송" icon={<Send size={14} />} onClick={() => send(it.id)} />
-          ) : (
-            <Button size="sm" variant="secondary" title="발송 링크 다시 보기·복사" aria-label="발송 링크" icon={<Link2 size={15} />} onClick={() => send(it.id)} />
-          )}
-          <Button size="sm" title="편집" onClick={() => navigate(`/editor/${it.id}`)}>편집</Button>
-          <Button size="sm" title="복제" onClick={() => dup(it.id)}>복제</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(it.id, it.quote_no)} />
-        </div>
+        <RowMenu actions={[
+          it.status === "draft"
+            ? { label: "발송", icon: <Send size={15} />, onClick: () => send(it.id) }
+            : { label: "발송 링크 복사", icon: <Link2 size={15} />, onClick: () => send(it.id) },
+          { label: "편집", icon: <Pencil size={15} />, onClick: () => navigate(`/editor/${it.id}`) },
+          { label: "복제", icon: <Copy size={15} />, onClick: () => dup(it.id) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(it.id, it.quote_no) },
+        ]} />
       ),
     },
   ];

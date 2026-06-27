@@ -479,6 +479,27 @@ export const supabaseStore: Store = {
   signage: makeColl("signage"),
   events: makeColl("events"),
 
+  async hydrateCompany() {
+    const { data: user } = await sb().auth.getUser();
+    const company = user.user?.user_metadata?.company as Partial<Settings["supplier"]> | undefined;
+    if (!company || !(company.name || "").trim()) return;
+    // 이미 settings.supplier.name 이 있으면 덮어쓰지 않는다(멱등)
+    const { data } = await sb().from("settings").select("supplier").maybeSingle();
+    const existing = (data?.supplier || {}) as Partial<Settings["supplier"]>;
+    if ((existing.name || "").trim()) return;
+    const settings = await this.getSettings();
+    await this.saveSettings({
+      ...settings,
+      supplier: {
+        name: company.name || "",
+        bizno: company.bizno || "",
+        ceo: company.ceo || "",
+        addr: company.addr || "",
+        tel: company.tel || "",
+        manager: company.manager || "",
+      },
+    });
+  },
   async seedIfEmpty() {
     const { count } = await sb()
       .from("catalog_items")

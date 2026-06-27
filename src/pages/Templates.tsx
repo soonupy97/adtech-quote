@@ -6,7 +6,8 @@ import { calcTotals } from "@/lib/quote";
 import type { Template } from "@/types";
 import { Button, EmptyState, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, LayoutTemplate, Trash2 } from "lucide-react";
+import { Plus, LayoutTemplate, Trash2, Check } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 // 부록 A20 견적 템플릿 저장/불러오기
 export default function Templates() {
@@ -57,10 +58,10 @@ export default function Templates() {
       key: "act",
       header: "관리",
       render: (t) => (
-        <div className="row" style={{ gap: 4 }}>
-          <Button size="sm" variant="secondary" onClick={() => apply(t)}>적용</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(t)} />
-        </div>
+        <RowMenu actions={[
+          { label: "적용", icon: <Check size={15} />, onClick: () => apply(t) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(t) },
+        ]} />
       ),
     },
   ];

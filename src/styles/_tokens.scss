@@ -1,83 +1,103 @@
 // ─────────────────────────────────────────────────────────────
-// Figma 마케팅 디자인 시스템 토큰 (DESIGN.md)
-// 모노크롬 코어(black/white) + 오버사이즈 파스텔 컬러블록.
+// Cursor 마케팅 디자인 시스템 토큰
+// 웜 크림 캔버스 + 웜 잉크(near-black) + 단일 브랜드 전압 Cursor Orange(scarce).
+// hairline-only 깊이(드롭섀도 없음), 에디토리얼 보이스(display 400).
 // 앱 호환을 위해 기존 변수명(--toss-blue, --bg …)을 유지하고 값만 새 시스템으로 매핑.
 // ─────────────────────────────────────────────────────────────
 :root {
-  // 폰트
-  --font-sans: "Pretendard Variable", Pretendard, "SF Pro Display", system-ui,
-    -apple-system, helvetica, sans-serif;
+  // 폰트 — 한글 앱이라 sans 본문은 Pretendard 유지(Inter-계열, 한글 지원).
+  // CursorGothic→Inter 대체 스택을 앞에 두되 한글 글리프는 Pretendard가 담당.
+  --font-sans: "CursorGothic", "Pretendard Variable", Pretendard, Inter,
+    system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+    "Liberation Mono", monospace; // 모든 코드 표면
 
-  // 코어: 잉크(검정) / 캔버스(흰색)
-  --ink: #181818;          // 모든 본문·헤드라인 텍스트
-  --primary: #111111;      // 모든 primary CTA / 선택 상태
-  --canvas: #ffffff;
-  --surface-soft: #f4f4f2; // 오프화이트 타일(아이콘버튼·템플릿카드·보조버튼)
-  --hairline: #e6e6e3;     // 1px 보더
-  --hairline-soft: #f0f0ee;// 더 옅은 디바이더
+  // 코어: 웜 잉크 / 웜 크림 / Cursor Orange
+  --ink: #26251e;          // 디스플레이·본문 강조(웜 near-black, 순검정 금지)
+  --primary: #f0851b;      // 브랜드 오렌지(앰버) — primary CTA·워드마크 전용
+  --secondary: #204395;       // 보조(서브) 브랜드 컬러 — 네이비
+  --secondary-dark: #182f6b;  // secondary hover/press(어둡게)
+  --secondary-soft: #e8edf8;  // secondary 옅은 틴트(배경·뱃지)
+  --canvas: #ffffff;       // surface-card / on-primary(흰 글씨)
+  --canvas-soft: #fafaf7;  // IDE-pane 등 소프트 흰 배경
+  --surface-soft: #efeee8; // 오프크림 타일(보조버튼·타일·합계·박스)
+  --surface-strong: #e6e5e0; // 뱃지·태그 pill 바탕
+  --hairline: #e6e5e0;     // 1px 디바이더
+  --hairline-soft: #f0efe9;// 더 옅은 디바이더
+  --hairline-strong: #cfcdc4; // 강한 패널 아웃라인
 
-  // 파스텔 컬러블록
+  // AI 타임라인 파스텔 (시그니처) — 제품 내 에이전트 타임라인 전용. 시스템색 금지.
+  --timeline-thinking: #dfa88f; // peach
+  --timeline-grep: #9fc9a2;     // mint
+  --timeline-read: #9fbbe0;     // pastel blue
+  --timeline-edit: #c0a8dd;     // lavender
+  --timeline-done: #c08532;     // warm gold
+
+  // 파스텔 컬러블록(데코) — 웜 팔레트에 맞춰 톤 보정
   --block-lime: #e6f5a8;
-  --block-lilac: #e6e0fa;
+  --block-lilac: #e6e5e0;  // active/선택 = 웜 뉴트럴(오렌지 확산 방지)
   --block-cream: #f6efe1;
   --block-mint: #d6f3e4;
   --block-pink: #fadfeb;
   --block-coral: #fbddce;
-  --block-navy: #232142;
+  --block-navy: #26251e;   // 잉크와 통일
 
-  --accent-magenta: #f5279a; // 단발 프로모션 CTA
-  --success: #14ae5c;
-  --danger: #e5484d;
-  --warn: #f5a623;
+  --accent-magenta: #f0851b; // 프로모션도 브랜드 오렌지로 통일
+  --success: #1f8a65;        // Cursor semantic success
+  --danger: #cf2d56;         // Cursor semantic error
+  --warn: #c08532;           // warm gold
 
   // ── 기존 변수명 매핑(값만 교체) ──
-  --toss-blue: #111111;        // accent → 잉크(링크/링/active 텍스트)
-  --toss-blue-dark: #000000;
-  --toss-blue-soft: #e6e0fa;   // soft 버튼/active 배경 → 라일락
-  --bg: #fbfbfa;               // 캔버스(거의 흰색)
-  --card: #ffffff;
-  --fill: #f4f4f2;             // surface-soft
-  --fill-2: #f8f8f6;
-  --line: #e6e6e3;             // hairline
-  --text: #181818;
-  --text-2: #4a4a47;           // 메타/라벨(앱 적응: 절제된 그레이)
-  --text-3: #8a8a86;           // 캡션/dim
+  --toss-blue: #26251e;        // accent → 잉크(링크/링/today/active 텍스트). 오렌지 아님.
+  --toss-blue-dark: #cc7117;   // primary CTA press(앰버 누름 — primary 어둡게)
+  --toss-blue-soft: #fdeedd;   // 본인 메시지·읽지않음 = 옅은 앰버 틴트
+  --bg: #f7f7f4;               // 웜 크림 페이지 바닥
+  --card: #ffffff;             // surface-card
+  --fill: #efeee8;             // 소프트 타일
+  --fill-2: #f3f2ec;           // 더 옅은 행 hover/패널
+  --line: #e6e5e0;             // hairline
+  --text: #26251e;             // ink
+  --text-2: #5a5852;           // body(러닝 텍스트)
+  --text-3: #807d72;           // muted/캡션
 
-  // 라운드 스케일 (DESIGN.md)
-  --r-xs: 2px;
-  --r-sm: 6px;
-  --r-md: 8px;
-  --r-lg: 24px;
-  --r-xl: 32px;
-  --pill: 50px;
-  --r-full: 9999px;
-  --radius: 24px;     // 카드/컬러블록 = lg
+  // 라운드 스케일 (Cursor) — CTA/입력 8px(developer dialect), 카드 12px, 뱃지·타임라인 pill.
+  --r-xs: 4px;        // 인라인 태그
+  --r-sm: 6px;        // 컴팩트 행
+  --r-md: 8px;        // CTA 버튼·폼 입력
+  --r-lg: 12px;       // 카드·IDE 패널
+  --r-xl: 16px;       // 큰 피처 카드(드묾)
+  --pill: 9999px;     // 뱃지·칩·타임라인 pill
+  --r-full: 9999px;   // 아바타·카운트 배지·점
+  --radius: 12px;     // 카드 = lg
   --radius-sm: 8px;   // 입력 = md
 
-  // 상태(파스텔 그라운드 + 색 점)
-  --st-draft: #6b6b68;     --st-draft-bg: #f0f0ee;
-  --st-sent: #d98324;      --st-sent-bg: #f6efe1;   // cream
-  --st-viewed: #6a4df5;    --st-viewed-bg: #e6e0fa; // lilac
-  --st-accepted: #14ae5c;  --st-accepted-bg: #d6f3e4; // mint
-  --st-rejected: #e5484d;  --st-rejected-bg: #fadfeb; // pink
+  // 상태(파스텔 그라운드 + 색 점) — 웜 캔버스에 맞춰 보정
+  --st-draft: #807d72;     --st-draft-bg: #efeee8;
+  --st-sent: #c08532;      --st-sent-bg: #f6efe1;   // warm gold/cream
+  --st-viewed: #7a5bd0;    --st-viewed-bg: #ece6f5; // soft lavender
+  --st-accepted: #1f8a65;  --st-accepted-bg: #d6f3e4; // mint
+  --st-rejected: #cf2d56;  --st-rejected-bg: #fadfeb; // pink
 
-  // 그림자: 시스템은 shadow-light → 기본은 사실상 없음(헤어라인으로 분리)
+  // 그림자: hairline-only 지향(드롭섀도 없음). 진짜 떠 있는 요소만 웜 잉크 whisper.
   --shadow: 0 0 0 1px var(--hairline);
-  --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-3: 0 20px 60px rgba(0, 0, 0, 0.18);
+  --shadow-2: 0 1px 3px rgba(38, 37, 30, 0.06);  // 드롭다운/액션바/토스트
+  --shadow-3: 0 6px 20px rgba(38, 37, 30, 0.1);  // 모달/드로어
 }
 
 // 다크: 마케팅엔 미문서. 네이비 컬러블록을 차용한 절제된 다크.
 [data-theme="dark"] {
   --ink: #f2f2f0;
-  --primary: #f2f2f0;
+  --primary: #f0851b;          // 다크에서도 CTA는 브랜드 오렌지(앰버)
+  --secondary: #5b7fd6;        // 다크: 네이비를 밝게 보정(어두운 배경 대비)
+  --secondary-dark: #7a98e0;   // 다크 hover/press(더 밝게)
+  --secondary-soft: #222a48;   // 다크 틴트 표면
   --canvas: #1a1830;
   --surface-soft: #262445;
   --hairline: #322f55;
   --hairline-soft: #2a2848;
 
-  --toss-blue: #cdc6ff;
-  --toss-blue-dark: #ffffff;
+  --toss-blue: #f2f2f0;        // 링크/액센트 = 밝은 잉크
+  --toss-blue-dark: #ffa04a;   // primary press(밝은 앰버)
   --toss-blue-soft: #2e2a55;
   --bg: #15132a;
   --card: #1d1b38;

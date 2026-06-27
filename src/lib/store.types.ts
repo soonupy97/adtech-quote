@@ -70,6 +70,10 @@ export interface Store {
   getSettings(): Promise<Settings>;
   saveSettings(s: Settings): Promise<Settings>;
 
+  // 가입 시 입력한 회사 정보(user_metadata.company)를 첫 로그인 때 settings.supplier 로 채움.
+  // 이미 회사명이 설정돼 있으면 건드리지 않는다(멱등).
+  hydrateCompany(): Promise<void>;
+
   // 시드
   seedIfEmpty(): Promise<boolean>;
   seedCatalog(): Promise<number>; // 누락된 기본 단가표(샘플) 항목 채우기 — 추가된 행 수 반환

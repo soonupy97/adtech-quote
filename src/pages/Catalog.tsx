@@ -6,7 +6,8 @@ import { downloadCSV, parseCSV, toCSV } from "@/lib/csv";
 import type { CatalogItem, Grade } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Tags, X, Plus, Trash2 } from "lucide-react";
+import { Tags, X, Plus, Trash2, Pencil } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 const empty: CatalogItem = {
   id: "", type: ITEM_TYPES[0], grade: "일반", unit: "㎡", price: 0, memo: "",
@@ -74,10 +75,10 @@ export default function Catalog() {
       key: "act",
       header: "관리",
       render: (it) => (
-        <div className="row" style={{ gap: 4 }}>
-          <Button size="sm" onClick={() => setEdit({ ...empty, ...it })}>편집</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(it)} />
-        </div>
+        <RowMenu actions={[
+          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit({ ...empty, ...it }) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(it) },
+        ]} />
       ),
     },
   ];

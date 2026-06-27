@@ -80,6 +80,18 @@ textarea:focus {
   border-color: var(--ink);
   box-shadow: 0 0 0 2px var(--ink) inset;
 }
+// 검증 실패 입력 — 빨간 보더(+포커스 시 빨간 링)
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+input[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger) inset;
+}
 textarea {
   resize: vertical;
   min-height: 84px;
@@ -223,7 +235,7 @@ textarea::placeholder {
   justify-content: center;
   gap: 8px;
   border: none;
-  border-radius: var(--pill);
+  border-radius: var(--r-md); // Cursor: CTA = 8px(developer dialect), 풀-pill 아님
   padding: 9px 20px;
   font-size: 16px;
   font-weight: 500;
@@ -556,7 +568,7 @@ textarea::placeholder {
   align-items: center;
 }
 .toast {
-  background: var(--primary);
+  background: var(--ink); // 잉크 pill(오렌지는 CTA·워드마크에만 — scarce)
   color: var(--canvas);
   padding: 12px 24px;
   border-radius: var(--pill);
@@ -915,6 +927,140 @@ textarea::placeholder {
   .bento.cols-4 { grid-template-columns: 1fr; }
   .bento .tile.col-2,
   .bento .tile.full { grid-column: auto; }
+}
+
+// ── 대시보드 개편 ────────────────────────────────────────────
+// 인사 헤더
+.dash-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.dash-head > .btn {
+  margin-left: auto;
+}
+.dash-greet {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.dash-date {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+// KPI 타일 상단: 라벨 + 아이콘 배지
+.bento .tile .kpi-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.bento .tile .kpi-top .k {
+  flex: 1;
+}
+.kpi-ic {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--toss-blue-soft);
+  color: var(--primary);
+}
+
+// 2단 그리드: 최근 견적(주) | 사이드(후속조치·빠른작업)
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+  align-items: start;
+}
+.dash-side {
+  display: flex;
+  flex-direction: column;
+}
+// dash-side 내부 카드 간 간격은 .card + .card(16px)에 위임
+@media (max-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// 후속 조치: 비어있을 때
+.dash-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  font-size: 14px;
+  color: var(--text-3);
+}
+.dash-clear svg {
+  color: var(--success);
+}
+// 후속 조치 알림(클릭 가능한 배너)
+.dash-alert {
+  display: block;
+  text-decoration: none;
+}
+.dash-alert + .dash-alert {
+  margin-top: 8px;
+}
+.dash-alert-msg {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+// 빠른 작업
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.12s, border-color 0.12s;
+}
+.quick-action:hover {
+  background: var(--surface-soft);
+  border-color: var(--hairline-strong);
+}
+.quick-action .qa-ic {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  background: var(--toss-blue-soft);
+  color: var(--primary);
+}
+.dash-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+}
+.dash-more:hover {
+  color: var(--ink);
 }
 
 // 서명 패드

@@ -6,7 +6,8 @@ import { downloadCSV, toCSV } from "@/lib/csv";
 import type { QuoteSummary, Signage as SignageT } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { MapPin, Plus, SignpostBig, Trash2 } from "lucide-react";
+import { MapPin, Plus, SignpostBig, Trash2, Pencil } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 const STATUS_LABEL: Record<SignageT["status"], string> = { active: "게시중", removed: "철거" };
 const empty: SignageT = {
@@ -103,10 +104,10 @@ export default function Signage() {
       key: "act",
       header: "관리",
       render: (s) => (
-        <div className="row" style={{ gap: 4 }}>
-          <Button size="sm" onClick={() => setEdit(s)}>편집</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(s)} />
-        </div>
+        <RowMenu actions={[
+          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit(s) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(s) },
+        ]} />
       ),
     },
   ];

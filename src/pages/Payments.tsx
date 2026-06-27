@@ -5,7 +5,8 @@ import { calcTotals, won } from "@/lib/quote";
 import type { Payment, PaymentKind, Quote, QuoteSummary } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, Wallet, Trash2 } from "lucide-react";
+import { Plus, Wallet, Trash2, Check, Undo2 } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 const KIND_LABEL: Record<PaymentKind, string> = { deposit: "계약금", interim: "중도금", balance: "잔금" };
 
@@ -64,10 +65,12 @@ export default function Payments() {
       key: "act",
       header: "관리",
       render: (p) => (
-        <div className="row" style={{ gap: 4 }}>
-          <Button size="sm" variant={p.paid ? "ghost" : "secondary"} onClick={() => togglePaid(p)}>{p.paid ? "취소" : "입금확인"}</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(p)} />
-        </div>
+        <RowMenu actions={[
+          p.paid
+            ? { label: "입금확인 취소", icon: <Undo2 size={15} />, onClick: () => togglePaid(p) }
+            : { label: "입금확인", icon: <Check size={15} />, onClick: () => togglePaid(p) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(p) },
+        ]} />
       ),
     },
   ];

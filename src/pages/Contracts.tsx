@@ -6,7 +6,8 @@ import type { Contract, ContractParty, Quote, QuoteSummary } from "@/types";
 import { Button, Chip, EmptyState, Field, Modal, Select, Table, type Column } from "@/components/ui";
 import SignaturePad, { type SignaturePadHandle } from "@/components/SignaturePad";
 import { useToast } from "@/components/Toast";
-import { Plus, FileSignature, Check, Trash2 } from "lucide-react";
+import { Plus, FileSignature, Check, Trash2, PenLine } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 // 부록 A23 전자계약 전환 + 다중 서명자
 export default function Contracts() {
@@ -92,12 +93,13 @@ export default function Contracts() {
       key: "act",
       header: "관리",
       render: (c) => (
-        <div className="row" style={{ gap: 4 }}>
-          {c.parties.map((p, i) => !p.signature && (
-            <Button key={i} size="sm" variant="secondary" onClick={() => setSigning({ c, idx: i })}>{p.role} 서명</Button>
-          ))}
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(c)} />
-        </div>
+        <RowMenu actions={[
+          ...c.parties
+            .map((p, i) => ({ p, i }))
+            .filter(({ p }) => !p.signature)
+            .map(({ p, i }) => ({ label: `${p.role} 서명`, icon: <PenLine size={15} />, onClick: () => setSigning({ c, idx: i }) })),
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(c) },
+        ]} />
       ),
     },
   ];

@@ -4,7 +4,8 @@ import { downloadCSV, parseCSV, toCSV } from "@/lib/csv";
 import type { Client, Contact } from "@/types";
 import { Button, Chip, EmptyState, Field, Input, Modal, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { Plus, Building2, X, Trash2 } from "lucide-react";
+import { Plus, Building2, X, Trash2, Pencil } from "lucide-react";
+import RowMenu from "@/components/RowMenu";
 
 const empty: Client = {
   id: "", name: "", tel: "", addr: "", manager: "", memo: "", created_at: "",
@@ -75,10 +76,10 @@ export default function Clients() {
       key: "act",
       header: "관리",
       render: (c) => (
-        <div className="row" style={{ gap: 4 }}>
-          <Button size="sm" onClick={() => setEdit({ ...empty, ...c })}>편집</Button>
-          <Button size="sm" variant="danger" icon={<Trash2 size={14} />} title="삭제" aria-label="삭제" onClick={() => del(c)} />
-        </div>
+        <RowMenu actions={[
+          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit({ ...empty, ...c }) },
+          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(c) },
+        ]} />
       ),
     },
   ];

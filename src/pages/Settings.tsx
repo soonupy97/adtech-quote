@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
+import { Auth } from "@/lib/auth";
 import { uuid } from "@/lib/quote";
 import { DIM_UNITS, DEFAULT_QTY_UNITS } from "@/lib/units";
 import type { AdjMode, DiscountRule, PromoCode, Role, Settings as SettingsT } from "@/types";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input, Select, Textarea } from "@/components/ui";
-import { Check, Plus, X, Trash2 } from "lucide-react";
+import { Button, Field, Input, Modal, Select, Textarea } from "@/components/ui";
+import { AlertTriangle, Check, Plus, X, Trash2 } from "lucide-react";
 import IntegrationsPage from "./IntegrationsPage";
 import Activities from "./Activities";
 import { MENU_TOGGLES, MENU_EVENT } from "@/components/AppShell";
@@ -38,8 +40,28 @@ export default function Settings() {
   const [tab, setTab] = useState<Tab>("company");
   const [saving, setSaving] = useState(false);
   const [newUnit, setNewUnit] = useState("");
+  const navigate = useNavigate();
+  // 계정 삭제(회원 탈퇴)
+  const [myEmail, setMyEmail] = useState("");
+  const [delOpen, setDelOpen] = useState(false);
+  const [delText, setDelText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { store.getSettings().then((v) => { setS(v); setSaved(v); }); }, []);
+  useEffect(() => { Auth.current().then((u) => setMyEmail(u?.email || "")); }, []);
+
+  // 확인 문구(이메일)를 정확히 입력해야 활성화
+  const delConfirmed = !!myEmail && delText.trim().toLowerCase() === myEmail.toLowerCase();
+  const deleteAccount = async () => {
+    if (!delConfirmed || deleting) return;
+    setDeleting(true);
+    try {
+      const res = await Auth.deleteAccount();
+      if (!res.ok) { toast(res.msg || "계정 삭제에 실패했습니다."); return; }
+      toast("계정이 삭제되었습니다.");
+      navigate("/login", { replace: true });
+    } finally { setDeleting(false); }
+  };
 
   // 현재 값이 마지막 저장본과 다른지(미저장 변경 존재 여부)
   const dirty = useMemo(() => JSON.stringify(s) !== JSON.stringify(saved), [s, saved]);
@@ -136,6 +158,22 @@ export default function Settings() {
               <Field label="계약금"><Input value={def.deposit} onChange={(e) => setS({ ...s, defaults: { ...def, deposit: e.target.value } })} /></Field>
               <Field label="잔금"><Input value={def.balance} onChange={(e) => setS({ ...s, defaults: { ...def, balance: e.target.value } })} /></Field>
               <Field label="A/S"><Input value={def.as} onChange={(e) => setS({ ...s, defaults: { ...def, as: e.target.value } })} /></Field>
+            </div>
+          </div>
+
+          {/* 위험 구역 — 계정 삭제(회원 탈퇴) */}
+          <div className="card danger-zone">
+            <div className="card-title" style={{ color: "var(--danger)" }}>위험 구역</div>
+            <div className="dz-row">
+              <div>
+                <div className="dz-title">계정 삭제 (회원 탈퇴)</div>
+                <div className="dz-desc">
+                  계정과 함께 견적·거래처·계약·정산 등 <b>모든 데이터가 영구 삭제</b>됩니다. 이 작업은 되돌릴 수 없습니다.
+                </div>
+              </div>
+              <Button variant="danger" icon={<Trash2 size={15} />} onClick={() => { setDelText(""); setDelOpen(true); }}>
+                계정 삭제
+              </Button>
             </div>
           </div>
         </>
@@ -368,6 +406,39 @@ export default function Settings() {
           {dirty && <Button variant="ghost" onClick={revert} disabled={saving}>되돌리기</Button>}
           <Button variant="primary" loading={saving} disabled={!dirty} onClick={save}>저장</Button>
         </div>
+      )}
+
+      {delOpen && (
+        <Modal
+          title="계정 삭제"
+          onClose={() => !deleting && setDelOpen(false)}
+          footer={
+            <>
+              <Button variant="danger" icon={<Trash2 size={15} />} loading={deleting} disabled={!delConfirmed} onClick={deleteAccount}>
+                영구 삭제
+              </Button>
+              <Button variant="ghost" onClick={() => setDelOpen(false)} disabled={deleting}>취소</Button>
+            </>
+          }
+        >
+          <div className="banner no" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+            <AlertTriangle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+            <span>
+              계정과 <b>모든 데이터(견적·거래처·계약·정산·설정 등)</b>가 영구적으로 삭제되며 복구할 수 없습니다.
+              <br />
+              ※ 세금계산서·전자계약 등 법령상 보존 의무가 있는 기록은 관련 법에 따라 별도 보관될 수 있습니다.
+            </span>
+          </div>
+          <Field label={<>확인을 위해 이메일 <b>{myEmail}</b> 을(를) 입력하세요</>}>
+            <Input
+              value={delText}
+              onChange={(e) => setDelText(e.target.value)}
+              placeholder={myEmail}
+              autoComplete="off"
+              aria-invalid={!!delText && !delConfirmed}
+            />
+          </Field>
+        </Modal>
       )}
     </>
   );
