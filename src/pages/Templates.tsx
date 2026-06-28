@@ -59,8 +59,8 @@ export default function Templates() {
       header: "관리",
       render: (t) => (
         <RowMenu actions={[
-          { label: "적용", icon: <Check size={15} />, onClick: () => apply(t) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(t) },
+          { label: "적용", icon: <Check size={16} />, onClick: () => apply(t) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(t) },
         ]} />
       ),
     },

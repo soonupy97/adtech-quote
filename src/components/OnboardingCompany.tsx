@@ -84,7 +84,7 @@ export default function OnboardingCompany({
           <Button variant="primary" onClick={save} loading={busy}>
             저장하고 시작
           </Button>
-          <Button variant="ghost" onClick={skip}>
+          <Button variant="outline" onClick={skip}>
             나중에 하기
           </Button>
         </>

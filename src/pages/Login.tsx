@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth, type Consent } from "@/lib/auth";
 import { passwordError } from "@/lib/password";
+import { verifyEmailDeliverable } from "@/lib/email";
 import { useToast } from "@/components/Toast";
 import { Button, Field, Input } from "@/components/ui";
 import Modal from "@/components/Modal";
@@ -109,6 +110,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [cooldown, setCooldown] = useState(0); // 메일 재발송 쿨다운(초)
+  const [emailCheckErr, setEmailCheckErr] = useState(""); // 가입 시 도메인 검수(MX/일회용) 실패 메시지
 
   // 이미 로그인 상태면 대시보드로
   useEffect(() => {
@@ -136,6 +138,7 @@ export default function Login() {
     setFoundEmails(null);
     setHp("");
     setErr("");
+    setEmailCheckErr("");
     setTouched({});
   };
 
@@ -162,7 +165,14 @@ export default function Login() {
   const emailSuggest = useMemo(() => suggestEmail(email), [email]);
 
   // 필드별 검증(빈 문자열이면 정상)
-  const nameErr = () => (needName && !name.trim() ? "이름을 입력해 주세요." : "");
+  const nameErr = () => {
+    if (!needName) return "";
+    const n = name.trim();
+    if (!n) return "이름을 입력해 주세요.";
+    // 이름 칸에 이메일을 입력한 경우 안내(@ 포함이면 사실상 이메일)
+    if (n.includes("@") || EMAIL_RE.test(n)) return "이름란에 이메일을 입력하신 것 같아요. 실제 이름을 입력해 주세요.";
+    return "";
+  };
   const emailErr = () => {
     if (!needEmail) return "";
     if (!email.trim()) return "이메일을 입력해 주세요.";
@@ -178,8 +188,12 @@ export default function Login() {
   const pw2Err = () => (needPw2 && pw2 && pw !== pw2 ? "비밀번호가 일치하지 않습니다." : "");
 
   // 화면 표시용(터치된 필드만 노출; 비밀번호 확인은 입력 즉시)
-  const showNameErr = touched.name ? nameErr() : "";
-  const showEmailErr = touched.email ? emailErr() : "";
+  // 이름란에 이메일을 넣은 경우는 명백한 실수라 blur 전에도 즉시 필드 에러로 노출
+  const nameLooksEmail = needName && !!name.trim() && (name.includes("@") || EMAIL_RE.test(name.trim()));
+  const showNameErr = (touched.name ? nameErr() : "") ||
+    (nameLooksEmail ? "이름란에 이메일을 입력하신 것 같아요. 실제 이름을 입력해 주세요." : "");
+  // 형식/필수 에러 우선, 없으면 도메인 검수(MX/일회용) 에러를 같은 자리에 표시
+  const showEmailErr = (touched.email ? emailErr() : "") || emailCheckErr;
   const showPwErr = touched.pw ? pwErr() : "";
   const showPw2Err = pw2 ? pw2Err() : "";
 
@@ -210,6 +224,13 @@ export default function Login() {
     setBusy(true);
     try {
       if (mode === "register") {
+        // 가입 전 이메일 도메인 실재성 검수(일회용 차단 + MX/A 레코드 확인)
+        const check = await verifyEmailDeliverable(email.trim());
+        if (!check.ok) {
+          setTouched((t) => ({ ...t, email: true }));
+          setEmailCheckErr(check.reason || "사용할 수 없는 이메일입니다.");
+          return;
+        }
         const consent: Consent = {
           tosVer: TOS_VER,
           privacyVer: PRIVACY_VER,
@@ -217,7 +238,13 @@ export default function Login() {
         };
         const res = await Auth.register(name.trim(), email.trim(), pw, consent);
         if (!res.ok) {
-          setErr(res.msg || "계정 생성에 실패했습니다.");
+          if (res.duplicate) {
+            // 중복 이메일은 이메일 필드 바로 아래에 안내(하단 '로그인' 전환 링크로 이어감)
+            setTouched((t) => ({ ...t, email: true }));
+            setEmailCheckErr(res.msg || "이미 가입된 이메일입니다.");
+          } else {
+            setErr(res.msg || "계정 생성에 실패했습니다.");
+          }
           return;
         }
         if (res.loggedIn) {
@@ -428,7 +455,7 @@ export default function Login() {
                     <Input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => { setEmail(e.target.value); setEmailCheckErr(""); }}
                       onBlur={() => setTouched((t) => ({ ...t, email: true }))}
                       placeholder="you@company.com"
                       autoComplete="username"
@@ -619,7 +646,7 @@ export default function Login() {
               >
                 동의하고 닫기
               </Button>
-              <Button onClick={() => setTerms(null)}>닫기</Button>
+              <Button variant="outline" onClick={() => setTerms(null)}>닫기</Button>
             </>
           }
         >

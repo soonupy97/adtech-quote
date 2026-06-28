@@ -330,7 +330,7 @@
 }
 .auth-aside .aside-sub {
   margin-top: 0.875rem;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.9);
   max-width: 32ch;
@@ -347,7 +347,7 @@
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 .auth-aside .aside-list .tick {
@@ -460,32 +460,9 @@
   color: var(--success);
 }
 
-// 비밀번호 요건 라이브 체크리스트
+// 비밀번호 강도 미터(바 + 라벨)
 .pw-meter {
   margin-top: 0.5rem;
-}
-.pw-checks {
-  list-style: none;
-  margin: 0.5rem 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.25rem 0.75rem;
-}
-.pw-checks li {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  color: var(--text-3);
-}
-.pw-checks li svg {
-  flex-shrink: 0;
-  color: var(--text-3);
-}
-.pw-checks li.ok,
-.pw-checks li.ok svg {
-  color: var(--success);
 }
 
 // 인라인 필드 에러(이메일·비밀번호 등)
@@ -582,7 +559,7 @@
   background:
     var(--primary)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6.5'/%3E%3C/svg%3E")
-    center / 0.8125rem 0.8125rem no-repeat;
+    center / 0.75rem 0.75rem no-repeat;
 }
 .agree-all {
   display: flex;
@@ -604,7 +581,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--text-2);
   cursor: pointer;
 }
@@ -623,7 +600,7 @@
   cursor: pointer;
 }
 .terms-doc {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   line-height: 1.7;
   color: var(--text-2);
   white-space: pre-wrap;

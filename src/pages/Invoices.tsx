@@ -62,8 +62,8 @@ export default function Invoices() {
       header: "관리",
       render: (inv) => (
         <RowMenu actions={[
-          { label: "발행", icon: <Send size={15} />, hidden: inv.status !== "draft", onClick: () => issue(inv) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(inv) },
+          { label: "발행", icon: <Send size={16} />, hidden: inv.status !== "draft", onClick: () => issue(inv) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(inv) },
         ]} />
       ),
     },
@@ -87,7 +87,7 @@ export default function Invoices() {
 
       {creating && (
         <Modal title="세금계산서 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
           <Field label="수주(수락) 견적">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />

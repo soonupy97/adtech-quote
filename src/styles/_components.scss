@@ -331,6 +331,15 @@ textarea::placeholder {
   padding: 0;
   aspect-ratio: 1;
 }
+// 모달 닫기: 평상시 옅은 톤, 호버 시 배경 없이 아이콘 색만 같은 계열에서 더 진하게(잉크)
+.btn.modal-close {
+  color: var(--text-3);
+  transition: transform 0.06s, color 0.12s, opacity 0.12s;
+}
+.btn.modal-close:hover {
+  background: transparent; // ghost 호버 배경 무효화 — 배경색 없이 아이콘만 변경
+  color: var(--ink);
+}
 // 어두운 컬러블록(ink) 위에서 쓰는 버튼
 .btn[data-variant="inverse"] {
   background: var(--canvas);
@@ -663,18 +672,23 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--hairline-soft);
 }
 .modal-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 0 1.5rem 1.5rem;
+  padding: 1rem;
 }
 .modal-foot {
   flex: none;
   display: flex;
+  // 주 액션(첫 자식: 저장·생성·삭제 등)을 오른쪽, 취소를 왼쪽에 두는 표준 모달 푸터.
+  // 마크업이 일관되게 '주 액션 먼저'라 row-reverse 한 번으로 전체가 보편 규칙에 맞춰진다.
+  flex-direction: row-reverse;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  justify-content: flex-start; // row-reverse 기준 시작(=오른쪽)으로 클러스터. .spacer 는 좌우 분리.
+  gap: 0.5rem;
+  padding: 1rem;
   border-top: 1px solid var(--hairline-soft);
   background: var(--card);
 }
@@ -702,17 +716,22 @@ textarea::placeholder {
   .actionbar > .btn {
     flex: 1 1 auto;
   }
+  // 모달 푸터 → 버튼을 전체폭 균등 분배(모바일 액션 시트 느낌). spacer 는 숨김.
   .modal-foot {
     flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+  }
+  .modal-foot .spacer {
+    display: none;
+  }
+  .modal-foot > .btn {
+    flex: 1 1 auto;
   }
   .modal-head {
     padding: 1rem 1rem 0.75rem;
   }
   .modal-body {
-    padding: 0 1rem 1rem;
-  }
-  .modal-foot {
-    padding: 0.75rem 1rem;
+    padding: 1rem;
   }
   .table th,
   .table td {
@@ -755,7 +774,7 @@ textarea::placeholder {
 .timeline .ev:not(:last-child)::before {
   content: "";
   position: absolute;
-  left: 0.4375rem;
+  left: 0.5rem;
   top: 1.125rem;
   bottom: -0.125rem;
   width: 1px;
@@ -973,7 +992,7 @@ textarea::placeholder {
 .followup-count {
   min-width: 1.375rem;
   height: 1.375rem;
-  padding: 0 0.4375rem;
+  padding: 0 0.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1045,7 +1064,7 @@ textarea::placeholder {
 .noti-main .t {
   flex: 1;
   min-width: 0;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink);
   white-space: nowrap;
@@ -1054,7 +1073,7 @@ textarea::placeholder {
 }
 .noti-time {
   flex-shrink: 0;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
@@ -1067,8 +1086,8 @@ textarea::placeholder {
 }
 .noti-unread-dot {
   flex-shrink: 0;
-  width: 0.4375rem;
-  height: 0.4375rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: var(--r-full);
   background: var(--primary);
 }
@@ -1108,7 +1127,7 @@ textarea::placeholder {
   align-items: center;
   gap: 0.25rem;
   margin-top: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-2);
   text-decoration: none;

@@ -95,7 +95,7 @@ export default function Signage() {
   const columns: Column<SignageT>[] = [
     { key: "name", header: "광고물", render: (s) => <span style={{ fontWeight: 700 }}>{s.quote_id ? <Link className="link" to={`/quotes/${s.quote_id}`}>{s.name}</Link> : s.name}</span> },
     { key: "customer", header: "고객", render: (s) => s.customer || "-" },
-    { key: "address", header: "위치", className: "dim", render: (s) => <><MapPin size={13} style={{ verticalAlign: -2 }} /> {s.address || "-"}</> },
+    { key: "address", header: "위치", className: "dim", render: (s) => <><MapPin size={14} style={{ verticalAlign: -2 }} /> {s.address || "-"}</> },
     { key: "type", header: "종류", render: (s) => <Chip>{s.type}</Chip> },
     { key: "installDate", header: "설치일", className: "dim", render: (s) => fmtDate(s.installDate) || "-" },
     { key: "permitExpiry", header: "만료일", className: "dim", render: (s) => fmtDate(s.permitExpiry) || "-" },
@@ -105,8 +105,8 @@ export default function Signage() {
       header: "관리",
       render: (s) => (
         <RowMenu actions={[
-          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit(s) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(s) },
+          { label: "편집", icon: <Pencil size={16} />, onClick: () => setEdit(s) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(s) },
         ]} />
       ),
     },
@@ -163,7 +163,7 @@ export default function Signage() {
         <Modal
           title={edit.id ? "광고물 편집" : "광고물 등록"}
           onClose={() => setEdit(null)}
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
+          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
         >
           <div className="grid cols-2">
             <Field label="광고물명"><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="예: ○○약국 전면간판" /></Field>

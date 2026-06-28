@@ -44,7 +44,7 @@ export const Auth = {
     pw: string,
     consent?: Consent,
     company?: Partial<Supplier>,
-  ): Promise<Result & { loggedIn?: boolean }> {
+  ): Promise<Result & { loggedIn?: boolean; duplicate?: boolean }> {
     const v = validate(email, pw);
     if (v) return { ok: false, msg: v };
 
@@ -64,11 +64,18 @@ export const Auth = {
         emailRedirectTo: window.location.origin,
       },
     });
+    const DUP_MSG = "이미 가입된 이메일입니다. 로그인하거나 비밀번호 찾기를 이용해 주세요.";
     if (error) {
-      const m = /already registered/i.test(error.message)
-        ? "이미 가입된 이메일입니다."
-        : error.message;
-      return { ok: false, msg: m };
+      // Confirm email OFF 일 때는 중복이 에러로 온다("User already registered" 등)
+      if (/already.*regist|already.*exist|registered/i.test(error.message)) {
+        return { ok: false, msg: DUP_MSG, duplicate: true };
+      }
+      return { ok: false, msg: error.message };
+    }
+    // Confirm email ON 이면 Supabase 가 중복 가입을 에러 대신 "obfuscate"(이메일 열거 방지) 처리한다.
+    // → 새 계정이 아니면 user.identities 가 빈 배열로 온다. 이걸로 중복을 감지한다.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      return { ok: false, msg: DUP_MSG, duplicate: true };
     }
     return { ok: true, loggedIn: Boolean(data.session) };
   },
@@ -99,7 +106,11 @@ export const Auth = {
   async loginWithGoogle(): Promise<Result> {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        // 자동 로그인 대신 항상 계정 선택 화면을 띄운다.
+        queryParams: { prompt: "select_account" },
+      },
     });
     if (error) return { ok: false, msg: "구글 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요." };
     return { ok: true };
@@ -153,7 +164,15 @@ export const Auth = {
   // [회원 탈퇴] 본인 데이터 + 계정을 서버 RPC 로 삭제하고 로그아웃한다. (비가역)
   async deleteAccount(): Promise<Result> {
     const { error } = await supabase.rpc("delete_my_account");
-    if (error) return { ok: false, msg: "계정 삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." };
+    if (error) {
+      const detail = `${error.message} ${(error as { code?: string }).code || ""}`;
+      // 함수 미배포(PGRST202)·스키마 캐시 미반영이면 원인을 명확히 안내
+      if (/PGRST202|schema cache|delete_my_account|could not find the function/i.test(detail)) {
+        return { ok: false, msg: "계정 삭제 기능이 서버에 아직 설정되지 않았습니다. (delete_my_account 함수 미배포) 관리자에게 문의해 주세요." };
+      }
+      // 그 외 오류는 실제 메시지를 노출해 원인 파악이 가능하도록 한다.
+      return { ok: false, msg: `계정 삭제 실패: ${error.message}` };
+    }
     await supabase.auth.signOut();
     return { ok: true };
   },

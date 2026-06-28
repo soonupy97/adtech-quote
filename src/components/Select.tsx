@@ -157,7 +157,7 @@ export default function Select({
         <span className={`select-value${selected ? "" : " placeholder"}`}>
           {selected ? selected.label : isEmpty ? emptyText : placeholder}
         </span>
-        <ChevronDown size={15} className="select-caret" />
+        <ChevronDown size={16} className="select-caret" />
       </button>
       {open && rect &&
         createPortal(

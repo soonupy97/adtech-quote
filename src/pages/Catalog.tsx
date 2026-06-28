@@ -76,8 +76,8 @@ export default function Catalog() {
       header: "관리",
       render: (it) => (
         <RowMenu actions={[
-          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit({ ...empty, ...it }) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(it) },
+          { label: "편집", icon: <Pencil size={16} />, onClick: () => setEdit({ ...empty, ...it }) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(it) },
         ]} />
       ),
     },
@@ -108,7 +108,7 @@ export default function Catalog() {
 
       {edit && (
         <Modal title={edit.id ? "단가 편집" : "품목 추가"} onClose={() => setEdit(null)} wide
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}>
           <div className="grid cols-2">
             <Field label="종류">
               <Select value={edit.type} onChange={(v) => setEdit({ ...edit, type: v })} options={ITEM_TYPES.map((t) => ({ value: t, label: t }))} />
@@ -131,20 +131,20 @@ export default function Catalog() {
           <div className="row" style={{ marginTop: 8 }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-2)" }}>옵션/변형 (선택 시 가산)</span>
             <div className="spacer" />
-            <Button size="sm" variant="secondary" icon={<Plus size={15} />} onClick={() => setEdit({ ...edit, options: [...(edit.options || []), { name: "", add: 0 }] })}>옵션</Button>
+            <Button size="sm" variant="secondary" icon={<Plus size={16} />} onClick={() => setEdit({ ...edit, options: [...(edit.options || []), { name: "", add: 0 }] })}>옵션</Button>
           </div>
           {(edit.options || []).map((o, i) => (
             <div className="row" key={i} style={{ gap: 8, marginTop: 8 }}>
               <Input placeholder="옵션명 (예: 양면)" value={o.name} onChange={(e) => { const opts = (edit.options || []).slice(); opts[i] = { ...o, name: e.target.value }; setEdit({ ...edit, options: opts }); }} />
               <Input amount placeholder="가산액" value={o.add} onChange={(e) => { const opts = (edit.options || []).slice(); opts[i] = { ...o, add: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setEdit({ ...edit, options: opts }); }} style={{ width: 120 }} />
-              <Button size="sm" variant="danger" icon={<X size={15} />} onClick={() => setEdit({ ...edit, options: (edit.options || []).filter((_, x) => x !== i) })} />
+              <Button size="sm" variant="danger" icon={<X size={16} />} onClick={() => setEdit({ ...edit, options: (edit.options || []).filter((_, x) => x !== i) })} />
             </div>
           ))}
 
           <div className="row" style={{ marginTop: 12 }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-2)" }}>수량 구간별 단가 (볼륨 디스카운트)</span>
             <div className="spacer" />
-            <Button size="sm" variant="secondary" icon={<Plus size={15} />} onClick={() => setEdit({ ...edit, priceTiers: [...(edit.priceTiers || []), { minQty: 0, price: 0 }] })}>구간</Button>
+            <Button size="sm" variant="secondary" icon={<Plus size={16} />} onClick={() => setEdit({ ...edit, priceTiers: [...(edit.priceTiers || []), { minQty: 0, price: 0 }] })}>구간</Button>
           </div>
           {(edit.priceTiers || []).map((t, i) => (
             <div className="row" key={i} style={{ gap: 8, marginTop: 8 }}>
@@ -152,7 +152,7 @@ export default function Catalog() {
               <Input amount value={t.minQty} onChange={(e) => { const ts = (edit.priceTiers || []).slice(); ts[i] = { ...t, minQty: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setEdit({ ...edit, priceTiers: ts }); }} style={{ width: 90 }} />
               <span className="dim">→ 단가</span>
               <Input amount value={t.price} onChange={(e) => { const ts = (edit.priceTiers || []).slice(); ts[i] = { ...t, price: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 }; setEdit({ ...edit, priceTiers: ts }); }} style={{ width: 120 }} />
-              <Button size="sm" variant="danger" icon={<X size={15} />} onClick={() => setEdit({ ...edit, priceTiers: (edit.priceTiers || []).filter((_, x) => x !== i) })} />
+              <Button size="sm" variant="danger" icon={<X size={16} />} onClick={() => setEdit({ ...edit, priceTiers: (edit.priceTiers || []).filter((_, x) => x !== i) })} />
             </div>
           ))}
 

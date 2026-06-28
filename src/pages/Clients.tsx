@@ -77,8 +77,8 @@ export default function Clients() {
       header: "관리",
       render: (c) => (
         <RowMenu actions={[
-          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit({ ...empty, ...c }) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(c) },
+          { label: "편집", icon: <Pencil size={16} />, onClick: () => setEdit({ ...empty, ...c }) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(c) },
         ]} />
       ),
     },
@@ -105,7 +105,7 @@ export default function Clients() {
 
       {edit && (
         <Modal title={edit.id ? "거래처 편집" : "거래처 추가"} onClose={() => setEdit(null)} wide
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}>
           <div className="grid cols-2">
             <Field label="상호"><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></Field>
             <Field label="사업자번호"><Input value={edit.bizno || ""} onChange={(e) => setEdit({ ...edit, bizno: e.target.value })} /></Field>
@@ -122,14 +122,14 @@ export default function Clients() {
           <div className="row" style={{ marginTop: 8 }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-2)" }}>담당자 연락처(여러 명)</span>
             <div className="spacer" />
-            <Button size="sm" variant="secondary" icon={<Plus size={15} />} onClick={() => setEdit({ ...edit, contacts: [...(edit.contacts || []), { name: "", role: "", tel: "", email: "" }] })}>추가</Button>
+            <Button size="sm" variant="secondary" icon={<Plus size={16} />} onClick={() => setEdit({ ...edit, contacts: [...(edit.contacts || []), { name: "", role: "", tel: "", email: "" }] })}>추가</Button>
           </div>
           {(edit.contacts || []).map((ct, i) => (
             <div className="row" key={i} style={{ gap: 8, marginTop: 8 }}>
               <Input placeholder="이름" value={ct.name} onChange={(e) => setContact(i, { name: e.target.value })} />
               <Input placeholder="직책" value={ct.role} onChange={(e) => setContact(i, { role: e.target.value })} />
               <Input placeholder="연락처" value={ct.tel} onChange={(e) => setContact(i, { tel: e.target.value })} />
-              <Button size="sm" variant="danger" icon={<X size={15} />} onClick={() => setEdit({ ...edit, contacts: (edit.contacts || []).filter((_, x) => x !== i) })} />
+              <Button size="sm" variant="danger" icon={<X size={16} />} onClick={() => setEdit({ ...edit, contacts: (edit.contacts || []).filter((_, x) => x !== i) })} />
             </div>
           ))}
 

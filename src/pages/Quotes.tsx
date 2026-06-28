@@ -135,11 +135,11 @@ export default function Quotes() {
       render: (it) => (
         <RowMenu actions={[
           it.status === "draft"
-            ? { label: "발송 처리", icon: <Send size={15} />, onClick: () => setSent(it.id) }
-            : { label: "발송 링크 복사", icon: <Link2 size={15} />, onClick: () => send(it.id) },
-          { label: "편집", icon: <Pencil size={15} />, onClick: () => navigate(`/editor/${it.id}`) },
-          { label: "복제", icon: <Copy size={15} />, onClick: () => dup(it.id) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(it.id, it.quote_no) },
+            ? { label: "발송 처리", icon: <Send size={16} />, onClick: () => setSent(it.id) }
+            : { label: "발송 링크 복사", icon: <Link2 size={16} />, onClick: () => send(it.id) },
+          { label: "편집", icon: <Pencil size={16} />, onClick: () => navigate(`/editor/${it.id}`) },
+          { label: "복제", icon: <Copy size={16} />, onClick: () => dup(it.id) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(it.id, it.quote_no) },
         ]} />
       ),
     },
@@ -266,7 +266,7 @@ export default function Quotes() {
               <Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다.", "success"); }}>링크 복사</Button>
               <a className="btn" href={link} target="_blank" rel="noreferrer">미리보기</a>
               <div className="spacer" />
-              <Button onClick={() => setLink(null)}>닫기</Button>
+              <Button variant="outline" onClick={() => setLink(null)}>닫기</Button>
             </>
           }
         >

@@ -81,9 +81,9 @@ export default function Leads() {
       header: "관리",
       render: (l) => (
         <RowMenu actions={[
-          { label: "견적전환", icon: <FileText size={15} />, onClick: () => convert(l) },
-          { label: "편집", icon: <Pencil size={15} />, onClick: () => setEdit(l) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(l) },
+          { label: "견적전환", icon: <FileText size={16} />, onClick: () => convert(l) },
+          { label: "편집", icon: <Pencil size={16} />, onClick: () => setEdit(l) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(l) },
         ]} />
       ),
     },
@@ -147,7 +147,7 @@ export default function Leads() {
         <Modal
           title={edit.id ? "문의 편집" : "문의 등록"}
           onClose={() => setEdit(null)}
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
+          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
         >
           <Field label="고객명"><Input value={edit.customerName} onChange={(e) => setEdit({ ...edit, customerName: e.target.value })} /></Field>
           <Field label="연락처"><Input value={edit.tel} onChange={(e) => setEdit({ ...edit, tel: e.target.value })} /></Field>

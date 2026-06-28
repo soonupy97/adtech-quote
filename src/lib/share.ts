@@ -38,9 +38,27 @@ export async function nativeShare(opts: { title?: string; text: string; url: str
 }
 
 export async function copyText(text: string): Promise<boolean> {
+  // 보안 컨텍스트(HTTPS)에서는 Clipboard API 사용. navigator.clipboard 가 없으면(비보안/구형)
+  // ?. 가 undefined 로 단락돼 await 가 통과하므로, 실제로 복사 안 됐는데 true 를 반환하는 걸 막는다.
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // 권한 거부 등 → 아래 폴백으로 진행
+    }
+  }
+  // 폴백: 임시 textarea + execCommand("copy") (비보안 컨텍스트/구형 브라우저)
   try {
-    await navigator.clipboard?.writeText(text);
-    return true;
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
   } catch {
     return false;
   }

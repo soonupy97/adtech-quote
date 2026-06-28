@@ -119,13 +119,13 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
         <div className="line sep"><span>소계</span><span className="v">{won(t.subtotal)}</span></div>
         {sur.map((s, i) => (
           <div className="line" key={`s${i}`}>
-            <span><Plus size={13} /> {s.label || "할증"} {s.mode === "pct" ? `(${s.value}%)` : ""}</span>
+            <span><Plus size={14} /> {s.label || "할증"} {s.mode === "pct" ? `(${s.value}%)` : ""}</span>
             <span className="v">{won(s.mode === "pct" ? (t.subtotal * s.value) / 100 : s.value)}</span>
           </div>
         ))}
         {dis.map((d, i) => (
           <div className="line" key={`d${i}`}>
-            <span><Minus size={13} /> {d.label || "할인"} {d.mode === "pct" ? `(${d.value}%)` : ""}</span>
+            <span><Minus size={14} /> {d.label || "할인"} {d.mode === "pct" ? `(${d.value}%)` : ""}</span>
             <span className="v">-{won(d.mode === "pct" ? (t.subtotal * d.value) / 100 : d.value)}</span>
           </div>
         ))}

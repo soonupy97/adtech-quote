@@ -200,7 +200,7 @@ export default function Dashboard() {
                             className={`noti-row ${n.read ? "" : "unread"}`}
                             onClick={() => { if (!n.read) markRead(n); }}
                           >
-                            <span className={`noti-ic t-${n.type}`}><Ic size={15} /></span>
+                            <span className={`noti-ic t-${n.type}`}><Ic size={16} /></span>
                             <span className="noti-main">
                               <span className="noti-top">
                                 <span className="t">{n.title}</span>

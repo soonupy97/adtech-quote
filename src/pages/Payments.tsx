@@ -67,9 +67,9 @@ export default function Payments() {
       render: (p) => (
         <RowMenu actions={[
           p.paid
-            ? { label: "입금확인 취소", icon: <Undo2 size={15} />, onClick: () => togglePaid(p) }
-            : { label: "입금확인", icon: <Check size={15} />, onClick: () => togglePaid(p) },
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(p) },
+            ? { label: "입금확인 취소", icon: <Undo2 size={16} />, onClick: () => togglePaid(p) }
+            : { label: "입금확인", icon: <Check size={16} />, onClick: () => togglePaid(p) },
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(p) },
         ]} />
       ),
     },
@@ -110,7 +110,7 @@ export default function Payments() {
 
       {creating && (
         <Modal title="입금 스케줄 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성 (계약금50/잔금50)</Button><Button disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={busy} onClick={create}>생성 (계약금50/잔금50)</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
           <Field label="수주(수락) 견적 선택">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />

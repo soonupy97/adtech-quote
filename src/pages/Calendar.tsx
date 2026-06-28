@@ -237,9 +237,9 @@ export default function CalendarPage() {
           footer={
             <>
               <Button variant="primary" loading={saving} onClick={save}>저장</Button>
-              {edit.id && <Button variant="danger" icon={<Trash2 size={15} />} title="삭제" aria-label="삭제" disabled={saving} onClick={del} />}
+              {edit.id && <Button variant="danger" icon={<Trash2 size={16} />} title="삭제" aria-label="삭제" disabled={saving} onClick={del} />}
               <div className="spacer" />
-              <Button disabled={saving} onClick={() => setEdit(null)}>취소</Button>
+              <Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button>
             </>
           }
         >

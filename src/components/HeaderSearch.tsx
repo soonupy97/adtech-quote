@@ -63,6 +63,9 @@ export default function HeaderSearch() {
       store.signage.list(),
     ]).then(([quotes, clients, leads, catalog, signage]) =>
       setData({ quotes, clients, leads, catalog, signage }),
+    ).catch(() =>
+      // 일부 fetch 실패 시 '불러오는 중…'에 갇히지 않도록 빈 결과로 폴백
+      setData({ quotes: [], clients: [], leads: [], catalog: [], signage: [] }),
     );
   }, []);
 
@@ -178,7 +181,7 @@ export default function HeaderSearch() {
         />
         {q && (
           <button type="button" className="search-clear" aria-label="지우기" onClick={() => { setQ(""); inputRef.current?.focus(); }}>
-            <X size={15} />
+            <X size={16} />
           </button>
         )}
       </div>
@@ -204,7 +207,7 @@ export default function HeaderSearch() {
                         onMouseEnter={() => setActive(idx)}
                         onClick={() => go(hit)}
                       >
-                        <span className="hit-ic"><Ic size={15} /></span>
+                        <span className="hit-ic"><Ic size={16} /></span>
                         <span className="hit-main">
                           <span className="hit-label">{hit.label}</span>
                           {hit.sub && <span className="hit-sub">{hit.sub}</span>}

@@ -138,6 +138,9 @@ export default function AppShell() {
       setSession(s);
       setChecked(true);
       loadNotis();
+    }).catch(() => {
+      // 세션 확인 실패(네트워크 등) 시 '불러오는 중…'에 영구히 갇히지 않도록 로그인으로 보냄
+      if (alive) navigate("/login", { replace: true });
     });
     return () => { alive = false; };
   }, [navigate, loadNotis]);

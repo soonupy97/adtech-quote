@@ -184,7 +184,7 @@ export default function QuoteDetail() {
           )}
           <div className="no-print" style={{ marginTop: 16 }}>
             {q.status === "draft" ? (
-              <span className="dim" style={{ display: "block", fontSize: 13 }}>
+              <span className="dim" style={{ display: "block", fontSize: 12 }}>
                 ‘발송 처리’하면 고객 열람용 링크가 활성화됩니다.
               </span>
             ) : (
@@ -256,7 +256,7 @@ export default function QuoteDetail() {
 
       {link && (
         <Modal title="고객 발송 링크" onClose={() => setLink(null)}
-          footer={<><Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다.", "success"); }}>링크 복사</Button><a className="btn" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button onClick={() => setLink(null)}>닫기</Button></>}>
+          footer={<><Button variant="primary" onClick={() => { navigator.clipboard?.writeText(link); toast("링크를 복사했습니다.", "success"); }}>링크 복사</Button><a className="btn" href={link} target="_blank" rel="noreferrer">미리보기</a><div className="spacer" /><Button variant="outline" onClick={() => setLink(null)}>닫기</Button></>}>
           <div className="dim" style={{ marginBottom: 12 }}>고객에게 전달:</div>
           <CopyLinkField url={link} customer={q.customer.name} quoteNo={q.quote_no} />
         </Modal>

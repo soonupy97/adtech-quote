@@ -101,7 +101,7 @@ export default function WorkOrders() {
                 </Field>
                 {w.schedule.installDate && (
                   <a className="btn" data-size="sm" href={calendarEventUrl(`설치: ${w.quote_no}`, w.schedule.installDate, w.crew)} target="_blank" rel="noreferrer">
-                    <CalendarPlus size={15} />구글 캘린더 추가
+                    <CalendarPlus size={16} />구글 캘린더 추가
                   </a>
                 )}
               </div>
@@ -112,7 +112,7 @@ export default function WorkOrders() {
 
       {creating && (
         <Modal title="작업지시서 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
           <Field label="수주(수락) 견적 선택">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer}` }))} />

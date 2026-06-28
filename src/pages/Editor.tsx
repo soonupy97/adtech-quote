@@ -189,7 +189,12 @@ export default function Editor() {
   };
 
   const addItem = () => patch({ items: [...q.items, makeItem()] });
-  const delItem = (i: number) => patch({ items: q.items.filter((_, x) => x !== i) });
+  const delItem = (i: number) => {
+    // 행이 삭제되면 인덱스가 당겨지므로, 인덱스로 추적하는 열린 패널을 닫아 다른 행에 잘못 붙는 걸 방지
+    setOptsOpen(null);
+    setPartsOpen(null);
+    patch({ items: q.items.filter((_, x) => x !== i) });
+  };
 
   const toggleCost = (field: "constructions" | "permits" | "etcCosts", i: number) => {
     const rows = q[field].slice(); rows[i] = { ...rows[i], checked: !rows[i].checked }; patch({ [field]: rows } as Partial<Quote>);

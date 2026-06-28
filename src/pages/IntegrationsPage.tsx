@@ -11,13 +11,13 @@ import { AlertTriangle } from "lucide-react";
 export default function IntegrationsPage({ embedded = false }: { embedded?: boolean }) {
   const toast = useToast();
   const [s, setS] = useState<Settings | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => { store.getSettings().then(setS); }, []);
   if (!s) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
   const ig = s.integrations || {};
   const set = (patch: Partial<typeof ig>) => setS({ ...s, integrations: { ...ig, ...patch } });
 
-  const [saving, setSaving] = useState(false);
   const save = async () => {
     setSaving(true);
     try { await store.saveSettings(s); toast("연동 설정을 저장했습니다.", "success"); }

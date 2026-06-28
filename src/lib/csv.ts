@@ -23,30 +23,34 @@ export function downloadCSV(filename: string, csv: string): void {
 }
 
 export function parseCSV(text: string): Record<string, string>[] {
-  const lines = text.replace(/\r\n/g, "\n").split("\n").filter((l) => l.trim() !== "");
-  if (lines.length < 2) return [];
-  const parseLine = (line: string): string[] => {
-    const out: string[] = [];
-    let cur = "";
-    let inq = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (inq) {
-        if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
-        else if (ch === '"') inq = false;
-        else cur += ch;
-      } else {
-        if (ch === '"') inq = true;
-        else if (ch === ",") { out.push(cur); cur = ""; }
-        else cur += ch;
-      }
+  // 전체 텍스트를 문자 단위 상태 머신으로 파싱 → 따옴표로 감싼 줄바꿈(toCSV 가 생성)도 한 셀로 유지.
+  // (줄 단위로 먼저 split 하면 따옴표 안 줄바꿈에서 레코드가 깨져 라운드트립이 손상됨)
+  const src = text.replace(/\r\n/g, "\n").replace(/^﻿/, "");
+  const rows: string[][] = [];
+  let cur = "";
+  let row: string[] = [];
+  let inq = false;
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (inq) {
+      if (ch === '"' && src[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') inq = false;
+      else cur += ch;
+    } else {
+      if (ch === '"') inq = true;
+      else if (ch === ",") { row.push(cur); cur = ""; }
+      else if (ch === "\n") { row.push(cur); rows.push(row); cur = ""; row = []; }
+      else cur += ch;
     }
-    out.push(cur);
-    return out;
-  };
-  const headers = parseLine(lines[0].replace(/^﻿/, ""));
-  return lines.slice(1).map((line) => {
-    const cells = parseLine(line);
+  }
+  // 마지막 셀/행 마무리(파일 끝에 개행이 없을 수 있음)
+  row.push(cur);
+  rows.push(row);
+  // 완전히 빈 행(빈 줄) 제거
+  const data = rows.filter((r) => r.some((c) => c.trim() !== ""));
+  if (data.length < 2) return [];
+  const headers = data[0];
+  return data.slice(1).map((cells) => {
     const obj: Record<string, string> = {};
     headers.forEach((h, i) => (obj[h.trim()] = (cells[i] || "").trim()));
     return obj;

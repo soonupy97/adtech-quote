@@ -36,6 +36,7 @@ export default function Settings() {
   const [myEmail, setMyEmail] = useState("");
   const [delOpen, setDelOpen] = useState(false);
   const [delText, setDelText] = useState("");
+  const [confirmFinal, setConfirmFinal] = useState(false); // 2단계 최종 확인 화면
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { store.getSettings().then((v) => { setS(v); setSaved(v); }); }, []);
@@ -43,8 +44,10 @@ export default function Settings() {
 
   // 확인 문구(이메일)를 정확히 입력해야 활성화
   const delConfirmed = !!myEmail && delText.trim().toLowerCase() === myEmail.toLowerCase();
+  // 모달 닫기 — 입력/단계 상태 초기화
+  const closeDel = () => { if (deleting) return; setDelOpen(false); setDelText(""); setConfirmFinal(false); };
   const deleteAccount = async () => {
-    if (!delConfirmed || deleting) return;
+    if (!delConfirmed || !confirmFinal || deleting) return;
     setDeleting(true);
     try {
       const res = await Auth.deleteAccount();
@@ -163,12 +166,12 @@ export default function Settings() {
             <div className="card-title" style={{ color: "var(--danger)" }}>위험 구역</div>
             <div className="dz-row">
               <div>
-                <div className="dz-title">계정 삭제 (회원 탈퇴)</div>
+                <div className="dz-title">계정 삭제</div>
                 <div className="dz-desc">
-                  계정과 함께 견적·거래처·계약·정산 등 <b>모든 데이터가 영구 삭제</b>됩니다. 이 작업은 되돌릴 수 없습니다.
+                  계정을 삭제하면 <b>모든 데이터가 영구적으로 삭제</b>되며 복구할 수 없습니다.
                 </div>
               </div>
-              <Button variant="danger" icon={<Trash2 size={15} />} onClick={() => { setDelText(""); setDelOpen(true); }}>
+              <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => { setDelText(""); setConfirmFinal(false); setDelOpen(true); }}>
                 계정 삭제
               </Button>
             </div>
@@ -205,7 +208,7 @@ export default function Settings() {
               {qtyUnits.map((u, i) => (
                 <span key={u + i} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "var(--fill-2)", borderRadius: "var(--r-md)", fontWeight: 700, fontSize: 14 }}>
                   {u}
-                  <X size={13} style={{ cursor: "pointer", opacity: 0.6 }} onClick={() => delUnit(i)} />
+                  <X size={14} style={{ cursor: "pointer", opacity: 0.6 }} onClick={() => delUnit(i)} />
                 </span>
               ))}
             </div>
@@ -335,7 +338,7 @@ export default function Settings() {
                   const on = !hiddenMenus.includes(m.to);
                   return (
                     <div key={m.to} className="row" style={{ gap: 12, cursor: "pointer", padding: "10px 12px", background: "var(--fill-2)", borderRadius: "var(--r-md)" }} onClick={() => toggleMenu(m.to)}>
-                      <span className="check" style={{ width: 20, height: 20, borderRadius: 6, background: on ? "var(--toss-blue)" : "var(--canvas)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>{on && <Check size={13} strokeWidth={3} />}</span>
+                      <span className="check" style={{ width: 20, height: 20, borderRadius: 6, background: on ? "var(--toss-blue)" : "var(--canvas)", color: "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>{on && <Check size={14} strokeWidth={3} />}</span>
                       <span style={{ fontWeight: 700 }}>{m.label}</span>
                       <div className="spacer" />
                       <span className="dim" style={{ fontSize: 12 }}>{on ? "표시" : "숨김"}</span>
@@ -380,7 +383,7 @@ export default function Settings() {
           {dirty ? (
             <><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--warn)", flexShrink: 0 }} />저장되지 않은 변경사항이 있습니다</>
           ) : (
-            <><Check size={15} strokeWidth={3} />모든 변경사항이 저장됨</>
+            <><Check size={16} strokeWidth={3} />모든 변경사항이 저장됨</>
           )}
         </span>
         <div className="spacer" />
@@ -390,34 +393,54 @@ export default function Settings() {
 
       {delOpen && (
         <Modal
-          title="계정 삭제"
-          onClose={() => !deleting && setDelOpen(false)}
+          title={confirmFinal ? "계정 삭제 확인" : "계정 삭제"}
+          onClose={closeDel}
           footer={
-            <>
-              <Button variant="danger" icon={<Trash2 size={15} />} loading={deleting} disabled={!delConfirmed} onClick={deleteAccount}>
-                영구 삭제
-              </Button>
-              <Button variant="ghost" onClick={() => setDelOpen(false)} disabled={deleting}>취소</Button>
-            </>
+            confirmFinal ? (
+              <>
+                <Button variant="danger" icon={<Trash2 size={16} />} loading={deleting} onClick={deleteAccount}>
+                  삭제
+                </Button>
+                <Button variant="outline" onClick={() => setConfirmFinal(false)} disabled={deleting}>취소</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="danger" icon={<Trash2 size={16} />} disabled={!delConfirmed} onClick={() => setConfirmFinal(true)}>
+                  계정 삭제
+                </Button>
+                <Button variant="outline" onClick={closeDel}>취소</Button>
+              </>
+            )
           }
         >
-          <div className="banner no" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-            <AlertTriangle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
-            <span>
-              계정과 <b>모든 데이터(견적·거래처·계약·정산·설정 등)</b>가 영구적으로 삭제되며 복구할 수 없습니다.
-              <br />
-              ※ 세금계산서·전자계약 등 법령상 보존 의무가 있는 기록은 관련 법에 따라 별도 보관될 수 있습니다.
-            </span>
-          </div>
-          <Field label={<>확인을 위해 이메일 <b>{myEmail}</b> 을(를) 입력하세요</>}>
-            <Input
-              value={delText}
-              onChange={(e) => setDelText(e.target.value)}
-              placeholder={myEmail}
-              autoComplete="off"
-              aria-invalid={!!delText && !delConfirmed}
-            />
-          </Field>
+          {confirmFinal ? (
+            <div className="banner no" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <AlertTriangle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+              <span>
+                정말 계정을 삭제하시겠습니까?
+                <br />
+                이 작업은 되돌릴 수 없습니다.
+              </span>
+            </div>
+          ) : (
+            <>
+              <div className="banner no" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <AlertTriangle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
+                <span>
+                  계정을 삭제하면 <b>모든 데이터가 영구적으로 삭제</b>되며 복구할 수 없습니다.
+                </span>
+              </div>
+              <Field label={<>확인을 위해 이메일 <b>{myEmail}</b> 을(를) 입력하세요</>}>
+                <Input
+                  value={delText}
+                  onChange={(e) => setDelText(e.target.value)}
+                  placeholder={myEmail}
+                  autoComplete="off"
+                  aria-invalid={!!delText && !delConfirmed}
+                />
+              </Field>
+            </>
+          )}
         </Modal>
       )}
     </>

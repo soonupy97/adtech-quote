@@ -97,8 +97,8 @@ export default function Contracts() {
           ...c.parties
             .map((p, i) => ({ p, i }))
             .filter(({ p }) => !p.signature)
-            .map(({ p, i }) => ({ label: `${p.role} 서명`, icon: <PenLine size={15} />, onClick: () => setSigning({ c, idx: i }) })),
-          { label: "삭제", icon: <Trash2 size={15} />, danger: true, onClick: () => del(c) },
+            .map(({ p, i }) => ({ label: `${p.role} 서명`, icon: <PenLine size={16} />, onClick: () => setSigning({ c, idx: i }) })),
+          { label: "삭제", icon: <Trash2 size={16} />, danger: true, onClick: () => del(c) },
         ]} />
       ),
     },
@@ -122,7 +122,7 @@ export default function Contracts() {
 
       {creating && (
         <Modal title="계약 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
           <Field label="수락된 견적 선택">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />
@@ -133,7 +133,7 @@ export default function Contracts() {
 
       {signing && (
         <Modal title={`${signing.c.parties[signing.idx].role} (${signing.c.parties[signing.idx].name}) 서명`} onClose={() => setSigning(null)}
-          footer={<><Button variant="primary" loading={busy} onClick={doSign}>서명 완료</Button><Button disabled={busy} onClick={() => sigRef.current?.clear()}>지우기</Button><Button disabled={busy} onClick={() => setSigning(null)}>취소</Button></>}>
+          footer={<><Button variant="primary" loading={busy} onClick={doSign}>서명 완료</Button><Button disabled={busy} onClick={() => sigRef.current?.clear()}>지우기</Button><Button variant="outline" disabled={busy} onClick={() => setSigning(null)}>취소</Button></>}>
           <SignaturePad ref={sigRef} />
         </Modal>
       )}

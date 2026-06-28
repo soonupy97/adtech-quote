@@ -247,22 +247,29 @@ grant execute on function public.find_member_emails(text) to anon, authenticated
 -- 호출자(auth.uid()) 본인의 모든 데이터 + 계정을 삭제한다. 본인 것만 지운다.
 -- FK 순서 주의: leads 는 quotes 를 참조하나 cascade 가 없어 quotes 보다 먼저 삭제.
 -- contracts/payments/quote_events 는 quotes 삭제 시 cascade 로 함께 제거됨.
+-- owner_id 컬럼을 가진 public 테이블을 동적으로 찾아 내 데이터만 삭제한다.
+-- (배포된 테이블 구성이 환경마다 달라도 — 없는 테이블은 건너뛰어 — 안전하게 동작)
+-- quotes 는 다른 테이블(leads 등)이 참조할 수 있어 마지막에 삭제한다.
 create or replace function public.delete_my_account()
 returns void
 language plpgsql security definer set search_path = public, auth as $$
-declare uid uuid := auth.uid();
+declare
+  uid uuid := auth.uid();
+  r record;
 begin
   if uid is null then raise exception 'not authenticated'; end if;
-  delete from public.leads          where owner_id = uid;
-  delete from public.payments       where owner_id = uid;
-  delete from public.contracts      where owner_id = uid;
-  delete from public.quotes         where owner_id = uid; -- quote_events 등 cascade
-  delete from public.clients        where owner_id = uid;
-  delete from public.catalog_items  where owner_id = uid;
-  delete from public.templates      where owner_id = uid;
-  delete from public.activities     where owner_id = uid;
-  delete from public.app_collections where owner_id = uid;
-  delete from public.settings       where owner_id = uid;
-  delete from auth.users            where id = uid;
+  for r in
+    select c.table_name
+    from information_schema.columns c
+    where c.table_schema = 'public'
+      and c.column_name = 'owner_id'
+      and c.table_name <> 'quotes'
+  loop
+    execute format('delete from public.%I where owner_id = $1', r.table_name) using uid;
+  end loop;
+  if to_regclass('public.quotes') is not null then
+    delete from public.quotes where owner_id = uid; -- quote_events 등 cascade
+  end if;
+  delete from auth.users where id = uid;
 end; $$;
 grant execute on function public.delete_my_account() to authenticated;
