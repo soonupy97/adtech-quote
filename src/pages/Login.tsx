@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Auth, type Consent } from "@/lib/auth";
 import { passwordError } from "@/lib/password";
 import { verifyEmailDeliverable } from "@/lib/email";
+import { isInAppBrowser } from "@/lib/share";
 import { useToast } from "@/components/Toast";
 import { Button, Field, Input } from "@/components/ui";
 import Modal from "@/components/Modal";
@@ -118,6 +119,22 @@ export default function Login() {
       if (s) navigate("/", { replace: true });
     });
   }, [navigate]);
+
+  // 소셜(구글/카카오) 콜백이 에러로 돌아오면 URL 의 해시/쿼리에 error_description 이 실려 온다.
+  // 그대로 두면 세션 없음으로 조용히 튕겨 원인을 못 보므로, 메시지를 띄우고 URL 파라미터를 정리한다.
+  useEffect(() => {
+    const toParams = (s: string) =>
+      new URLSearchParams(s.charAt(0) === "#" || s.charAt(0) === "?" ? s.slice(1) : s);
+    const hash = toParams(window.location.hash);
+    const query = toParams(window.location.search);
+    const desc = hash.get("error_description") || query.get("error_description");
+    const code = hash.get("error") || query.get("error");
+    if (desc || code) {
+      setErr(decodeURIComponent((desc || code || "소셜 로그인에 실패했습니다.").replace(/\+/g, " ")));
+      // 뒤로가기/새로고침 때 에러가 반복 표시되지 않도록 파라미터 제거
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   // 쿨다운 카운트다운
   useEffect(() => {
@@ -248,8 +265,12 @@ export default function Login() {
           return;
         }
         if (res.loggedIn) {
-          toast("환영합니다! 계정이 생성되었습니다.", "success");
-          navigate("/", { replace: true });
+          // 가입 즉시 로그인시키지 않고, 만들어진 세션을 종료한 뒤 로그인 폼으로 복귀(이메일 프리필).
+          const signedUpEmail = email.trim();
+          await Auth.logout();
+          goMode("login");
+          setEmail(signedUpEmail);
+          toast("가입이 완료되었습니다. 로그인해 주세요.", "success");
         } else {
           // 이메일 인증이 켜져 있어 즉시 로그인되지 않음 → 인증 안내 화면
           setVerifyEmail(email.trim());
@@ -326,6 +347,11 @@ export default function Login() {
   const googleLogin = async () => {
     if (busy) return;
     setErr("");
+    // 인앱 브라우저(카카오톡·네이버 등)에서는 구글이 OAuth 를 차단(disallowed_useragent)하므로 사전 안내.
+    if (isInAppBrowser()) {
+      setErr("카카오톡·네이버 등 인앱 브라우저에서는 구글 로그인이 제한됩니다. Chrome·Safari 등 기본 브라우저로 열어 다시 시도해 주세요.");
+      return;
+    }
     setBusy(true);
     const r = await Auth.loginWithGoogle();
     if (!r.ok) {

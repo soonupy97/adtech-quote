@@ -44,6 +44,7 @@ export function passwordError(pw: string, email?: string): string | null {
     if (local.length >= 3 && pw.toLowerCase().includes(local))
       return "비밀번호에 이메일 아이디를 포함할 수 없습니다.";
   }
-  if (pwScore(pw) < 2) return "비밀번호가 너무 약합니다. 영문·숫자·특수문자를 조합해 주세요.";
+  // 강도 조합(영문·숫자·특수문자) 게이트는 제거 — 길이·흔한 비번·동일문자·이메일 포함만 막는다.
+  // 강도 미터(pwScore/STRENGTH)는 차단이 아니라 '안내'로만 유지한다.
   return null;
 }

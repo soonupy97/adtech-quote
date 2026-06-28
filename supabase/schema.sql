@@ -25,7 +25,7 @@ create table if not exists public.quotes (
   dim_unit text,
   customer_response jsonb,
   signature text,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   sent_at timestamptz,
@@ -55,7 +55,7 @@ create table if not exists public.clients (
   -- 부록 B 확장
   bizno text, grade text, tags jsonb default '[]'::jsonb,
   contacts jsonb default '[]'::jsonb, history jsonb default '[]'::jsonb,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 
@@ -66,13 +66,13 @@ create table if not exists public.catalog_items (
   -- 부록 B 확장
   cost numeric, options jsonb default '[]'::jsonb,
   price_tiers jsonb default '[]'::jsonb, taxable boolean default true,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 
 -- 5) 설정 -------------------------------------------------------------------
 create table if not exists public.settings (
-  owner_id uuid primary key references auth.users(id) default auth.uid(),
+  owner_id uuid primary key references auth.users(id) on delete cascade default auth.uid(),
   supplier jsonb default '{}'::jsonb,
   defaults jsonb default '{}'::jsonb,
   branding jsonb default '{}'::jsonb,
@@ -98,34 +98,34 @@ alter table public.settings add column if not exists cover_letter text;
 create table if not exists public.templates (
   id uuid primary key default gen_random_uuid(),
   name text, memo text, payload jsonb default '{}'::jsonb,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
   source text, customer_name text, tel text, memo text,
   stage text default 'new', assignee_id uuid, quote_id uuid references public.quotes(id),
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 create table if not exists public.contracts (
   id uuid primary key default gen_random_uuid(),
   quote_id uuid references public.quotes(id) on delete cascade,
   terms text, parties jsonb default '[]'::jsonb, status text default 'draft',
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
   quote_id uuid references public.quotes(id) on delete cascade,
   kind text, amount numeric, due_date date, paid_at timestamptz, paid boolean default false,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 create table if not exists public.activities (
   id uuid primary key default gen_random_uuid(),
   actor_id uuid, action text, target_type text, target_id uuid, meta jsonb default '{}'::jsonb,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 
@@ -136,7 +136,7 @@ create table if not exists public.app_collections (
   id uuid primary key default gen_random_uuid(),
   collection text not null,
   data jsonb not null default '{}'::jsonb,
-  owner_id uuid references auth.users(id) default auth.uid(),
+  owner_id uuid references auth.users(id) on delete cascade default auth.uid(),
   created_at timestamptz not null default now()
 );
 create index if not exists idx_appcoll_owner on public.app_collections(owner_id, collection);

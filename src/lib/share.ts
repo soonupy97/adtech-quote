@@ -26,6 +26,15 @@ export const canNativeShare = (): boolean =>
 export const isMobile = (): boolean =>
   typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+// 인앱(임베디드) 브라우저 감지 — 카카오톡/네이버/인스타/페북/라인/밴드 등의 WebView.
+// 구글 OAuth 는 이런 임베디드 WebView 에서 `disallowed_useragent`(403)로 차단되므로,
+// 구글 로그인을 시도하기 전에 사용자에게 기본 브라우저로 열도록 안내해야 한다.
+export const isInAppBrowser = (): boolean => {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /KAKAOTALK|KAKAOSTORY|NAVER\(inapp|NAVER |Instagram|FBAN|FBAV|FB_IAB|Line\/|DaumApps|band\b|everytimeApp|Snapchat|; wv\)/i.test(ua);
+};
+
 // 성공 시 true. 사용자가 취소(AbortError)하거나 미지원이면 false.
 export async function nativeShare(opts: { title?: string; text: string; url: string }): Promise<boolean> {
   if (!canNativeShare()) return false;

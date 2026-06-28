@@ -11,4 +11,14 @@ const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || DEFAULT
 const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || DEFAULT_ANON;
 
 // 실서비스 전용: 항상 Supabase 클라이언트로 동작한다(로컬 목업 모드 제거).
-export const supabase: SupabaseClient = createClient(url, anon);
+// PKCE 플로우: OAuth/이메일 링크가 토큰 해시(#access_token) 대신 쿼리(?code=)로 돌아오고,
+// detectSessionInUrl 이 code↔verifier 를 교환해 세션을 수립한다. 모바일 리다이렉트에서
+// 해시가 유실되는 문제를 피할 수 있어 SPA 권장 방식이다(verifier 는 localStorage 에 보관).
+export const supabase: SupabaseClient = createClient(url, anon, {
+  auth: {
+    flowType: "pkce",
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});

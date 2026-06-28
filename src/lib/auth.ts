@@ -9,6 +9,8 @@ import { passwordError } from "./password";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // 이메일 링크로 돌아올 비밀번호 재설정 페이지
 const RESET_REDIRECT = "/reset-password";
+// 소셜(OAuth) 콜백 착지 페이지 — 성공/실패 모두 Login 에서 처리(세션 감지 또는 에러 배너)
+const OAUTH_REDIRECT = "/login";
 // 제어문자(0x00~0x1F, 0x7F) 제거용 — 소스에 literal 제어문자를 넣지 않도록 생성자 사용
 const CTRL_RE = new RegExp("[\\u0000-\\u001F\\u007F]", "g");
 
@@ -107,7 +109,9 @@ export const Auth = {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        // PKCE: 콜백은 /login?code=... 로 돌아온다. 성공 시 Login 이 세션을 감지해 대시보드로
+        // 보내고, 실패 시 /login?error=... 의 메시지를 Login 배너에 노출한다(루트로 보내면 유실됨).
+        redirectTo: `${window.location.origin}${OAUTH_REDIRECT}`,
         // 자동 로그인 대신 항상 계정 선택 화면을 띄운다.
         queryParams: { prompt: "select_account" },
       },
@@ -122,7 +126,7 @@ export const Auth = {
   async loginWithKakao(): Promise<Result> {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}${OAUTH_REDIRECT}` },
     });
     if (error) return { ok: false, msg: "카카오 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요." };
     return { ok: true };
