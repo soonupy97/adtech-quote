@@ -26,6 +26,7 @@ import {
 import { Auth } from "@/lib/auth";
 import { store } from "@/lib/store";
 import HeaderSearch from "@/components/HeaderSearch";
+import { Spinner } from "@/components/ui";
 import OnboardingCompany, { ONBOARD_SKIP_KEY } from "@/components/OnboardingCompany";
 import type { AppNotification, Session } from "@/types";
 
@@ -148,7 +149,7 @@ export default function AppShell() {
   // 라우트 이동 시 알림 갱신 + 모바일 드로어·프로필 popover 닫기
   useEffect(() => { if (checked) loadNotis(); setNavOpen(false); setProfileOpen(false); }, [location.pathname, checked, loadNotis]);
 
-  if (!checked) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+  if (!checked) return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
 
   const unread = notis.filter((n) => !n.read).length;
   // 아바타 이니셜(이름 우선, 없으면 이메일 첫 글자)

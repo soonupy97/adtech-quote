@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { fmtDate, timeAgo, won } from "@/lib/quote";
 import type { AppNotification, NotiType, QuoteSummary, Stats } from "@/types";
-import { EmptyState, PageTitle, StatusBadge, Table, type Column } from "@/components/ui";
+import { CardHeader, EmptyState, PageHeader, Spinner, StatCard, StatusBadge, Table, type Column } from "@/components/ui";
 import {
   ArrowRight,
   Bell,
@@ -49,7 +49,7 @@ export default function Dashboard() {
     setNotis(await store.notifications.list());
   };
 
-  if (!stats) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+  if (!stats) return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
 
   const unread = notis.filter((n) => !n.read).length;
 
@@ -82,10 +82,11 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="대시보드" sub={dateStr} />
-        <Link className="btn" data-variant="primary" data-size="sm" to="/editor"><Plus size={14} />새 견적 만들기</Link>
-      </div>
+      <PageHeader
+        title="대시보드"
+        sub={dateStr}
+        action={<Link className="btn" data-variant="primary" data-size="sm" to="/editor"><Plus size={14} />새 견적 만들기</Link>}
+      />
 
       {empty ? (
         <div className="card">
@@ -100,30 +101,25 @@ export default function Dashboard() {
         <>
           {/* KPI */}
           <div className="bento cols-4">
-            <div className="tile feature">
-              <div className="kpi-top">
-                <div className="k">이번달 견적</div>
-                <span className="kpi-ic"><FileText size={16} /></span>
-              </div>
-              <div className="v push-bottom">{stats.monthCount}건</div>
-              <div className="sub">{won(stats.monthAmt)}</div>
-            </div>
-            <div className="tile">
-              <div className="kpi-top">
-                <div className="k">진행중 (발송·열람)</div>
-                <span className="kpi-ic"><Send size={16} /></span>
-              </div>
-              <div className="v push-bottom">{stats.byStatus.sent + stats.byStatus.viewed}건</div>
-              <div className="sub">대기금액 {won(stats.pipelineAmt)}</div>
-            </div>
-            <div className="tile">
-              <div className="kpi-top">
-                <div className="k">수주</div>
-                <span className="kpi-ic"><CheckCircle2 size={16} /></span>
-              </div>
-              <div className="v push-bottom">{stats.accepted}건</div>
-              <div className="sub">발송 {stats.sent}건 중</div>
-            </div>
+            <StatCard
+              feature
+              label="이번달 견적"
+              icon={<FileText size={16} />}
+              value={`${stats.monthCount}건`}
+              sub={won(stats.monthAmt)}
+            />
+            <StatCard
+              label="진행중 (발송·열람)"
+              icon={<Send size={16} />}
+              value={`${stats.byStatus.sent + stats.byStatus.viewed}건`}
+              sub={`대기금액 ${won(stats.pipelineAmt)}`}
+            />
+            <StatCard
+              label="수주"
+              icon={<CheckCircle2 size={16} />}
+              value={`${stats.accepted}건`}
+              sub={`발송 ${stats.sent}건 중`}
+            />
             <div className="tile" style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
               <div className="ring" style={{ ["--p" as string]: stats.winRate }}>
                 <div className="inner">{stats.winRate}%</div>
@@ -137,12 +133,11 @@ export default function Dashboard() {
 
           {/* 월별 매출 추이 — KPI 아래 전체폭 추이 밴드 */}
           <div className="card">
-            <div className="row">
-              <div className="card-title" style={{ marginBottom: 0 }}>월별 매출 추이</div>
-              <span className="dim" style={{ fontSize: 12 }}>최근 6개월 · 수주 기준</span>
-              <div className="spacer" />
-              <Link className="chip blue" to="/reports">매출 리포트 →</Link>
-            </div>
+            <CardHeader
+              title="월별 매출 추이"
+              note="최근 6개월 · 수주 기준"
+              action={<Link className="chip blue" to="/reports">매출 리포트 →</Link>}
+            />
             <div className="barchart" style={{ marginTop: 16 }}>
               {trend.map((m) => (
                 <div className="b" key={m.key}>
@@ -158,11 +153,10 @@ export default function Dashboard() {
           <div className="dash-grid">
             {/* 최근 견적 */}
             <div className="card">
-              <div className="row">
-                <div className="card-title" style={{ marginBottom: 0 }}>최근 견적</div>
-                <div className="spacer" />
-                <Link className="chip blue" to="/quotes">전체 보기 →</Link>
-              </div>
+              <CardHeader
+                title="최근 견적"
+                action={<Link className="chip blue" to="/quotes">전체 보기 →</Link>}
+              />
               <Table columns={recentColumns} rows={recent} rowKey={(q) => q.id} style={{ marginTop: 16 }} />
             </div>
 

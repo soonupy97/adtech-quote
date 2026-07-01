@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { fmtDateTime } from "@/lib/quote";
 import { reminderFor } from "@/lib/automation";
 import type { AppNotification, QuoteSummary } from "@/types";
-import { Button, EmptyState, PageTitle } from "@/components/ui";
+import { Button, EmptyState, PageHeader, Banner } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Clock, Bell } from "lucide-react";
 
@@ -47,19 +47,18 @@ export default function Notifications() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="알림센터" sub="열람·수락·코멘트·만료·리마인더" />
+      <PageHeader title="알림센터" sub="열람·수락·코멘트·만료·리마인더" action={<>
         <Button size="sm" onClick={markAll} disabled={list.every((n) => n.read)}>모두 읽음</Button>
         <Button size="sm" variant="danger" onClick={clear} disabled={list.length === 0}>전체 삭제</Button>
-      </div>
+      </>} />
 
       {reminders.length > 0 && (
         <div className="card">
           <div className="card-title"><Clock size={16} /> 팔로업 리마인더</div>
           {reminders.map(({ q, msg }) => (
-            <div className="banner info" key={q.id} style={{ marginBottom: 8 }}>
+            <Banner variant="info" key={q.id} style={{ marginBottom: 8 }}>
               <Link to={`/quotes/${q.id}`} style={{ fontWeight: 700 }}>{q.quote_no}</Link> · {q.customer} — {msg}
-            </div>
+            </Banner>
           ))}
         </div>
       )}

@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { fmtDate, won, sampleTemplate } from "@/lib/quote";
 import { calcTotals } from "@/lib/quote";
 import type { Template } from "@/types";
-import { Button, EmptyState, PageTitle, Table, type Column } from "@/components/ui";
+import { Button, EmptyState, PageHeader, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, LayoutTemplate, Trash2, Check } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -68,10 +68,7 @@ export default function Templates() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="견적 템플릿" sub={`자주 쓰는 품목·시공 세트를 1클릭 적용 · ${list.length}개`} />
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => navigate("/editor")}>새 견적에서 저장</Button>
-      </div>
+      <PageHeader title="견적 템플릿" sub={`자주 쓰는 품목·시공 세트를 1클릭 적용 · ${list.length}개`} action={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => navigate("/editor")}>새 견적에서 저장</Button>} />
 
       <div className="card">
         <Table

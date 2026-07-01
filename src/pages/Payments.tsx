@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, won } from "@/lib/quote";
 import type { Payment, PaymentKind, Quote, QuoteSummary } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, ModalFooter, PageHeader, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Wallet, Trash2, Check, Undo2 } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -77,10 +77,7 @@ export default function Payments() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="정산 / 입금" sub="계약금·중도금·잔금 스케줄과 미수금" />
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>입금 스케줄</Button>
-      </div>
+      <PageHeader title="정산 / 입금" sub="계약금·중도금·잔금 스케줄과 미수금" action={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>입금 스케줄</Button>} />
 
       <div className="bento">
         <div className="tile feature col-2 row-2">
@@ -110,7 +107,7 @@ export default function Payments() {
 
       {creating && (
         <Modal title="입금 스케줄 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성 (계약금50/잔금50)</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<ModalFooter confirmLabel="생성 (계약금50/잔금50)" loading={busy} onConfirm={create} onCancel={() => setCreating(false)} />}>
           <Field label="수주(수락) 견적 선택">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />

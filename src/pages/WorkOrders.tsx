@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calendarEventUrl } from "@/lib/integrations";
 import type { Quote, QuoteSummary, WorkOrder } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, ModalFooter, PageHeader, Select } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Wrench, CalendarPlus, Trash2 } from "lucide-react";
 
@@ -53,10 +53,7 @@ export default function WorkOrders() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="작업지시서" sub={`수주 건의 시공팀 지시서 · ${list.length}건`} />
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>작업지시서 생성</Button>
-      </div>
+      <PageHeader title="작업지시서" sub={`수주 건의 시공팀 지시서 · ${list.length}건`} action={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>작업지시서 생성</Button>} />
 
       {list.length === 0 ? (
         <div className="card"><EmptyState icon={<Wrench size={40} strokeWidth={1.5} />} title="작업지시서가 없습니다" /></div>
@@ -112,7 +109,7 @@ export default function WorkOrders() {
 
       {creating && (
         <Modal title="작업지시서 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<ModalFooter confirmLabel="생성" loading={busy} onConfirm={create} onCancel={() => setCreating(false)} />}>
           <Field label="수주(수락) 견적 선택">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer}` }))} />

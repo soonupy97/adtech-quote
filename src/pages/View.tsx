@@ -5,7 +5,7 @@ import { fmtDateTime } from "@/lib/quote";
 import type { Attachment, Quote, QuoteComment } from "@/types";
 import QuoteReadonly from "@/components/QuoteReadonly";
 import SignaturePad, { type SignaturePadHandle } from "@/components/SignaturePad";
-import { Button, Chip, EmptyState, Field, Input } from "@/components/ui";
+import { Banner, Button, Chip, Field, Input, Spinner } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Check, Lock, X } from "lucide-react";
 
@@ -59,7 +59,7 @@ export default function View() {
     } catch { toast("등록에 실패했습니다.", "error"); }
   };
 
-  if (state === "loading") return <EmptyState title="불러오는 중…" />;
+  if (state === "loading") return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
 
   if (state === "notfound") {
     return (
@@ -107,10 +107,10 @@ export default function View() {
       </div>
 
       {q!.status === "accepted" && (
-        <div className="banner ok"><Check size={16} /> 이 견적을 수락하셨습니다 — {q!.customer_response?.name} · {fmtDateTime(q!.responded_at)}</div>
+        <Banner variant="ok" icon={<Check size={16} />}>이 견적을 수락하셨습니다 — {q!.customer_response?.name} · {fmtDateTime(q!.responded_at)}</Banner>
       )}
       {q!.status === "rejected" && (
-        <div className="banner no"><X size={16} /> 이 견적을 거절하셨습니다 — {q!.customer_response?.name} · {fmtDateTime(q!.responded_at)}</div>
+        <Banner variant="no" icon={<X size={16} />}>이 견적을 거절하셨습니다 — {q!.customer_response?.name} · {fmtDateTime(q!.responded_at)}</Banner>
       )}
 
       <div className="card">

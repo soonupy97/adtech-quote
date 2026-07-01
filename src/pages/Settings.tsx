@@ -2,21 +2,20 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { Auth } from "@/lib/auth";
-import { uuid } from "@/lib/quote";
+import { previewQuoteNo, uuid } from "@/lib/quote";
 import { DIM_UNITS, DEFAULT_QTY_UNITS } from "@/lib/units";
-import type { AdjMode, DiscountRule, PromoCode, Role, Settings as SettingsT } from "@/types";
+import type { AdjMode, DiscountRule, PromoCode, Settings as SettingsT } from "@/types";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input, Modal, PageTitle, Select, Textarea } from "@/components/ui";
+import { Banner, Button, CardHeader, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from "@/components/ui";
 import { AlertTriangle, Check, Plus, X, Trash2 } from "lucide-react";
 import { MENU_TOGGLES, MENU_EVENT } from "@/components/AppShell";
 
-type Tab = "company" | "quote" | "terms" | "rules" | "approval" | "menus";
+type Tab = "company" | "quote" | "terms" | "rules" | "menus";
 const TABS: { key: Tab; label: string }[] = [
   { key: "company", label: "회사" },
   { key: "quote", label: "견적 기본값" },
   { key: "terms", label: "약관·인사말" },
   { key: "rules", label: "할인" },
-  { key: "approval", label: "승인" },
   { key: "menus", label: "메뉴 표시" },
 ];
 
@@ -92,7 +91,7 @@ export default function Settings() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  if (!s) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+  if (!s) return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
   const sup = s.supplier, def = s.defaults;
   const hiddenMenus = s.menuHidden || [];
   const toggleMenu = (to: string) =>
@@ -124,7 +123,7 @@ export default function Settings() {
 
   return (
     <>
-      <div className="page-head"><PageTitle title="설정" sub="회사정보·문서·자동화 규칙" /></div>
+      <PageHeader title="설정" sub="회사정보·문서·자동화 규칙" />
 
       <div className="tabs">
         {TABS.map((t) => (
@@ -143,6 +142,8 @@ export default function Settings() {
               <Field label="담당자"><Input value={sup.manager} onChange={(e) => setS({ ...s, supplier: { ...sup, manager: e.target.value } })} /></Field>
               <Field label="연락처"><Input value={sup.tel} onChange={(e) => setS({ ...s, supplier: { ...sup, tel: e.target.value } })} /></Field>
               <Field label="주소"><Input value={sup.addr} onChange={(e) => setS({ ...s, supplier: { ...sup, addr: e.target.value } })} /></Field>
+              <Field label="업종"><Input value={sup.upjong || ""} onChange={(e) => setS({ ...s, supplier: { ...sup, upjong: e.target.value } })} /></Field>
+              <Field label="업태"><Input value={sup.uptae || ""} onChange={(e) => setS({ ...s, supplier: { ...sup, uptae: e.target.value } })} /></Field>
             </div>
           </div>
           <div className="card">
@@ -256,7 +257,7 @@ export default function Settings() {
             </Field>
             <Field label="시퀀스 자릿수"><Input amount value={numbering.seqDigits ?? 3} onChange={(e) => setS({ ...s, numbering: { ...numbering, seqDigits: Number(e.target.value.replace(/[^0-9]/g, "")) || 3 } })} /></Field>
           </div>
-          <div className="dim">예시: {`${numbering.prefix ?? "Q"}-${(numbering.dateFormat ?? "YYYYMMDD").replace("YYYY", "2026").replace("YY", "26").replace("MM", "06").replace("DD", "20")}-${"1".padStart(numbering.seqDigits ?? 3, "0")}`}</div>
+          <div className="dim">예시: {previewQuoteNo(numbering)}</div>
         </div>
         </>
       )}
@@ -274,7 +275,7 @@ export default function Settings() {
       {tab === "rules" && (
         <>
           <div className="card">
-            <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>자동 할인 규칙 (부록 C)</div><div className="spacer" /><Button size="sm" variant="secondary" onClick={addRule}>+ 규칙</Button></div>
+            <CardHeader title="자동 할인 규칙 (부록 C)" action={<Button size="sm" variant="secondary" onClick={addRule}>+ 규칙</Button>} />
             <div className="card-sub" style={{ marginTop: 8 }}>조건 충족 시 견적 작성에서 “자동할인 적용”으로 주입됩니다.</div>
             {rules.length === 0 && <div className="dim">규칙 없음</div>}
             {rules.map((r, i) => (
@@ -308,7 +309,7 @@ export default function Settings() {
           </div>
 
           <div className="card">
-            <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>프로모션 코드 (부록 A19)</div><div className="spacer" /><Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addPromo}>코드</Button></div>
+            <CardHeader title="프로모션 코드 (부록 A19)" action={<Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addPromo}>코드</Button>} />
             {promos.length === 0 && <div className="dim" style={{ marginTop: 8 }}>코드 없음</div>}
             {promos.map((p, i) => (
               <div className="row wrap" key={i} style={{ gap: 8, marginTop: 12 }}>
@@ -352,32 +353,6 @@ export default function Settings() {
         </div>
       )}
 
-      {tab === "approval" && (
-        <div className="card">
-          <div className="card-title">고액·고할인 승인</div>
-          <div className="card-sub" style={{ marginTop: 4 }}>
-            기준을 넘는 견적은 발송 전 관리자 승인을 받도록 합니다. 내 역할이 관리자가 아니면 발송이 막히고, 관리자만 발송할 수 있습니다.
-          </div>
-          <div className={`toggle ${s.approval?.enabled ? "on" : ""}`} style={{ maxWidth: 360, display: "inline-flex", marginTop: 16 }}>
-            <div className="head" onClick={() => setS({ ...s, approval: { ...s.approval, enabled: !s.approval?.enabled } })}>
-              <span className="check"><Check /></span>
-              고액·고할인 견적 관리자 승인 사용
-            </div>
-          </div>
-          <div className="grid cols-2" style={{ marginTop: 12 }}>
-            <Field label="승인 필요 금액(원) 이상">
-              <Input amount value={s.approval?.amountGte || ""} onChange={(e) => setS({ ...s, approval: { ...s.approval, amountGte: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 } })} placeholder="예: 10000000" />
-            </Field>
-            <Field label="승인 필요 할인율(%) 이상">
-              <Input amount value={s.approval?.discountPctGte || ""} onChange={(e) => setS({ ...s, approval: { ...s.approval, discountPctGte: Number(e.target.value.replace(/[^0-9.]/g, "")) || 0 } })} placeholder="예: 15" />
-            </Field>
-          </div>
-          <Field label="내 역할" style={{ maxWidth: 240 }}>
-            <Select value={s.myRole || "admin"} onChange={(v) => setS({ ...s, myRole: v as Role })}
-              options={[{ value: "admin", label: "관리자" }, { value: "sales", label: "영업" }, { value: "viewer", label: "뷰어" }]} />
-          </Field>
-        </div>
-      )}
       <div className={`actionbar${dirty ? "" : " is-flow"}`}>
         <span className="row" style={{ gap: 8, fontSize: 14, fontWeight: 500, color: dirty ? "var(--warn)" : "var(--text-2)" }}>
           {dirty ? (
@@ -414,22 +389,16 @@ export default function Settings() {
           }
         >
           {confirmFinal ? (
-            <div className="banner no" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <AlertTriangle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
-              <span>
-                정말 계정을 삭제하시겠습니까?
-                <br />
-                이 작업은 되돌릴 수 없습니다.
-              </span>
-            </div>
+            <Banner variant="no" alignStart icon={<AlertTriangle size={16} style={{ marginTop: 2 }} />}>
+              정말 계정을 삭제하시겠습니까?
+              <br />
+              이 작업은 되돌릴 수 없습니다.
+            </Banner>
           ) : (
             <>
-              <div className="banner no" style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <AlertTriangle size={16} style={{ marginTop: 2, flexShrink: 0 }} />
-                <span>
-                  계정을 삭제하면 <b>모든 데이터가 영구적으로 삭제</b>되며 복구할 수 없습니다.
-                </span>
-              </div>
+              <Banner variant="no" alignStart icon={<AlertTriangle size={16} style={{ marginTop: 2 }} />}>
+                계정을 삭제하면 <b>모든 데이터가 영구적으로 삭제</b>되며 복구할 수 없습니다.
+              </Banner>
               <Field label={<>확인을 위해 이메일 <b>{myEmail}</b> 을(를) 입력하세요</>}>
                 <Input
                   value={delText}

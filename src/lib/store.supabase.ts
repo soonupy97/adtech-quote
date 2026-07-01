@@ -7,7 +7,7 @@ import type {
   QuoteSummary,
   Settings,
 } from "@/types";
-import { CATALOG_SEED, calcTotals, quoteTitle, uuid } from "./quote";
+import { CATALOG_SEED, calcTotals, quoteNoDigits, quoteNoPrefix, quoteTitle, uuid, type NumberingRule } from "./quote";
 import { DEFAULT_QTY_UNITS } from "./units";
 import { shareUrlFor, type Store } from "./store.types";
 import { supabase } from "./supabaseClient";
@@ -112,25 +112,22 @@ function quoteToRow(q: Quote) {
   };
 }
 
-function ymd(d = new Date()): string {
-  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
-}
-
+// 견적번호 채번: 설정(접두어·날짜형식·시퀀스 자릿수)을 반영해 다음 번호를 생성한다.
 async function nextQuoteNo(): Promise<string> {
-  const key = ymd();
-  const prefix = `Q-${key}-`;
+  const { data: cfg } = await sb().from("settings").select("numbering").maybeSingle();
+  const numbering = (cfg?.numbering || {}) as NumberingRule;
+  const prefix = quoteNoPrefix(numbering);
+  const digits = quoteNoDigits(numbering);
   const { data } = await sb()
     .from("quotes")
     .select("quote_no")
     .like("quote_no", `${prefix}%`);
   let max = 0;
   for (const row of data || []) {
-    const n = parseInt(String(row.quote_no).slice(prefix.length), 10);
-    if (n > max) max = n;
+    const seq = parseInt(String(row.quote_no).slice(prefix.length), 10);
+    if (seq > max) max = seq;
   }
-  return `${prefix}${String(max + 1).padStart(3, "0")}`;
+  return `${prefix}${String(max + 1).padStart(digits, "0")}`;
 }
 
 async function loadEvents(quoteId: string): Promise<QuoteEvent[]> {
@@ -163,11 +160,11 @@ function summarize(q: Quote): QuoteSummary {
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  supplier: { name: "", bizno: "", ceo: "", addr: "", tel: "", manager: "" },
+  supplier: { name: "", bizno: "", ceo: "", uptae: "", upjong: "", addr: "", tel: "", manager: "" },
   defaults: {
     validity: "발행일로부터 15일",
-    deposit: "계약 시 50%",
-    balance: "설치 완료 후 50%",
+    deposit: "계약 시 10%",
+    balance: "제작 전 50% / 설치 후 40%",
     as: "시공 후 1년 무상 A/S",
   },
   units: { dimension: "mm", quantityUnits: DEFAULT_QTY_UNITS },
@@ -241,9 +238,21 @@ export const supabaseStore: Store = {
 
   async markSent(id) {
     const now = new Date().toISOString();
+    // 발송 시점의 회사 로고를 견적 supplier 에 함께 스냅샷한다.
+    // 이렇게 하면 익명 링크 미리보기(api/og-image)가 RLS 보호된 settings 에 접근하지 않고도
+    // (=service-role 키 없이) 견적 토큰만으로 로고를 얻을 수 있다. settings 읽기는 본인 것뿐(RLS OK).
+    const patch: Record<string, unknown> = { status: "sent", sent_at: now, updated_at: now };
+    try {
+      const { data: st } = await sb().from("settings").select("branding").maybeSingle();
+      const logoUrl = (st?.branding as { logoUrl?: string } | null)?.logoUrl || "";
+      if (logoUrl) {
+        const { data: cur0 } = await sb().from("quotes").select("supplier").eq("id", id).single();
+        patch.supplier = { ...((cur0?.supplier as object) || {}), logoUrl };
+      }
+    } catch { /* 로고 스냅샷 실패는 발송을 막지 않는다 */ }
     const { data, error } = await sb()
       .from("quotes")
-      .update({ status: "sent", sent_at: now, updated_at: now })
+      .update(patch)
       .eq("id", id)
       .eq("status", "draft")
       .select()
@@ -378,7 +387,6 @@ export const supabaseStore: Store = {
     return (data || []).map((r: any) => ({
       id: r.id,
       type: r.type,
-      grade: r.grade,
       unit: r.unit,
       price: Number(r.price) || 0,
       memo: r.memo || "",
@@ -391,13 +399,12 @@ export const supabaseStore: Store = {
   async catalogMap() {
     const list = await this.listCatalog();
     const map: Record<string, CatalogItem> = {};
-    for (const it of list) map[`${it.type}|${it.grade}`] = it;
+    for (const it of list) map[it.type] = it;
     return map;
   },
   async saveCatalogItem(r) {
     const row = {
       type: r.type,
-      grade: r.grade,
       unit: r.unit,
       price: r.price,
       memo: r.memo,
@@ -435,7 +442,6 @@ export const supabaseStore: Store = {
       terms: data.terms || {},
       discountRules: data.discount_rules || [],
       promoCodes: data.promo_codes || [],
-      approval: data.approval || {},
       coverLetter: data.cover_letter ?? "",
       units: data.units || DEFAULT_SETTINGS.units,
       menuHidden: data.menu_hidden ?? DEFAULT_SETTINGS.menuHidden,
@@ -454,7 +460,6 @@ export const supabaseStore: Store = {
       terms: s.terms || {},
       discount_rules: s.discountRules || [],
       promo_codes: s.promoCodes || [],
-      approval: s.approval || {},
       cover_letter: s.coverLetter ?? "",
       units: s.units || {},
       menu_hidden: s.menuHidden || [],
@@ -509,7 +514,7 @@ export const supabaseStore: Store = {
     return added > 0;
   },
   async seedCatalog() {
-    // 샘플이므로 한 종류당 1행(일반 등급)만. 기존 단가표를 모두 비우고 새로 채운다(이름 중복 제거).
+    // 샘플이므로 한 종류당 1행만. 기존 단가표를 모두 비우고 새로 채운다(이름 중복 제거).
     const { data: user } = await sb().auth.getUser();
     const owner_id = user.user?.id;
     const { error: delErr } = await sb()
@@ -518,7 +523,7 @@ export const supabaseStore: Store = {
       .not("id", "is", null);
     if (delErr) throw delErr;
     const rows = CATALOG_SEED.map(([type, unit, normal]) => ({
-      id: uuid(), type, grade: "일반", unit, price: normal, memo: "", owner_id,
+      id: uuid(), type, unit, price: normal, memo: "", owner_id,
     }));
     const { error } = await sb().from("catalog_items").insert(rows);
     if (error) throw error;

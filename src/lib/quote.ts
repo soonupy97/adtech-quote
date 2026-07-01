@@ -2,7 +2,6 @@
 import type {
   Adjustments,
   CostRow,
-  Grade,
   Quote,
   QuoteItem,
   Template,
@@ -10,36 +9,18 @@ import type {
 } from "@/types";
 
 // ── §8 마스터 데이터 ───────────────────────────────────────────────
+// 가장 많이 쓰는 핵심 품목만. 나머지는 종류 칸에서 검색/직접입력으로 추가 가능.
 export const ITEM_TYPES = [
-  // 채널·전면 간판류
   "전면간판(채널)",
   "채널레터(LED)",
-  "파나플렉스(후레임)",
-  "갈바간판",
-  "아크릴간판",
-  "알루미늄복합판(ACP)",
-  // LED·전광·네온
   "LED 전광판",
-  "네온사인/플렉스네온",
-  // 돌출·입체·지주
   "돌출간판(양면)",
   "입간판(스탠드)",
-  "지주간판",
-  // 시트·필름
-  "시트지 시공",
-  "윈도우시트(시선차단)",
-  "차량 랩핑",
-  // 현수막·배너
   "현수막(일반)",
-  "메쉬현수막",
   "실사출력(배너)",
-  "배너거치대(X배너)",
-  // 기타
-  "어닝(차양)",
+  "시트지 시공",
   "기타",
-] as const; // 20
-
-export const GRADES: Grade[] = ["일반", "고급", "수입"];
+] as const; // 9
 
 export const PARTS = [
   "LED모듈",
@@ -88,33 +69,16 @@ export const STATUS_LABEL: Record<string, string> = {
   rejected: "거절",
 };
 
-// §8.1 기본 단가표 시드: [종류, 단위, 일반, 고급, 수입]
+// §8.1 기본 단가표 시드: [종류, 단위, 일반, 고급, 수입] — ITEM_TYPES 핵심 품목과 동일하게 유지
 export const CATALOG_SEED: [string, string, number, number, number][] = [
-  // 채널·전면 간판류 (㎡)
   ["전면간판(채널)", "㎡", 160000, 220000, 300000],
   ["채널레터(LED)", "㎡", 280000, 380000, 520000],
-  ["파나플렉스(후레임)", "㎡", 140000, 190000, 260000],
-  ["갈바간판", "㎡", 95000, 130000, 170000],
-  ["아크릴간판", "㎡", 85000, 130000, 190000],
-  ["알루미늄복합판(ACP)", "㎡", 70000, 100000, 150000],
-  // LED·전광·네온
   ["LED 전광판", "㎡", 700000, 1000000, 1500000],
-  ["네온사인/플렉스네온", "m", 55000, 85000, 130000],
-  // 돌출·입체·지주 (개)
   ["돌출간판(양면)", "개", 650000, 950000, 1500000],
   ["입간판(스탠드)", "개", 160000, 270000, 420000],
-  ["지주간판", "개", 1200000, 1800000, 2800000],
-  // 시트·필름 (㎡)
-  ["시트지 시공", "㎡", 30000, 48000, 75000],
-  ["윈도우시트(시선차단)", "㎡", 28000, 45000, 65000],
-  ["차량 랩핑", "㎡", 45000, 70000, 110000],
-  // 현수막·배너
   ["현수막(일반)", "㎡", 9000, 13000, 20000],
-  ["메쉬현수막", "㎡", 13000, 19000, 28000],
   ["실사출력(배너)", "㎡", 15000, 22000, 33000],
-  ["배너거치대(X배너)", "조", 18000, 30000, 50000],
-  // 기타 (㎡)
-  ["어닝(차양)", "㎡", 130000, 190000, 270000],
+  ["시트지 시공", "㎡", 30000, 48000, 75000],
 ];
 
 // ── §9 유틸 ───────────────────────────────────────────────────────
@@ -140,6 +104,37 @@ export function itemArea(it: QuoteItem): number {
 
 export function itemAmount(it: QuoteItem): number {
   return num(it.price) * num(it.qty);
+}
+
+// ── 견적번호 채번 규칙(부록 A19) ─────────────────────────────────
+// 설정(접두어·날짜형식·자릿수)을 실제 채번과 미리보기에서 공유하기 위한 순수 헬퍼.
+export interface NumberingRule { prefix?: string; dateFormat?: string; seqDigits?: number }
+
+// 날짜형식 토큰(YYYY·YY·MM·DD)을 날짜로 치환. YYYY를 YY보다 먼저 바꿔야 함.
+export function formatDateKey(fmt: string, d = new Date()): string {
+  const YYYY = String(d.getFullYear());
+  const MM = String(d.getMonth() + 1).padStart(2, "0");
+  const DD = String(d.getDate()).padStart(2, "0");
+  return fmt
+    .replace(/YYYY/g, YYYY)
+    .replace(/YY/g, YYYY.slice(-2))
+    .replace(/MM/g, MM)
+    .replace(/DD/g, DD);
+}
+
+export function quoteNoDigits(n?: NumberingRule): number {
+  return Math.min(Math.max(Math.floor(Number(n?.seqDigits)) || 3, 1), 10);
+}
+
+// 시퀀스를 제외한 접두부(예: "Q-20260702-"). 날짜형식이 비면 접두어만.
+export function quoteNoPrefix(n?: NumberingRule, d = new Date()): string {
+  const pfx = (n?.prefix ?? "Q").trim() || "Q";
+  const dateKey = formatDateKey(n?.dateFormat ?? "YYYYMMDD", d);
+  return dateKey ? `${pfx}-${dateKey}-` : `${pfx}-`;
+}
+
+export function previewQuoteNo(n?: NumberingRule, seq = 1, d = new Date()): string {
+  return `${quoteNoPrefix(n, d)}${String(seq).padStart(quoteNoDigits(n), "0")}`;
 }
 
 // ── §9 합계 calcTotals ────────────────────────────────────────────
@@ -181,7 +176,7 @@ export function makeEtc(): CostRow[] {
   return ETC.map((name) => ({ name, checked: false, cost: 0 }));
 }
 export function makeItem(): QuoteItem {
-  return { type: ITEM_TYPES[0], w: "", h: "", grade: "일반", price: 0, qty: 1, parts: {} };
+  return { type: ITEM_TYPES[0], w: "", h: "", price: 0, qty: 1, parts: {} };
 }
 
 // ── UUID (crypto.randomUUID 폴리필 포함) ──────────────────────────
@@ -203,7 +198,7 @@ export function newQuote(): Quote {
     public_token: "",
     quote_no: "",
     status: "draft",
-    supplier: { name: "", bizno: "", ceo: "", addr: "", tel: "", manager: "" },
+    supplier: { name: "", bizno: "", ceo: "", uptae: "", upjong: "", addr: "", tel: "", manager: "" },
     customer: { name: "", tel: "", addr: "" },
     site: { floor: "", height: "", road: "" },
     items: [makeItem()],
@@ -226,8 +221,8 @@ export function sampleQuote(): Quote {
   q.customer = { name: "[샘플] 한빛상사", tel: "010-1234-5678", addr: "서울특별시 강남구 테헤란로 123" };
   q.site = { floor: "1층", height: "3.5", road: "대로변(왕복 4차선)" };
   q.items = [
-    { type: "전면간판(채널)", w: "4", h: "0.9", grade: "고급", price: 790000, qty: 1, parts: {} },
-    { type: "현수막(일반)", w: "5", h: "0.9", grade: "일반", price: 45000, qty: 4, parts: {} },
+    { type: "전면간판(채널)", w: "4", h: "0.9", price: 790000, qty: 1, parts: {} },
+    { type: "현수막(일반)", w: "5", h: "0.9", price: 45000, qty: 4, parts: {} },
   ];
   // 시공·인허가·부대비용 — 매장 전면간판 설치 기준의 현실적 예시 금액
   const pick = (rows: CostRow[], costs: Record<string, number>): CostRow[] =>

@@ -2,7 +2,6 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { store } from "@/lib/store";
 import {
-  GRADES,
   ITEM_TYPES,
   PARTS,
   fmtDate,
@@ -16,9 +15,7 @@ import {
   calcMargin,
   calcTotalsWithTax,
   effectivePrice,
-  evaluateDiscountRules,
   expiryDate,
-  needsApproval,
 } from "@/lib/automation";
 import CopyLinkField from "@/components/CopyLinkField";
 import type {
@@ -26,14 +23,13 @@ import type {
   Attachment,
   CatalogItem,
   Client,
-  Grade,
   Quote,
   QuoteItem,
   Settings,
 } from "@/types";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input, Modal, PageTitle, Select, Textarea } from "@/components/ui";
-import { AlertTriangle, Check, Plus, Settings2, X, Zap } from "lucide-react";
+import { Button, CardHeader, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from "@/components/ui";
+import { Check, Plus, Settings2, X } from "lucide-react";
 
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(file); });
@@ -63,8 +59,8 @@ export default function Editor() {
   const [partsOpen, setPartsOpen] = useState<number | null>(null);
   const [optsOpen, setOptsOpen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [attaching, setAttaching] = useState(false);
   const [link, setLink] = useState<string | null>(null);
-  const [promo, setPromo] = useState("");
   const savedIdRef = useRef<string>("");
   const dirtyRef = useRef(false);
 
@@ -160,11 +156,15 @@ export default function Editor() {
 
   const totals = useMemo(() => (q ? calcTotalsWithTax(q, settings || undefined) : null), [q, settings]);
   const margin = useMemo(() => (q ? calcMargin(q, catalog) : null), [q, catalog]);
+  // 종류 옵션 = 기본 ITEM_TYPES + 품목·단가에 등록된 커스텀 종류(중복 제거, 기본이 앞)
+  const typeOptions = useMemo(() => {
+    const base = ITEM_TYPES as readonly string[];
+    const extra = Object.keys(catalog).filter((t) => t && !base.includes(t));
+    return [...base, ...extra];
+  }, [catalog]);
 
-  if (!q || !totals) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+  if (!q || !totals) return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
 
-  const isDraft = !q.id || q.status === "draft";
-  const approval = needsApproval(q, settings || undefined);
   const dimUnit = dimLabel(q.dimUnit ?? settings?.units?.dimension); // 견적 단위 우선, 없으면 설정 기본값
 
   // ── 헬퍼 ──
@@ -173,15 +173,15 @@ export default function Editor() {
 
   // 자동단가 + 옵션/구간단가 (부록 A19)
   const recalcPrice = (merged: QuoteItem) => {
-    const c = catalog[`${merged.type}|${merged.grade}`];
+    const c = catalog[merged.type];
     if (!c) return merged;
     const price = effectivePrice(merged, catalog, (merged as { _opts?: string[] })._opts || []);
     return { ...merged, price };
   };
-  const onTypeOrGrade = (i: number, p: Partial<QuoteItem>) => {
+  const onType = (i: number, p: Partial<QuoteItem>) => {
     const merged = recalcPrice({ ...q.items[i], ...p });
     const items = q.items.slice(); items[i] = merged; patch({ items });
-    if (catalog[`${merged.type}|${merged.grade}`]) toast(`자동단가 적용: ${won(merged.price)}`, "success");
+    if (catalog[merged.type]) toast(`자동단가 적용: ${won(merged.price)}`, "success");
   };
   const onQty = (i: number, qty: number) => {
     const merged = recalcPrice({ ...q.items[i], qty });
@@ -213,30 +213,6 @@ export default function Editor() {
     const adj = { ...q.adjustments }; adj[kind] = adj[kind].filter((_, x) => x !== i); patch({ adjustments: adj });
   };
 
-  // 자동 할인 규칙 적용 (부록 C)
-  const applyAutoDiscounts = () => {
-    const rules = settings?.discountRules || [];
-    if (!rules.length) return toast("설정 > 자동할인 규칙이 없습니다.", "warning");
-    const client = clients.find((c) => c.name === q.customer.name);
-    const matched = evaluateDiscountRules(q, rules, client?.grade);
-    if (!matched.length) return toast("충족하는 할인 규칙이 없습니다.", "warning");
-    const existing = q.adjustments.discount.filter((d) => !d.label.startsWith("[자동]"));
-    const auto = matched.map((m) => ({ label: `[자동] ${m.rule.label}`, mode: m.rule.then.mode, value: m.rule.then.value }));
-    patch({ adjustments: { ...q.adjustments, discount: [...existing, ...auto] } });
-    toast(`자동할인 ${auto.length}건 적용`, "success");
-  };
-
-  // 프로모션 코드 적용 (부록 A19)
-  const applyPromo = () => {
-    const code = promo.trim().toUpperCase();
-    const found = (settings?.promoCodes || []).find((p) => p.code === code);
-    if (!found) return toast("유효하지 않은 코드입니다.", "error");
-    const existing = q.adjustments.discount.filter((d) => d.label !== `[코드] ${found.code}`);
-    patch({ adjustments: { ...q.adjustments, discount: [...existing, { label: `[코드] ${found.code}`, mode: found.mode, value: found.value }] } });
-    setPromo("");
-    toast(`프로모션 '${found.label}' 적용`, "success");
-  };
-
   const loadClient = (cid: string) => {
     const c = clients.find((x) => x.id === cid); if (!c) return;
     patch({ customer: { name: c.name, tel: c.tel, addr: c.addr } });
@@ -260,13 +236,37 @@ export default function Editor() {
     toast("템플릿으로 저장했습니다.", "success");
   };
 
-  // 첨부 (부록 A20)
-  const addAttachment = async (file?: File) => {
-    if (!file || !q.id) { if (!q.id) toast("먼저 견적을 저장하세요.", "warning"); return; }
-    const url = await fileToDataUrl(file);
-    await store.attachments.save({ id: "", quote_id: q.id, kind: "photo", url, name: file.name, created_at: "" });
-    setAttachments(await store.attachments.list().then((l) => l.filter((a) => a.quote_id === q.id)));
-    toast("첨부했습니다.", "success");
+  // 첨부 (부록 A20) — 여러 파일 동시 선택 지원.
+  // 저장 안 된 새 견적이면 먼저 draft 로 자동저장해 id 를 확보한 뒤 첨부한다(자동저장 패턴과 동일).
+  const addAttachment = async (files?: FileList | null) => {
+    const arr = files ? Array.from(files) : [];
+    if (arr.length === 0) return;
+    setAttaching(true);
+    try {
+      let quoteId = q.id;
+      if (!quoteId) {
+        const saved = await store.saveQuote(q);
+        quoteId = saved.id;
+        savedIdRef.current = saved.id;
+        dirtyRef.current = false;
+        setQ((cur) =>
+          cur && !cur.id
+            ? { ...cur, id: saved.id, public_token: saved.public_token, quote_no: saved.quote_no, created_at: saved.created_at, status: saved.status }
+            : cur,
+        );
+        navigate(`/editor/${saved.id}`, { replace: true });
+      }
+      for (const file of arr) {
+        const url = await fileToDataUrl(file);
+        await store.attachments.save({ id: "", quote_id: quoteId, kind: "photo", url, name: file.name, created_at: "" });
+      }
+      setAttachments(await store.attachments.list().then((l) => l.filter((a) => a.quote_id === quoteId)));
+      toast(arr.length > 1 ? `${arr.length}개 첨부했습니다.` : "첨부했습니다.", "success");
+    } catch {
+      toast("첨부에 실패했습니다.", "error");
+    } finally {
+      setAttaching(false);
+    }
   };
   const delAttachment = async (aid: string) => {
     await store.attachments.remove(aid);
@@ -290,9 +290,6 @@ export default function Editor() {
   };
 
   const sendLink = async () => {
-    if (approval && settings?.myRole && settings.myRole !== "admin") {
-      return toast("관리자 승인이 필요한 견적입니다.", "warning");
-    }
     const saved = q.id ? await store.saveQuote(q) : await doSave();
     const { url } = await store.markSent(saved.id);
     savedIdRef.current = saved.id;
@@ -304,16 +301,13 @@ export default function Editor() {
 
   return (
     <>
-      <div className="page-head no-print">
-        <PageTitle
-          title={id ? "견적 수정" : "견적 작성"}
-          sub={`${q.quote_no || "저장 시 견적번호 발급"}${exp ? ` · 만료 ${fmtDate(exp)}` : ""}`}
-        />
-      </div>
+      <PageHeader
+        className="no-print"
+        title={id ? "견적 수정" : "견적 작성"}
+        sub={`${q.quote_no || "저장 시 견적번호 발급"}${exp ? ` · 만료 ${fmtDate(exp)}` : ""}`}
+      />
 
-      {approval && <div className="banner info no-print"><AlertTriangle size={16} /> 고액/고할인 견적 — 발송 전 관리자 승인이 필요합니다 (부록 D).</div>}
-
-      <div className={isDraft ? "watermark" : ""}>
+      <div>
       {/* 공급자 */}
       <div className="card">
         <div className="card-title">공급자 (우리 회사)</div>
@@ -325,23 +319,29 @@ export default function Editor() {
           <Field label="주소"><Input value={q.supplier.addr} onChange={(e) => patch({ supplier: { ...q.supplier, addr: e.target.value } })} /></Field>
           <Field label="연락처"><Input value={q.supplier.tel} onChange={(e) => patch({ supplier: { ...q.supplier, tel: e.target.value } })} /></Field>
           <Field label="담당자"><Input value={q.supplier.manager} onChange={(e) => patch({ supplier: { ...q.supplier, manager: e.target.value } })} /></Field>
+          <Field label="업종"><Input value={q.supplier.upjong || ""} onChange={(e) => patch({ supplier: { ...q.supplier, upjong: e.target.value } })} /></Field>
+          <Field label="업태"><Input value={q.supplier.uptae || ""} onChange={(e) => patch({ supplier: { ...q.supplier, uptae: e.target.value } })} /></Field>
         </div>
       </div>
 
       {/* 고객·현장 */}
       <div className="card">
-        <div className="row wrap">
-          <div className="card-title" style={{ marginBottom: 0 }}>고객 / 현장</div>
-          <div className="spacer" />
-          <Select
-            style={{ maxWidth: 200 }}
-            value=""
-            placeholder="거래처 불러오기"
-            onChange={(v) => v && loadClient(v)}
-            options={clients.map((c) => ({ value: c.id, label: c.name }))}
-          />
-          <Button size="sm" variant="secondary" onClick={saveAsClient}>거래처 저장</Button>
-        </div>
+        <CardHeader
+          className="wrap"
+          title="고객 / 현장"
+          action={
+            <>
+              <Select
+                style={{ maxWidth: 200 }}
+                value=""
+                placeholder="거래처 불러오기"
+                onChange={(v) => v && loadClient(v)}
+                options={clients.map((c) => ({ value: c.id, label: c.name }))}
+              />
+              <Button size="sm" variant="secondary" onClick={saveAsClient}>거래처 저장</Button>
+            </>
+          }
+        />
         <div className="grid cols-3" style={{ marginTop: 16 }}>
           <Field label="고객 상호/성함"><Input value={q.customer.name} onChange={(e) => patch({ customer: { ...q.customer, name: e.target.value } })} /></Field>
           <Field label="연락처"><Input value={q.customer.tel} onChange={(e) => patch({ customer: { ...q.customer, tel: e.target.value } })} /></Field>
@@ -354,36 +354,32 @@ export default function Editor() {
 
       {/* 품목 */}
       <div className="card">
-        <div className="row">
-          <div className="card-title" style={{ marginBottom: 0 }}>광고물 품목</div>
-          <div className="spacer" />
-          <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addItem}>행 추가</Button>
-        </div>
+        <CardHeader
+          title="광고물 품목"
+          action={<Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={addItem}>행 추가</Button>}
+        />
         <div className="table-wrap" style={{ marginTop: 16 }}>
           <table className="table">
             <thead>
-              <tr><th style={{ minWidth: 150 }}>종류</th><th>{`가로(${dimUnit})`}</th><th>{`세로(${dimUnit})`}</th><th>면적</th><th>등급</th><th className="amt">단가</th><th>수량</th><th className="amt">금액</th><th></th></tr>
+              <tr><th style={{ minWidth: 150 }}>종류</th><th>{`가로(${dimUnit})`}</th><th>{`세로(${dimUnit})`}</th><th>면적</th><th className="amt">단가</th><th>수량</th><th className="amt">금액</th><th></th></tr>
             </thead>
             <tbody>
               {q.items.map((it, i) => {
-                const c = catalog[`${it.type}|${it.grade}`];
+                const c = catalog[it.type];
                 const hasOpts = (c?.options?.length || 0) > 0;
+                const rowTypes = it.type && !typeOptions.includes(it.type) ? [...typeOptions, it.type] : typeOptions;
                 return (
                 <Fragment key={i}>
                   <tr>
                     <td>
-                      <Select value={it.type} onChange={(v) => onTypeOrGrade(i, { type: v })}
-                        options={ITEM_TYPES.map((t) => ({ value: t, label: t }))} />
+                      <Select className="field-type" value={it.type} onChange={(v) => onType(i, { type: v })}
+                        options={rowTypes.map((t) => ({ value: t, label: t }))} />
                     </td>
-                    <td><Input value={it.w} onChange={(e) => setItem(i, { w: e.target.value })} placeholder="0" style={{ width: 70 }} /></td>
-                    <td><Input value={it.h} onChange={(e) => setItem(i, { h: e.target.value })} placeholder="0" style={{ width: 70 }} /></td>
+                    <td><Input className="field-dim" value={it.w} onChange={(e) => setItem(i, { w: e.target.value })} placeholder="0" /></td>
+                    <td><Input className="field-dim" value={it.h} onChange={(e) => setItem(i, { h: e.target.value })} placeholder="0" /></td>
                     <td className="dim">{areaInSqm(it, dimUnit) ? `${areaInSqm(it, dimUnit)}㎡` : "-"}</td>
-                    <td>
-                      <Select value={it.grade} onChange={(v) => onTypeOrGrade(i, { grade: v as Grade })}
-                        options={GRADES.map((g) => ({ value: g, label: g }))} />
-                    </td>
-                    <td><Input amount value={it.price} onChange={(e) => setItem(i, { price: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 })} style={{ width: 110 }} /></td>
-                    <td><Input amount value={it.qty} onChange={(e) => onQty(i, Number(e.target.value.replace(/[^0-9.]/g, "")) || 0)} style={{ width: 60 }} /></td>
+                    <td><Input className="field-price" amount value={it.price} onChange={(e) => setItem(i, { price: Number(e.target.value.replace(/[^0-9]/g, "")) || 0 })} /></td>
+                    <td><Input className="field-qty" amount value={it.qty} onChange={(e) => onQty(i, Number(e.target.value.replace(/[^0-9.]/g, "")) || 0)} /></td>
                     <td className="amt">{won(itemAmount(it))}</td>
                     <td>
                       <div className="row" style={{ gap: 4 }}>
@@ -394,7 +390,7 @@ export default function Editor() {
                     </td>
                   </tr>
                   {optsOpen === i && hasOpts && (
-                    <tr><td colSpan={9} style={{ background: "var(--fill-2)" }}>
+                    <tr><td colSpan={8} style={{ background: "var(--fill-2)" }}>
                       <div className="dim" style={{ marginBottom: 8 }}>옵션/변형 (선택 시 단가 가산)</div>
                       <div className="row wrap" style={{ gap: 8 }}>
                         {c!.options!.map((o) => {
@@ -412,7 +408,7 @@ export default function Editor() {
                     </td></tr>
                   )}
                   {partsOpen === i && (
-                    <tr><td colSpan={9} style={{ background: "var(--fill-2)" }}>
+                    <tr><td colSpan={8} style={{ background: "var(--fill-2)" }}>
                       <div className="dim" style={{ marginBottom: 8 }}>부품 수량 메모 (금액 미반영)</div>
                       <div className="toggle-grid" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))" }}>
                         {PARTS.map((part) => (
@@ -445,23 +441,29 @@ export default function Editor() {
         </div>
       ))}
 
-      {/* 할증/할인 */}
-      <div className="card">
-        <div className="row no-print" style={{ marginBottom: 12 }}>
-          <Button size="sm" variant="secondary" icon={<Zap size={14} />} onClick={applyAutoDiscounts}>자동할인 적용</Button>
-          <div className="row" style={{ gap: 8 }}>
-            <Input placeholder="프로모션 코드" value={promo} onChange={(e) => setPromo(e.target.value)} style={{ width: 150 }} />
-            <Button size="sm" onClick={applyPromo}>적용</Button>
-          </div>
-        </div>
-        <div className="grid cols-2">
-          {(["surcharge", "discount"] as const).map((kind) => (
-            <div key={kind}>
-              <div className="row">
-                <div className="card-title" style={{ marginBottom: 0 }}>{kind === "surcharge" ? "할증" : "할인"}</div>
-                <div className="spacer" />
-                <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={() => addAdj(kind)}>추가</Button>
-              </div>
+      {/* 할증 / 할인 (각각 별도 카드) */}
+      {(["surcharge", "discount"] as const).map((kind) => {
+        // 할증·할인 모두 "필요할 때만 체크" — 체크 시(=행 존재) 작성 가능, 해제 시 항목 비움.
+        const title = kind === "surcharge" ? "할증" : "할인";
+        const on = q.adjustments[kind].length > 0;
+        return (
+          <div className="card" key={kind}>
+            <div className="row">
+              <label className="chk row" style={{ gap: 8, marginBottom: 0, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={(e) => {
+                    if (e.target.checked) addAdj(kind);
+                    else patch({ adjustments: { ...q.adjustments, [kind]: [] } });
+                  }}
+                />
+                <span className="card-title" style={{ marginBottom: 0 }}>{title}</span>
+              </label>
+              <div className="spacer" />
+              {on && <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={() => addAdj(kind)}>추가</Button>}
+            </div>
+            {on ? (
               <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                 {q.adjustments[kind].length === 0 && <div className="dim">항목 없음</div>}
                 {q.adjustments[kind].map((r, i) => (
@@ -474,10 +476,12 @@ export default function Editor() {
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            ) : (
+              <div className="dim" style={{ marginTop: 12 }}>필요 시 체크하여 {title} 항목을 추가하세요.</div>
+            )}
+          </div>
+        );
+      })}
 
       {/* 합계 */}
       <div className="card">
@@ -512,8 +516,10 @@ export default function Editor() {
 
       {/* 첨부 (부록 A20) */}
       <div className="card no-print">
-        <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>첨부 (현장사진·도면·시안)</div><div className="spacer" />
-          <label className="btn" data-size="sm" style={{ cursor: "pointer" }}><Plus size={14} />파일<input type="file" accept="image/*" hidden onChange={(e) => addAttachment(e.target.files?.[0])} /></label>
+        <div className="row"><div className="card-title" style={{ marginBottom: 0 }}>첨부 (현장사진·도면·시안)</div>
+          {attaching && <Spinner size={15} label="업로드 중…" style={{ marginLeft: 10 }} />}
+          <div className="spacer" />
+          <label className="btn" data-size="sm" aria-disabled={attaching || undefined} style={{ cursor: attaching ? "wait" : "pointer", opacity: attaching ? 0.6 : 1, pointerEvents: attaching ? "none" : undefined }}><Plus size={14} />파일<input type="file" accept="image/*" multiple hidden disabled={attaching} onChange={(e) => { addAttachment(e.target.files); e.target.value = ""; }} /></label>
         </div>
         {attachments.length > 0 ? (
           <div className="gallery" style={{ marginTop: 12 }}>
@@ -524,19 +530,19 @@ export default function Editor() {
               </div>
             ))}
           </div>
-        ) : <div className="dim" style={{ marginTop: 8 }}>{q.id ? "첨부 없음" : "저장 후 첨부할 수 있습니다."}</div>}
+        ) : !attaching && <div className="dim" style={{ marginTop: 8 }}>{q.id ? "첨부 없음" : "파일을 추가하면 자동으로 임시저장됩니다."}</div>}
       </div>
 
       {/* 결제조건·비고 */}
       <div className="card">
         <div className="card-title">결제 조건 / 비고</div>
-        <div className="grid cols-3">
+        <div className="grid cols-2">
           <Field label="계약금"><Input value={q.paymentTerms.deposit} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, deposit: e.target.value } })} /></Field>
           <Field label="잔금"><Input value={q.paymentTerms.balance} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, balance: e.target.value } })} /></Field>
-          <Field label="A/S"><Input value={q.paymentTerms.as} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, as: e.target.value } })} /></Field>
         </div>
         <div className="grid cols-2">
           <Field label="유효기간"><Input value={q.validity} onChange={(e) => patch({ validity: e.target.value })} /></Field>
+          <Field label="A/S"><Input value={q.paymentTerms.as} onChange={(e) => patch({ paymentTerms: { ...q.paymentTerms, as: e.target.value } })} /></Field>
         </div>
         <Field label="비고"><Textarea value={q.notes} onChange={(e) => patch({ notes: e.target.value })} placeholder="추가 안내사항" /></Field>
       </div>

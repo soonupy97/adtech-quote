@@ -10,13 +10,13 @@ import type {
 import { calcTotals, num } from "./quote";
 
 // ── 옵션/구간단가 반영 effective 단가 (부록 A19) ──────────────────
-// 종류·등급으로 catalog 항목을 찾아 옵션 가산 + 수량 구간 단가를 적용한 단가를 계산
+// 종류로 catalog 항목을 찾아 옵션 가산 + 수량 구간 단가를 적용한 단가를 계산
 export function effectivePrice(
   item: QuoteItem,
   catalog: Record<string, CatalogItem>,
   selectedOptions: string[] = [],
 ): number {
-  const c = catalog[`${item.type}|${item.grade}`];
+  const c = catalog[item.type];
   if (!c) return num(item.price);
   let base = c.price;
   // 수량 구간별 단가(볼륨 디스카운트): 충족하는 가장 큰 minQty 의 price
@@ -40,7 +40,7 @@ export function calcMargin(q: Quote, catalog: Record<string, CatalogItem>): Marg
   let cost = 0;
   let sales = 0;
   for (const it of q.items) {
-    const c = catalog[`${it.type}|${it.grade}`];
+    const c = catalog[it.type];
     const unitCost = c?.cost ?? 0;
     cost += unitCost * num(it.qty);
     sales += num(it.price) * num(it.qty);
@@ -140,17 +140,4 @@ export function reminderFor(q: Quote, sentDays = 3, viewedDays = 3, now = new Da
     if (days >= viewedDays) return `열람 후 ${days}일째 미응답 — 후속 연락 필요`;
   }
   return null;
-}
-
-// ── 승인 워크플로 (부록 D / A26) ─────────────────────────────────
-export function needsApproval(q: Quote, settings?: Settings): boolean {
-  const a = settings?.approval;
-  if (!a?.enabled) return false;
-  const t = calcTotals(q);
-  if (a.amountGte != null && t.grand >= a.amountGte) return true;
-  if (a.discountPctGte != null && t.subtotal > 0) {
-    const pct = (t.discount / t.subtotal) * 100;
-    if (pct >= a.discountPctGte) return true;
-  }
-  return false;
 }

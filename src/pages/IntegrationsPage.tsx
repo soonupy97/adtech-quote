@@ -3,7 +3,7 @@ import { store } from "@/lib/store";
 import { fireZapier, notifySlack } from "@/lib/integrations";
 import { uuid } from "@/lib/quote";
 import type { Settings } from "@/types";
-import { Button, Field, Input, PageTitle } from "@/components/ui";
+import { Button, Field, Input, PageHeader, Spinner } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { AlertTriangle } from "lucide-react";
 
@@ -14,7 +14,7 @@ export default function IntegrationsPage({ embedded = false }: { embedded?: bool
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { store.getSettings().then(setS); }, []);
-  if (!s) return <div className="empty" style={{ paddingTop: 64 }}>불러오는 중…</div>;
+  if (!s) return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
   const ig = s.integrations || {};
   const set = (patch: Partial<typeof ig>) => setS({ ...s, integrations: { ...ig, ...patch } });
 
@@ -35,7 +35,7 @@ export default function IntegrationsPage({ embedded = false }: { embedded?: bool
 
   return (
     <>
-      {!embedded && <div className="page-head"><PageTitle title="연동" sub="알림·캘린더·자동화·API" /></div>}
+      {!embedded && <PageHeader title="연동" sub="알림·캘린더·자동화·API" />}
 
       <div className="card">
         <div className="card-title">알림 연동</div>

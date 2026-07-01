@@ -4,7 +4,7 @@ import { store } from "@/lib/store";
 import { ITEM_TYPES, fmtDate, won } from "@/lib/quote";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type { QuoteSummary, Signage as SignageT } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, ModalFooter, PageHeader, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { MapPin, Plus, SignpostBig, Trash2, Pencil } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -37,6 +37,7 @@ export default function Signage() {
   const toast = useToast();
   const [list, setList] = useState<SignageT[]>([]);
   const [quotes, setQuotes] = useState<QuoteSummary[]>([]);
+  const [catalogTypes, setCatalogTypes] = useState<string[]>([]);
   const [edit, setEdit] = useState<SignageT | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -44,7 +45,15 @@ export default function Signage() {
   useEffect(() => {
     load();
     store.listQuotes().then((qs) => setQuotes(qs.filter((q) => q.status === "accepted")));
+    store.catalogMap().then((m) => setCatalogTypes(Object.keys(m)));
   }, []);
+
+  // 종류 옵션 = 기본 ITEM_TYPES + 품목·단가에 등록된 커스텀 종류(중복 제거, 기본이 앞)
+  const typeOptions = useMemo(() => {
+    const base = ITEM_TYPES as readonly string[];
+    const extra = catalogTypes.filter((t) => t && !base.includes(t));
+    return [...base, ...extra];
+  }, [catalogTypes]);
 
   const save = async () => {
     if (!edit) return;
@@ -114,11 +123,10 @@ export default function Signage() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="광고물 관리" sub={`게시중 ${active.length} · 만료임박 ${expiringSoon} · 만료 ${expired}`} />
+      <PageHeader title="광고물 관리" sub={`게시중 ${active.length} · 만료임박 ${expiringSoon} · 만료 ${expired}`} action={<>
         <Button size="sm" onClick={exportCSV} disabled={list.length === 0}>CSV</Button>
         <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>광고물 등록</Button>
-      </div>
+      </>} />
 
       <div className="bento">
         <div className="tile feature col-2 row-2">
@@ -163,14 +171,14 @@ export default function Signage() {
         <Modal
           title={edit.id ? "광고물 편집" : "광고물 등록"}
           onClose={() => setEdit(null)}
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
+          footer={<ModalFooter loading={saving} onConfirm={save} onCancel={() => setEdit(null)} />}
         >
           <div className="grid cols-2">
             <Field label="광고물명"><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder="예: ○○약국 전면간판" /></Field>
             <Field label="고객/거래처"><Input value={edit.customer} onChange={(e) => setEdit({ ...edit, customer: e.target.value })} /></Field>
             <Field label="종류">
               <Select value={edit.type} onChange={(v) => setEdit({ ...edit, type: v })}
-                options={ITEM_TYPES.map((t) => ({ value: t, label: t }))} />
+                options={(edit.type && !typeOptions.includes(edit.type) ? [...typeOptions, edit.type] : typeOptions).map((t) => ({ value: t, label: t }))} />
             </Field>
             <Field label="상태">
               <Select value={edit.status} onChange={(val) => setEdit({ ...edit, status: val as SignageT["status"] })}

@@ -539,7 +539,8 @@
   background: var(--canvas-soft);
 }
 // 커스텀 체크박스(표준 1rem) — 흰색 SVG 체크로 항상 흰 체크 보장(accent-color 자동 대비 회피)
-.agree input[type="checkbox"] {
+.agree input[type="checkbox"],
+.chk input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   box-sizing: border-box;
@@ -554,7 +555,8 @@
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
-.agree input[type="checkbox"]:checked {
+.agree input[type="checkbox"]:checked,
+.chk input[type="checkbox"]:checked {
   border-color: var(--primary);
   background:
     var(--primary)

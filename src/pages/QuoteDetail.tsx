@@ -16,7 +16,7 @@ import type {
   QuoteVersion,
 } from "@/types";
 import QuoteReadonly from "@/components/QuoteReadonly";
-import { Button, EmptyState, Input, Modal, PageTitle, StatusBadge, Table, type Column } from "@/components/ui";
+import { Banner, Button, Input, Modal, PageHeader, Spinner, StatusBadge, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Check, FileSignature, Link2, Receipt, Send, Wallet, Wrench, X } from "lucide-react";
 
@@ -43,7 +43,7 @@ export default function QuoteDetail() {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
 
-  if (!q) return <EmptyState title="불러오는 중…" />;
+  if (!q) return <Spinner label="불러오는 중…" style={{ paddingTop: 64 }} />;
   const totals = calcTotals(q);
   const expired = isExpired(q);
 
@@ -105,32 +105,33 @@ export default function QuoteDetail() {
 
   return (
     <>
-      <div className="page-head no-print">
-        <PageTitle
-          title={q.quote_no}
-          badges={
-            <>
-              <StatusBadge status={q.status} />
-              {expired && <span className="badge rejected"><span className="dot" />만료</span>}
-            </>
-          }
-          sub={`${q.customer?.name || "고객 미지정"} · 총 ${won(totals.grand)}`}
-        />
-        <div className="row" style={{ gap: 8 }}>
-          {q.status === "draft" ? (
-            <Button size="sm" variant="primary" icon={<Send size={16} />} onClick={doSend}>발송 처리</Button>
-          ) : (
-            <Button size="sm" variant="secondary" icon={<Link2 size={16} />} onClick={showLink}>발송 링크</Button>
-          )}
-          <Button size="sm" onClick={() => navigate(`/editor/${q.id}`)}>편집</Button>
-          <Button size="sm" onClick={dup}>복제</Button>
-          <Button size="sm" onClick={customerView}>고객화면</Button>
-          <Button size="sm" onClick={() => window.print()}>PDF</Button>
-        </div>
-      </div>
+      <PageHeader
+        className="no-print"
+        title={q.quote_no}
+        badges={
+          <>
+            <StatusBadge status={q.status} />
+            {expired && <span className="badge rejected"><span className="dot" />만료</span>}
+          </>
+        }
+        sub={`${q.customer?.name || "고객 미지정"} · 총 ${won(totals.grand)}`}
+        action={
+          <div className="row" style={{ gap: 8 }}>
+            {q.status === "draft" ? (
+              <Button size="sm" variant="primary" icon={<Send size={16} />} onClick={doSend}>발송 처리</Button>
+            ) : (
+              <Button size="sm" variant="secondary" icon={<Link2 size={16} />} onClick={showLink}>발송 링크</Button>
+            )}
+            <Button size="sm" onClick={() => navigate(`/editor/${q.id}`)}>편집</Button>
+            <Button size="sm" onClick={dup}>복제</Button>
+            <Button size="sm" onClick={customerView}>고객화면</Button>
+            <Button size="sm" onClick={() => window.print()}>PDF</Button>
+          </div>
+        }
+      />
 
-      {q.status === "accepted" && <div className="banner ok"><Check size={16} /> 고객이 수락했습니다 — {q.customer_response?.name} · {fmtDateTime(q.responded_at)}</div>}
-      {q.status === "rejected" && <div className="banner no"><X size={16} /> 고객이 거절했습니다 — {q.customer_response?.name} · {fmtDateTime(q.responded_at)}</div>}
+      {q.status === "accepted" && <Banner variant="ok" icon={<Check size={16} />}>고객이 수락했습니다 — {q.customer_response?.name} · {fmtDateTime(q.responded_at)}</Banner>}
+      {q.status === "rejected" && <Banner variant="no" icon={<X size={16} />}>고객이 거절했습니다 — {q.customer_response?.name} · {fmtDateTime(q.responded_at)}</Banner>}
 
       {/* 전환 액션 (수락 시) — 네이비 스토리 블록 */}
       {q.status === "accepted" && (

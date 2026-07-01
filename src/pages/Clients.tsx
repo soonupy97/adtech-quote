@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { store } from "@/lib/store";
 import { downloadCSV, parseCSV, toCSV } from "@/lib/csv";
 import type { Client, Contact } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, ModalFooter, PageHeader, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Building2, X, Trash2, Pencil } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -86,13 +86,12 @@ export default function Clients() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="거래처" sub={`전체 ${list.length}곳`} />
+      <PageHeader title="거래처" sub={`전체 ${list.length}곳`} action={<>
         <Button size="sm" onClick={exportCSV}>CSV 내보내기</Button>
         <Button size="sm" onClick={() => fileRef.current?.click()}>CSV 가져오기</Button>
         <Input ref={fileRef} type="file" accept=".csv" hidden onChange={(e) => importCSV(e.target.files?.[0])} />
         <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>거래처 추가</Button>
-      </div>
+      </>} />
 
       <div className="card">
         <Table
@@ -105,7 +104,7 @@ export default function Clients() {
 
       {edit && (
         <Modal title={edit.id ? "거래처 편집" : "거래처 추가"} onClose={() => setEdit(null)} wide
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}>
+          footer={<ModalFooter loading={saving} onConfirm={save} onCancel={() => setEdit(null)} />}>
           <div className="grid cols-2">
             <Field label="상호"><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></Field>
             <Field label="사업자번호"><Input value={edit.bizno || ""} onChange={(e) => setEdit({ ...edit, bizno: e.target.value })} /></Field>

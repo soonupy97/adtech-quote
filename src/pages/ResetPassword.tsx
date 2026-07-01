@@ -4,7 +4,7 @@ import { Auth } from "@/lib/auth";
 import { passwordError } from "@/lib/password";
 import { supabase } from "@/lib/supabaseClient";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input } from "@/components/ui";
+import { Banner, Button, Field, Input } from "@/components/ui";
 import PasswordStrength from "@/components/PasswordStrength";
 import { AlertTriangle, Eye, EyeOff } from "lucide-react";
 
@@ -82,9 +82,7 @@ export default function ResetPassword() {
         ) : (
           <form onSubmit={submit} style={{ marginTop: 20 }} noValidate>
             {err && (
-              <div className="banner no" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <AlertTriangle size={16} /> <span>{err}</span>
-              </div>
+              <Banner variant="no" icon={<AlertTriangle size={16} />}>{err}</Banner>
             )}
             <Field label="새 비밀번호">
               <div className="pw-field">

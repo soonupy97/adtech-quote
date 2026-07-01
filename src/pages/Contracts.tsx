@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, fmtDate, won } from "@/lib/quote";
 import type { Contract, ContractParty, Quote, QuoteSummary } from "@/types";
-import { Button, Chip, EmptyState, Field, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Modal, ModalFooter, PageHeader, Select, Table, type Column } from "@/components/ui";
 import SignaturePad, { type SignaturePadHandle } from "@/components/SignaturePad";
 import { useToast } from "@/components/Toast";
 import { Plus, FileSignature, Check, Trash2, PenLine } from "lucide-react";
@@ -106,10 +106,7 @@ export default function Contracts() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="전자계약" sub={`수락된 견적을 계약서로 전환 · ${list.length}건`} />
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>계약 생성</Button>
-      </div>
+      <PageHeader title="전자계약" sub={`수락된 견적을 계약서로 전환 · ${list.length}건`} action={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>계약 생성</Button>} />
 
       <div className="card">
         <Table
@@ -122,7 +119,7 @@ export default function Contracts() {
 
       {creating && (
         <Modal title="계약 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<ModalFooter confirmLabel="생성" loading={busy} onConfirm={create} onCancel={() => setCreating(false)} />}>
           <Field label="수락된 견적 선택">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />
@@ -133,7 +130,7 @@ export default function Contracts() {
 
       {signing && (
         <Modal title={`${signing.c.parties[signing.idx].role} (${signing.c.parties[signing.idx].name}) 서명`} onClose={() => setSigning(null)}
-          footer={<><Button variant="primary" loading={busy} onClick={doSign}>서명 완료</Button><Button disabled={busy} onClick={() => sigRef.current?.clear()}>지우기</Button><Button variant="outline" disabled={busy} onClick={() => setSigning(null)}>취소</Button></>}>
+          footer={<ModalFooter confirmLabel="서명 완료" loading={busy} onConfirm={doSign} onCancel={() => setSigning(null)}><Button disabled={busy} onClick={() => sigRef.current?.clear()}>지우기</Button></ModalFooter>}>
           <SignaturePad ref={sigRef} />
         </Modal>
       )}

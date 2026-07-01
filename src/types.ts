@@ -2,16 +2,18 @@
 
 export type QuoteStatus = "draft" | "sent" | "viewed" | "accepted" | "rejected";
 export type EventType = "created" | "sent" | "viewed" | "accepted" | "rejected";
-export type Grade = "일반" | "고급" | "수입";
 export type AdjMode = "pct" | "amt";
 
 export interface Supplier {
   name: string;
   bizno: string;
   ceo: string;
+  uptae?: string; // 업태 (예: 서비스, 제조, 도소매)
+  upjong?: string; // 업종/종목 (예: 광고업, 옥외광고)
   addr: string;
   tel: string;
   manager: string;
+  logoUrl?: string; // 발송 시점의 회사 로고(base64) 스냅샷 — 익명 링크 미리보기(og-image)용
 }
 
 export interface Customer {
@@ -31,7 +33,6 @@ export interface QuoteItem {
   type: string;
   w: string; // 가로(m, 문자)
   h: string; // 세로(m, 문자)
-  grade: Grade;
   price: number;
   qty: number;
   parts: Record<string, number>; // 부품 수량 메모(금액 비반영)
@@ -173,7 +174,6 @@ export interface PriceTier {
 export interface CatalogItem {
   id: string;
   type: string;
-  grade: Grade;
   unit: string;
   price: number;
   memo: string;
@@ -194,9 +194,7 @@ export interface Settings {
   terms?: { standard?: string; as?: string; disclaimer?: string };
   discountRules?: DiscountRule[];
   promoCodes?: PromoCode[];
-  approval?: { enabled?: boolean; amountGte?: number; discountPctGte?: number };
   integrations?: Integrations;
-  myRole?: Role;
   coverLetter?: string;
   menuHidden?: string[]; // 사이드바에서 숨길 메뉴 경로(to) 목록
   units?: UnitSettings;

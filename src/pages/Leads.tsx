@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { fmtDate } from "@/lib/quote";
 import type { Lead, LeadStage } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, ModalFooter, PageHeader, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Inbox, Trash2, Pencil, FileText } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -91,10 +91,7 @@ export default function Leads() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="리드 · 영업" sub={`외부 문의 등록·견적 전환과 파이프라인 · ${list.length}건`} />
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>문의 등록</Button>
-      </div>
+      <PageHeader title="리드 · 영업" sub={`외부 문의 등록·견적 전환과 파이프라인 · ${list.length}건`} action={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setEdit({ ...empty })}>문의 등록</Button>} />
 
       <div className="tabs">
         <button className="btn" data-size="sm" data-variant={view === "list" ? "primary" : "secondary"} onClick={() => setView("list")}>리스트</button>
@@ -147,7 +144,7 @@ export default function Leads() {
         <Modal
           title={edit.id ? "문의 편집" : "문의 등록"}
           onClose={() => setEdit(null)}
-          footer={<><Button variant="primary" loading={saving} onClick={save}>저장</Button><Button variant="outline" disabled={saving} onClick={() => setEdit(null)}>취소</Button></>}
+          footer={<ModalFooter loading={saving} onConfirm={save} onCancel={() => setEdit(null)} />}
         >
           <Field label="고객명"><Input value={edit.customerName} onChange={(e) => setEdit({ ...edit, customerName: e.target.value })} /></Field>
           <Field label="연락처"><Input value={edit.tel} onChange={(e) => setEdit({ ...edit, tel: e.target.value })} /></Field>

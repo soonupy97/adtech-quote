@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { won } from "@/lib/quote";
 import type { CalendarColor, CalendarEvent, Payment, Signage, WorkOrder } from "@/types";
-import { Button, Chip, EmptyState, Field, Input, Modal, PageTitle, Select, Table, Textarea, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Input, Modal, PageHeader, Select, Table, Textarea, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 
@@ -163,14 +163,13 @@ export default function CalendarPage() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="일정" sub="설치 예정 · 입금 납기 · 광고물 만료 + 직접 등록 일정" />
+      <PageHeader title="일정" sub="설치 예정 · 입금 납기 · 광고물 만료 + 직접 등록 일정" action={<>
         <Button size="sm" onClick={() => setCur({ y: today.getFullYear(), m: today.getMonth() })}>오늘</Button>
         <Button size="sm" icon={<ChevronLeft size={16} />} onClick={() => move(-1)} />
         <strong style={{ minWidth: 96, textAlign: "center" }}>{cur.y}.{String(cur.m + 1).padStart(2, "0")}</strong>
         <Button size="sm" icon={<ChevronRight size={16} />} onClick={() => move(1)} />
         <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => openAdd(todayStr)}>일정 추가</Button>
-      </div>
+      </>} />
 
       <div className="card">
         <div className="row wrap" style={{ gap: 16, marginBottom: 12 }}>

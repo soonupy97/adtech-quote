@@ -2,6 +2,7 @@ import { Minus, Plus } from "lucide-react";
 import type { Quote } from "@/types";
 import { calcTotals, fmtDate, itemAmount, won } from "@/lib/quote";
 import { areaInSqm, dimLabel } from "@/lib/units";
+import { InfoBox, KeyValue } from "@/components/ui";
 
 // 견적 전문 읽기전용 렌더 (§14.2 renderReadonly → 컴포넌트)
 export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
@@ -21,25 +22,25 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
       </div>
 
       <div className="twocol">
-        <div className="box">
-          <div className="bt">공급자</div>
-          <div className="kv"><span className="k">상호</span><span>{q.supplier?.name || "-"}</span></div>
-          <div className="kv"><span className="k">사업자</span><span>{q.supplier?.bizno || "-"}</span></div>
-          <div className="kv"><span className="k">대표</span><span>{q.supplier?.ceo || "-"}</span></div>
-          <div className="kv"><span className="k">주소</span><span>{q.supplier?.addr || "-"}</span></div>
-          <div className="kv"><span className="k">연락처</span><span>{q.supplier?.tel || "-"}</span></div>
-          <div className="kv"><span className="k">담당</span><span>{q.supplier?.manager || "-"}</span></div>
-        </div>
-        <div className="box">
-          <div className="bt">공급받는자 (고객)</div>
-          <div className="kv"><span className="k">상호/성함</span><span>{q.customer?.name || "-"}</span></div>
-          <div className="kv"><span className="k">연락처</span><span>{q.customer?.tel || "-"}</span></div>
-          <div className="kv"><span className="k">주소</span><span>{q.customer?.addr || "-"}</span></div>
+        <InfoBox title="공급자">
+          <KeyValue k="상호">{q.supplier?.name}</KeyValue>
+          <KeyValue k="사업자">{q.supplier?.bizno}</KeyValue>
+          <KeyValue k="대표">{q.supplier?.ceo}</KeyValue>
+          <KeyValue k="주소">{q.supplier?.addr}</KeyValue>
+          <KeyValue k="연락처">{q.supplier?.tel}</KeyValue>
+          <KeyValue k="담당">{q.supplier?.manager}</KeyValue>
+          <KeyValue k="업종">{q.supplier?.upjong}</KeyValue>
+          <KeyValue k="업태">{q.supplier?.uptae}</KeyValue>
+        </InfoBox>
+        <InfoBox title="공급받는자 (고객)">
+          <KeyValue k="상호/성함">{q.customer?.name}</KeyValue>
+          <KeyValue k="연락처">{q.customer?.tel}</KeyValue>
+          <KeyValue k="주소">{q.customer?.addr}</KeyValue>
           <div className="bt" style={{ marginTop: 12 }}>현장</div>
-          <div className="kv"><span className="k">층/위치</span><span>{q.site?.floor || "-"}</span></div>
-          <div className="kv"><span className="k">설치높이</span><span>{q.site?.height || "-"}</span></div>
-          <div className="kv"><span className="k">도로/접면</span><span>{q.site?.road || "-"}</span></div>
-        </div>
+          <KeyValue k="층/위치">{q.site?.floor}</KeyValue>
+          <KeyValue k="설치높이">{q.site?.height}</KeyValue>
+          <KeyValue k="도로/접면">{q.site?.road}</KeyValue>
+        </InfoBox>
       </div>
 
       <div className="table-wrap" style={{ marginBottom: 20 }}>
@@ -49,7 +50,6 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
               <th>광고물</th>
               <th>규격(가로×세로)</th>
               <th>면적</th>
-              <th>등급</th>
               <th className="amt">단가</th>
               <th className="amt">수량</th>
               <th className="amt">금액</th>
@@ -63,7 +63,6 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
                   <td>{it.type}</td>
                   <td>{it.w || it.h ? `${it.w || "-"} × ${it.h || "-"} ${dimLabel(q.dimUnit)}` : "-"}</td>
                   <td>{area ? `${area} ㎡` : "-"}</td>
-                  <td>{it.grade}</td>
                   <td className="amt">{won(it.price)}</td>
                   <td className="amt">{it.qty}</td>
                   <td className="amt">{won(itemAmount(it))}</td>
@@ -138,19 +137,17 @@ export default function QuoteReadonly({ quote: q }: { quote: Quote }) {
       </div>
 
       {(q.paymentTerms?.deposit || q.paymentTerms?.balance || q.paymentTerms?.as) && (
-        <div className="box" style={{ marginTop: 20 }}>
-          <div className="bt">결제 조건</div>
-          {q.paymentTerms?.deposit && <div className="kv"><span className="k">계약금</span><span>{q.paymentTerms.deposit}</span></div>}
-          {q.paymentTerms?.balance && <div className="kv"><span className="k">잔금</span><span>{q.paymentTerms.balance}</span></div>}
-          {q.paymentTerms?.as && <div className="kv"><span className="k">A/S</span><span>{q.paymentTerms.as}</span></div>}
-        </div>
+        <InfoBox title="결제 조건" style={{ marginTop: 20 }}>
+          {q.paymentTerms?.deposit && <KeyValue k="계약금">{q.paymentTerms.deposit}</KeyValue>}
+          {q.paymentTerms?.balance && <KeyValue k="잔금">{q.paymentTerms.balance}</KeyValue>}
+          {q.paymentTerms?.as && <KeyValue k="A/S">{q.paymentTerms.as}</KeyValue>}
+        </InfoBox>
       )}
 
       {q.notes && (
-        <div className="box" style={{ marginTop: 16 }}>
-          <div className="bt">비고</div>
+        <InfoBox title="비고" style={{ marginTop: 16 }}>
           <div style={{ whiteSpace: "pre-wrap", color: "var(--text-2)" }}>{q.notes}</div>
-        </div>
+        </InfoBox>
       )}
     </div>
   );

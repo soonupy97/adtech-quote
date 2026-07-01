@@ -36,6 +36,13 @@
   letter-spacing: -0.02em;
   margin-bottom: 1rem;
 }
+// CardHeader: 헤더 행에서는 제목 하단 마진 제거 + 보조문구 소형화
+.card-title.flush {
+  margin-bottom: 0;
+}
+.card-hd-note {
+  font-size: 0.75rem;
+}
 .card-sub {
   font-family: var(--font-sans);
   font-size: 0.75rem;
@@ -49,7 +56,15 @@
 // ── 입력 (흰 배경 + 헤어라인 + 포커스 링) ──────────────────
 label.field {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem; // 세로 리듬을 그리드 gap(1rem)과 동일하게 통일
+}
+// 그리드 안의 필드는 gap 이 간격을 담당 → 개별 margin 제거(행 간격 이중 적용 방지)
+.grid .field {
+  margin-bottom: 0;
+}
+// 그리드 바로 뒤에 오는 단독 필드는 gap 이 없으므로 동일 간격을 margin-top 으로 보정
+.grid + .field {
+  margin-top: 1rem;
 }
 label.field > span {
   display: block;
@@ -69,12 +84,12 @@ textarea {
   border-radius: var(--r-md);
   padding: 0.75rem 1rem;
   font-size: 1rem;
+  line-height: 1.45; // 커스텀 Select(.select-trigger)와 높이를 정확히 일치시키기 위해 명시
   font-family: inherit;
   font-weight: 400;
   outline: none;
   transition: box-shadow 0.12s, border-color 0.12s;
 }
-input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--ink);
@@ -86,7 +101,6 @@ textarea[aria-invalid="true"],
 select[aria-invalid="true"] {
   border-color: var(--danger);
 }
-input[aria-invalid="true"]:focus,
 textarea[aria-invalid="true"]:focus,
 select[aria-invalid="true"]:focus {
   border-color: var(--danger);
@@ -111,7 +125,7 @@ textarea {
   font-size: 1rem;
   font-family: inherit;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.45; // 네이티브 input 과 높이 정확히 일치
   text-align: left;
   cursor: pointer;
   outline: none;
@@ -123,7 +137,6 @@ textarea {
 .select-trigger:focus-visible,
 .select-trigger.open {
   border-color: var(--ink);
-  box-shadow: 0 0 0 2px var(--ink) inset;
 }
 .select-trigger:disabled {
   opacity: 0.55;
@@ -150,13 +163,43 @@ textarea {
 
 .select-panel {
   z-index: 1000;
-  overflow-y: auto;
+  display: flex;
+  padding: 0.25rem;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--canvas);
   border: 1px solid var(--hairline);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-2);
-  padding: 0.25rem;
   animation: selectIn 0.1s ease-out;
+}
+.select-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+// 목록이 넘쳐 스크롤바가 생길 때만 오른쪽 여백 확보
+.select-list.has-scroll {
+  padding-right: 0.25rem;
+}
+// 긴 목록용 검색란 — 스크롤해도 상단에 고정
+.select-search {
+  flex: 0 0 auto;
+  margin-bottom: 0.25rem;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--hairline);
+}
+.select-search input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+.select-search input:focus {
+  border: none;
+  box-shadow: none;
 }
 @keyframes selectIn {
   from { opacity: 0; transform: translateY(-0.25rem); }
@@ -172,6 +215,10 @@ textarea {
   color: var(--ink);
   cursor: pointer;
   user-select: none;
+}
+// "＋ 직접 입력 추가" 행 — 장식색 없이 굵기로만 구분
+.select-option.select-create {
+  font-weight: 500;
 }
 .select-option-label {
   flex: 1;
@@ -264,11 +311,27 @@ textarea::placeholder {
   opacity: 0.75;
   cursor: wait;
 }
-.btn .spin {
+// 회전 애니메이션 — 버튼뿐 아니라 어디서든(Spinner 컴포넌트 등) 동작하도록 전역.
+.spin {
   animation: spin 0.7s linear infinite;
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+// 범용 로딩 스피너 (Spinner 컴포넌트)
+.spinner {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-3);
+}
+.spinner-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-3);
+  font-size: 0.875rem;
 }
 // ── 버튼 변형 (data-variant · 모노크롬 코어 + danger 시맨틱) ──
 // 기본 .btn 자체가 secondary(회색 솔리드). 아래는 data-variant 로 지정하는 그 외 변형.
@@ -421,11 +484,8 @@ textarea::placeholder {
 .table tr:last-child td {
   border-bottom: none;
 }
-.table tbody tr:hover {
-  background: var(--fill-2);
-}
 .table .amt {
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
 }
 .table a.link {
@@ -437,6 +497,31 @@ textarea::placeholder {
 }
 .table-wrap {
   overflow-x: auto;
+}
+
+// ── 품목 표 입력 너비 (입력 특성별 min/max) ───────────────────
+// 종류: 긴 품목명이 보이도록 최소폭 확보, 지나치게 넓어지지 않게 상한
+.field-type {
+  min-width: 9.5rem; // ~150px
+  max-width: 13.75rem; // ~220px
+}
+// 가로·세로: 4~5자리 숫자
+.field-dim {
+  width: 4.5rem;
+  min-width: 4rem;
+  max-width: 6rem;
+}
+// 단가: "10,000,000" 등 큰 금액까지 수용
+.field-price {
+  width: 8rem;
+  min-width: 7rem;
+  max-width: 11rem;
+}
+// 수량: 소수 포함 소수 자리
+.field-qty {
+  width: 4rem;
+  min-width: 3.5rem;
+  max-width: 5.5rem;
 }
 
 // ── 토글 카드 ──────────────────────────────────────────────
@@ -451,10 +536,13 @@ textarea::placeholder {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: var(--r-md);
-  background: var(--surface-soft);
-  border: 1px solid transparent;
+  background: var(--surface-soft); // 미선택 타일 — 살짝 연해진 오프크림
+  border: 1px solid var(--hairline-soft);
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
+}
+.toggle:hover {
+  border-color: var(--hairline);
 }
 .toggle.on {
   background: var(--block-lilac);
@@ -545,9 +633,9 @@ textarea::placeholder {
 // ── 하단 액션바 ────────────────────────────────────────────
 .actionbar {
   position: sticky;
-  bottom: 0;
+  bottom: 32px;
   z-index: 20;
-  margin: 1.5rem -1px -1px;
+  margin-top: 1.5rem;
   padding: 1rem 1.25rem;
   background: var(--canvas);
   border: 1px solid var(--hairline);
@@ -809,6 +897,10 @@ textarea::placeholder {
 .banner.ok { background: var(--block-mint); }
 .banner.no { background: var(--block-pink); }
 .banner.info { background: var(--block-lilac); }
+// Banner 컴포넌트: 아이콘이 있으면 아이콘·텍스트를 flex 로 정렬
+.banner.has-icon { display: flex; align-items: center; gap: 0.5rem; }
+.banner.has-icon.align-start { align-items: flex-start; }
+.banner .lucide { flex-shrink: 0; }
 
 // 수주율 링 (모노크롬)
 .ring {

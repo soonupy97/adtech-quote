@@ -93,9 +93,9 @@ export default function HeaderSearch() {
       .slice(0, PER_GROUP)
       .map((x) => ({ type: "lead", label: x.customerName, sub: [x.stage, x.tel].filter(Boolean).join(" · "), to: "/leads" }));
     const catalog: Hit[] = data.catalog
-      .filter((x) => has(norm([x.type, x.grade, x.unit, x.memo].join(" "))))
+      .filter((x) => has(norm([x.type, x.unit, x.memo].join(" "))))
       .slice(0, PER_GROUP)
-      .map((x) => ({ type: "catalog", label: x.type, sub: [x.grade, x.unit].filter(Boolean).join(" · "), to: "/catalog" }));
+      .map((x) => ({ type: "catalog", label: x.type, sub: [x.unit].filter(Boolean).join(" · "), to: "/catalog" }));
     const signage: Hit[] = data.signage
       .filter((x) => has(norm([x.name, x.customer, x.address, x.type].join(" "))))
       .slice(0, PER_GROUP)

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { store } from "@/lib/store";
 import { calcTotals, fmtDate, won } from "@/lib/quote";
 import type { Invoice, Quote, QuoteSummary } from "@/types";
-import { Button, Chip, EmptyState, Field, Modal, PageTitle, Select, Table, type Column } from "@/components/ui";
+import { Button, Chip, EmptyState, Field, Modal, ModalFooter, PageHeader, Select, Table, type Column } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { Plus, Receipt, Trash2, Send } from "lucide-react";
 import RowMenu from "@/components/RowMenu";
@@ -71,10 +71,7 @@ export default function Invoices() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="세금계산서" sub={`수주 건의 전자세금계산서 발행 · ${list.length}건`} />
-        <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>계산서 생성</Button>
-      </div>
+      <PageHeader title="세금계산서" sub={`수주 건의 전자세금계산서 발행 · ${list.length}건`} action={<Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={() => setCreating(true)}>계산서 생성</Button>} />
 
       <div className="card">
         <Table
@@ -87,7 +84,7 @@ export default function Invoices() {
 
       {creating && (
         <Modal title="세금계산서 생성" onClose={() => setCreating(false)}
-          footer={<><Button variant="primary" loading={busy} onClick={create}>생성</Button><Button variant="outline" disabled={busy} onClick={() => setCreating(false)}>취소</Button></>}>
+          footer={<ModalFooter confirmLabel="생성" loading={busy} onConfirm={create} onCancel={() => setCreating(false)} />}>
           <Field label="수주(수락) 견적">
             <Select value={pick} onChange={setPick} placeholder="선택…"
               options={quotes.map((q) => ({ value: q.id, label: `${q.quote_no} · ${q.customer} · ${won(q.grand)}` }))} />

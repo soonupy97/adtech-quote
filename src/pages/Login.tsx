@@ -5,7 +5,7 @@ import { passwordError } from "@/lib/password";
 import { verifyEmailDeliverable } from "@/lib/email";
 import { isInAppBrowser } from "@/lib/share";
 import { useToast } from "@/components/Toast";
-import { Button, Field, Input } from "@/components/ui";
+import { Banner, Button, Field, Input } from "@/components/ui";
 import Modal from "@/components/Modal";
 import PasswordStrength from "@/components/PasswordStrength";
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Mail } from "lucide-react";
@@ -399,11 +399,11 @@ export default function Login() {
           {mode === "resetPw" && sent ? (
             /* 재설정 메일 발송 완료 */
             <div style={{ marginTop: 20 }}>
-              <div className="banner ok" style={{ display: "block" }}>
+              <Banner variant="ok">
                 <CheckCircle2 size={16} /> <strong>{email}</strong> 주소로 재설정 메일을 보냈습니다.
                 <br />
                 메일의 링크를 눌러 새 비밀번호를 설정해 주세요. (메일이 안 보이면 스팸함도 확인)
-              </div>
+              </Banner>
               <Button size="lg" block disabled={cooldown > 0 || busy} onClick={resendReset}>
                 {cooldown > 0 ? `재발송 (${cooldown}초)` : "메일 재발송"}
               </Button>
@@ -414,11 +414,11 @@ export default function Login() {
           ) : verifyEmail ? (
             /* 가입/로그인 시 이메일 인증 대기 안내 */
             <div style={{ marginTop: 20 }}>
-              <div className="banner info" style={{ display: "block" }}>
+              <Banner variant="info">
                 <Mail size={16} /> <strong>{verifyEmail}</strong> 주소로 인증 메일을 보냈습니다.
                 <br />
                 메일의 링크를 눌러 인증을 완료한 뒤 로그인해 주세요. (메일이 안 보이면 스팸함도 확인)
-              </div>
+              </Banner>
               <Button variant="primary" size="lg" block disabled={cooldown > 0 || busy} onClick={resendVerify}>
                 {cooldown > 0 ? `재발송 (${cooldown}초)` : "인증 메일 재발송"}
               </Button>
@@ -429,7 +429,7 @@ export default function Login() {
           ) : mode === "findEmail" && foundEmails ? (
             /* 이메일 찾기 결과(마스킹) */
             <div style={{ marginTop: 20 }}>
-              <div className="banner ok" style={{ display: "block" }}>
+              <Banner variant="ok">
                 <CheckCircle2 size={16} /> <strong>{name}</strong> 님으로 가입된 이메일입니다.
                 <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>
                   {foundEmails.map((em) => (
@@ -439,7 +439,7 @@ export default function Login() {
                 <div className="eyebrow" style={{ marginTop: 8, textTransform: "none", letterSpacing: 0 }}>
                   보안을 위해 이메일 일부를 가렸습니다.
                 </div>
-              </div>
+              </Banner>
               <Button variant="primary" size="lg" block onClick={() => goMode("login")}>
                 로그인하기
               </Button>
@@ -451,13 +451,9 @@ export default function Login() {
             <>
               {/* 서버 오류 배너 */}
               {err && (
-                <div
-                  className="banner no"
-                  role="alert"
-                  style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}
-                >
-                  <AlertTriangle size={16} /> <span>{err}</span>
-                </div>
+                <Banner variant="no" role="alert" icon={<AlertTriangle size={16} />} style={{ marginTop: 16 }}>
+                  {err}
+                </Banner>
               )}
 
               <form onSubmit={submit} style={{ marginTop: 20 }} noValidate>

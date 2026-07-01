@@ -1,0 +1,95 @@
+// ─────────────────────────────────────────────────────────────
+// reset — 브라우저 기본값 정규화 (Andy Bell / Josh Comeau 계열)
+// index.scss에서 "가장 먼저" 로드되어, 이후 파셜(base·components…)이 앱 스타일로 덮어쓴다.
+// 따라서 여기 값과 겹치면 항상 뒤에 오는 파셜이 승리한다(안전한 저수준 기본값).
+// ─────────────────────────────────────────────────────────────
+
+// 1) box-sizing 일원화 — 패딩/보더가 width에 포함(레이아웃 예측 가능)
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// 2) 블록 요소 기본 마진 제거 — UA 기본 여백 의존 제거(간격은 명시적으로만)
+body,
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote,
+dl, dd,
+ul, ol,
+pre {
+  margin: 0;
+}
+
+// 3) 루트 기본값
+html {
+  -webkit-text-size-adjust: 100%; // iOS 가로모드 자동 폰트 확대 방지
+  text-size-adjust: 100%;
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
+// 4) 본문 코어 — 전체 높이 확보(실제 폰트·색·줄높이는 base가 지정)
+body {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+}
+
+// 5) 미디어: 컨테이너 넘침 방지 + 블록 정렬(svg는 인라인 아이콘 보존 위해 제외)
+img,
+picture,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+svg {
+  max-width: 100%;
+}
+
+// 6) 폼 요소: 폰트·색 상속(UA 기본 회색/작은 폰트 제거)
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+// 7) 버튼 커서
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+// 8) 긴 단어/URL 줄바꿈 — 가로 overflow 방지
+p, h1, h2, h3, h4, h5, h6, li, dd {
+  overflow-wrap: break-word;
+}
+
+// 9) 테이블 정렬 초기화
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+// 10) 표준 hidden 속성 존중
+[hidden] {
+  display: none !important;
+}
+
+// 11) 모션 최소화 선호(prefers-reduced-motion) 존중 — 접근성
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

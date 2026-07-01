@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { store } from "@/lib/store";
 import { fmtDate, sampleQuote, won } from "@/lib/quote";
 import type { QuoteStatus, QuoteSummary } from "@/types";
-import { Button, EmptyState, Input, Modal, PageTitle, StatusBadge, Table, type Column } from "@/components/ui";
+import { Button, EmptyState, Input, Modal, PageHeader, StatusBadge, Table, type Column } from "@/components/ui";
 import CopyLinkField from "@/components/CopyLinkField";
 import { useToast } from "@/components/Toast";
 import { FileText, GripVertical, Link2, Plus, Search, Send, Trash2, Pencil, Copy } from "lucide-react";
@@ -147,10 +147,7 @@ export default function Quotes() {
 
   return (
     <>
-      <div className="page-head">
-        <PageTitle title="견적" sub={`전체 ${list.length}건`} />
-        <Link className="btn" data-variant="primary" data-size="sm" to="/editor"><Plus size={14} />새 견적</Link>
-      </div>
+      <PageHeader title="견적" sub={`전체 ${list.length}건`} action={<Link className="btn" data-variant="primary" data-size="sm" to="/editor"><Plus size={14} />새 견적</Link>} />
 
       <div className="tabs">
         <Button size="sm" variant={view === "list" ? "primary" : "secondary"} onClick={() => setView("list")}>리스트</Button>
